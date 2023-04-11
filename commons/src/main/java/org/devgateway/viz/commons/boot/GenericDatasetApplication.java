@@ -42,7 +42,9 @@ public class GenericDatasetApplication implements CommandLineRunner {
     @Autowired
     DatasetService datasetService;
 
-    public GenericDatasetApplication(final BaseCSVImporter importer, final DatasetRecordService datasetRecordService, final GenericConfigService configService) {
+    public GenericDatasetApplication(final BaseCSVImporter importer,
+                                     final DatasetRecordService datasetRecordService,
+                                     final GenericConfigService configService) {
         this.importer = importer;
         this.datasetRecordService = datasetRecordService;
         this.configService = configService;
