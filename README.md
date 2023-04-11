@@ -1,2 +1,2 @@
-***REMOVED*** tcdi-api-common
-Common Elements of TCDI API
+***REMOVED*** data-viz-api
+Common API code
