@@ -26,16 +26,16 @@ public class GenericDatasetApplication implements CommandLineRunner {
 
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
-    @Value("${tcdi.initial.config}")
+    @Value("${viz.initial.config}")
     Boolean initialConfig = true;
 
-    @Value("${tcdi.startup.import}")
+    @Value("${viz.startup.import}")
     Boolean startupImport = false;
 
-    @Value("${tcdi.import.directory}")
+    @Value("${viz.import.directory}")
     String importDirectory;
 
-    @Value("${tcdi.date.format}")
+    @Value("${viz.date.format}")
     String format;
 
 
