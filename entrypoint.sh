@@ -12,7 +12,7 @@
     done < <(env -0)
 
     while IFS='=' read -r -d '' n v; do
-        if [[ $n == TCDI_* ]]; then
+        if [[ $n == VIZ_* ]]; then
 				  VAR_NAME="$(echo "$n" | tr '[:upper:]_' '[:lower:].')"
 				  echo "$VAR_NAME=$v" >> $PROP_FILE
 			  fi
