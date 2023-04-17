@@ -19,7 +19,7 @@ import java.util.Locale;
 @Service
 public class AITranslationService {
 
-    @Value("${tcdi.ai.translation.key}")
+    @Value("${viz.ai.translation.key}")
     String key;
     private static final Logger logger = LoggerFactory.getLogger(AITranslationService.class);
 
