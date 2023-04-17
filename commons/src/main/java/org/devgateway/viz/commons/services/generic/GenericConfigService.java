@@ -36,7 +36,7 @@ public abstract class GenericConfigService<S> {
     private static final Logger logger = LoggerFactory.getLogger(GenericConfigService.class);
 
     protected Class<S> annotatedClass;
-    @Value("${tcdi.translations.enabled}")
+    @Value("${viz.translations.enabled}")
     private boolean isTranslationEnabled;
 
     public GenericConfigService(Class<S> annotatedClass) {
