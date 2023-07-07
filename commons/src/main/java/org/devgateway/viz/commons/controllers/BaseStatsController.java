@@ -58,7 +58,7 @@ public class BaseStatsController<S extends GenericStatsAPIServiceBase> extends C
                 .findFirst()
                 .map(StackWalker.StackFrame::getMethodName));
 
-        logger.info("------- "+methodName + " ----");
+        logger.info("------- " + methodName + " ----");
 
         return new ResponseEntity<>(service.stats(allParams, new ArrayList<>()), HttpStatus.OK);
     }
@@ -70,7 +70,7 @@ public class BaseStatsController<S extends GenericStatsAPIServiceBase> extends C
                 .findFirst()
                 .map(StackWalker.StackFrame::getMethodName));
 
-        logger.info("------- "+methodName + " ----");
+        logger.info("------- " + methodName + " ----");
 
         String dimensions = req.getRequestURI().substring(req.getRequestURI().indexOf("stats") + 6);
         List dms = new ArrayList();
