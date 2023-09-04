@@ -22,10 +22,16 @@
     echo "................. Properties ................."
     cat $PROP_FILE
     echo "................. End sou ................."
+
     MODULE="$1"
 		shift
 		JAR="$MODULE-0.0.1-SNAPSHOT.jar"
-		JAVA_OPTS="--spring.config.location=file://$PROP_FILE"
+		JAVA_OPTS="$JAVA_OPTS --spring.config.location=file://$PROP_FILE"
+
+		echo "--- JAVA_OPTS ---"
+		echo "$JAVA_OPTS"
+		echo "--- JAVA_OPTS ---"
+
 		exec su -s /bin/sh -c "java -jar '$JAR' $JAVA_OPTS $@" nobody
 		;;
 	*)
