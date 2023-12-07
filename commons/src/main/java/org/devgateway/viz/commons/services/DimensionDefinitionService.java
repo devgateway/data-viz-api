@@ -81,6 +81,10 @@ public class DimensionDefinitionService {
         return this.dimensionDefinitionRepository.findByCode(code);
     }
 
+    public DimensionDefinition getDimensionDefinitionByFieldType(final String type) {
+        return this.dimensionDefinitionRepository.findByFieldType(type);
+    }
+
     public DimensionDefinition updateDimensionDefinition(final Long id, final DimensionDefinitionRequest dimensionDefinitionRequest) {
         DimensionDefinition dimensionDefinition = this.dimensionDefinitionRepository.findById(id).get();
         if (dimensionDefinition == null) {
