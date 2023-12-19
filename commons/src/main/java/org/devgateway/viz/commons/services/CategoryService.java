@@ -1,12 +1,18 @@
 package org.devgateway.viz.commons.services;
 
 import com.google.common.collect.ImmutableList;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+import javax.persistence.Query;
 import org.apache.commons.lang3.StringUtils;
 import org.devgateway.viz.commons.domain.Category;
+import org.devgateway.viz.commons.domain.DatasetRecord;
 import org.devgateway.viz.commons.domain.Language;
 import org.devgateway.viz.commons.domain.LocaleText;
 import org.devgateway.viz.commons.domain.QCategory;
 import org.devgateway.viz.commons.domain.Styles;
+import org.devgateway.viz.commons.domain.metadata.DimensionDefinition;
+import org.devgateway.viz.commons.pojo.Dimension;
 import org.devgateway.viz.commons.pojo.request.CategoryRequest;
 import org.devgateway.viz.commons.repositories.CategoryRepository;
 import org.slf4j.Logger;
@@ -26,6 +32,12 @@ import java.util.stream.Collectors;
 @Service
 public class CategoryService {
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
+
+    @PersistenceContext
+    private EntityManager em;
+
+    @Autowired
+    private DimensionDefinitionService dimensionDefinitionService;
 
     private final static List<String> NOT_ALLOWED_CATEGORIES_TYPES_FOR_EDITING =
             ImmutableList.of("MeasureDefinition", "DimensionDefinition", "FilterDefinition", "MeasureGroup", "Dataset");
@@ -224,5 +236,26 @@ public class CategoryService {
         }
 
         return null;
+    }
+
+    /**
+     * Look for categories that are not in use in any DatasetRecord (the main entity in the API) and delete them.
+     */
+    public void clearCategories() {
+        List<Dimension> dimensions = dimensionDefinitionService.getDimensions();
+        List<String> dimensionTypes = dimensions.stream().map(m -> m.getType()).collect(Collectors.toList());
+        Query query = em.createQuery("select c from Category c where c.type in :types")
+                .setParameter("types", dimensionTypes);
+        List<Category> categories = query.getResultList();
+        categories.forEach(c -> {
+            DimensionDefinition dimensionDefinition = dimensionDefinitionService.getDimensionDefinitionByFieldType(c.getType());
+            String fieldName = dimensionDefinition.getField();
+            DatasetRecord item = (DatasetRecord) em.createQuery("select d from DatasetRecord d where d." + fieldName + ".id = :id")
+                    .setParameter("id", c.getId()).getResultList().stream().findFirst().orElse(null);
+            if (item == null) {
+                logger.info("Category " + c.getValue() + " is NOT used in any item. Deleting...");
+                categoryRepository.delete(c);
+            }
+        });
     }
 }
