@@ -14,5 +14,7 @@ public interface DimensionDefinitionRepository extends JpaRepository<DimensionDe
 
     DimensionDefinition findByCode(String code);
 
+    DimensionDefinition findByFieldType(String type);
+
     List<DimensionDefinition> findAllByFieldTypeNotLike(String type);
 }

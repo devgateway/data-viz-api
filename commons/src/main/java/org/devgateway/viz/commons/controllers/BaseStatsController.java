@@ -1,5 +1,6 @@
 package org.devgateway.viz.commons.controllers;
 
+import org.devgateway.viz.commons.services.CategoryService;
 import org.devgateway.viz.commons.services.DimensionDefinitionService;
 import org.devgateway.viz.commons.services.FilterDefinitionService;
 import org.devgateway.viz.commons.services.MeasureDefinitionService;
@@ -33,6 +34,9 @@ public class BaseStatsController<S extends GenericStatsAPIServiceBase> extends C
 
     @Autowired
     private FilterDefinitionService filterDefinitionService;
+    
+    @Autowired
+    private CategoryService categoryService;
 
     public BaseStatsController(S service, Class entityClass) {
         this.service = service;
@@ -93,5 +97,11 @@ public class BaseStatsController<S extends GenericStatsAPIServiceBase> extends C
     @GetMapping(value = "/measures")
     public ResponseEntity getMeasures() {
         return new ResponseEntity(measureDefinitionService.getMeasures(), HttpStatus.OK);
+    }
+    
+    @GetMapping(value = "/clearCategories")
+    public ResponseEntity clearCategories() {
+        categoryService.clearCategories();
+        return new ResponseEntity(null, HttpStatus.OK);
     }
 }
