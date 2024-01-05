@@ -1,42 +1,30 @@
 package org.devgateway.viz.commons.controllers;
 
-import org.devgateway.viz.commons.domain.Category;
 import org.devgateway.viz.commons.pojo.CategoryResponse;
-import org.devgateway.viz.commons.services.CategoryService;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.devgateway.viz.commons.services.generic.GenericCategoryService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.RequestParam;
 
+import javax.servlet.http.HttpServletRequest;
 import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
+import java.util.Map;
 
-@RestController
-@CrossOrigin("*")
-public class CategoryController extends Controller {
+public class CategoryController<S extends GenericCategoryService>  extends Controller {
 
-    @Autowired
-    private CategoryService categoryService;
+    private S service;
 
-    @GetMapping("/categories")
-    public ResponseEntity<Collection<CategoryResponse>> getCategories() {
+    private Class entityClass;
 
-        List<Category> categories = categoryService.getAllCategories();
-
-        HashMap<String, CategoryResponse> categoriesMap = new HashMap<>();
-
-        categories.forEach((Category o) -> {
-            if (categoriesMap.get(o.getType()) == null) {
-                categoriesMap.put(o.getType(), new CategoryResponse(o.getType()));
-            }
-
-            categoriesMap.get(o.getType()).getItems().add(o);
-        });
-        return new ResponseEntity<>(categoriesMap.values(), HttpStatus.OK);
+    public CategoryController(S service, Class entityClass) {
+        this.service = service;
+        this.entityClass = entityClass;
     }
 
+    @GetMapping("/categories")
+    public ResponseEntity<Collection<CategoryResponse>> getCategories(HttpServletRequest req, @RequestParam Map<String, String> allParams) {
 
+        return service.categories(allParams);
+    }
 }
