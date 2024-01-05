@@ -13,7 +13,6 @@ import com.querydsl.jpa.impl.JPAQuery;
 import org.apache.commons.lang.StringUtils;
 import org.devgateway.viz.commons.domain.Category;
 import org.devgateway.viz.commons.services.FilterDefinitionService;
-import org.devgateway.viz.commons.services.Utils;
 import org.devgateway.viz.commons.services.generic.utils.FieldUtils;
 import org.devgateway.viz.commons.pojo.Dimension;
 import org.slf4j.Logger;
@@ -95,7 +94,7 @@ public class StatsDSL<R extends JpaRepository, Q extends EntityPathBase, S> {
                             if (f.getType().getGenericSuperclass().getTypeName().equalsIgnoreCase(Category.class.getTypeName())) {
                                 builder.and(Expressions.predicate(Ops.IN, Expressions.path(List.class, qEntity, f.getName() + ".id"), Expressions.constant(Arrays.stream(keyParams.split(",")).map(o -> Long.parseLong(o)).collect(Collectors.toList()))));
                             } else {
-                                builder.and(Expressions.predicate(Ops.IN, Expressions.path(List.class, qEntity, f.getName()), Expressions.constant(Utils.parseParams(params.get(key), f.getType()))));
+                                builder.and(Expressions.predicate(Ops.IN, Expressions.path(List.class, qEntity, f.getName()), Expressions.constant(parseParams(params.get(key), f.getType()))));
 
                             }
                         }
@@ -172,6 +171,25 @@ public class StatsDSL<R extends JpaRepository, Q extends EntityPathBase, S> {
         query.where(builder);
 
         return query.fetchCount();
+    }
+
+    private List parseParams(String value, Class type) {
+        String[] strValues = value.split(",");
+        return Arrays.stream(strValues).map(s -> {
+            try {
+                return type.getConstructor(String.class).newInstance(s);
+            } catch (InstantiationException e) {
+                e.printStackTrace();
+            } catch (IllegalAccessException e) {
+                e.printStackTrace();
+            } catch (InvocationTargetException e) {
+                e.printStackTrace();
+            } catch (NoSuchMethodException e) {
+                e.printStackTrace();
+            }
+            return null;
+        }).collect(Collectors.toList());
+
     }
 
 }
