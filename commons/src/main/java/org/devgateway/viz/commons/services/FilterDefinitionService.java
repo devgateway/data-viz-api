@@ -76,33 +76,11 @@ public class FilterDefinitionService {
         Query q = em.createQuery("select field from FilterDefinition where param=:param");
         q.setParameter("param", param);
         List<String> fields=q.getResultList();
-        if (fields.isEmpty()){
-            return null;
-        }
+            if (fields.isEmpty()){
+                return null;
+            }
         return fields.iterator().next();
 
-    }
-
-    @Cacheable("utils")
-    public String getFieldType(String param) {
-        Query q = em.createQuery("select fieldType from FilterDefinition where param=:param");
-        q.setParameter("param", param);
-        List<String> fields=q.getResultList();
-        if (fields.isEmpty()){
-            return null;
-        }
-        return fields.iterator().next();
-    }
-
-    @Cacheable("utils")
-    public String getFieldFromFieldType(String fieldType) {
-        Query q = em.createQuery("select field from FilterDefinition where fieldType=:fieldType");
-        q.setParameter("fieldType", fieldType);
-        List<String> fields=q.getResultList();
-        if (fields.isEmpty()){
-            return null;
-        }
-        return fields.iterator().next();
     }
 
 
