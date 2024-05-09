@@ -4,6 +4,8 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import org.devgateway.viz.commons.domain.Dataset;
 import org.devgateway.viz.commons.domain.DatasetRecord;
+import org.devgateway.viz.commons.domain.Language;
+import org.devgateway.viz.commons.services.CategoryService;
 import org.devgateway.viz.commons.services.generic.DatasetService;
 import org.devgateway.viz.commons.services.generic.FileContentService;
 import org.json.JSONArray;
@@ -19,8 +21,10 @@ public abstract class BaseJSONImporter<T extends DatasetRecord> extends BaseImpo
     private DatasetService datasetService;
     private FileContentService fileContentService;
 
-    private final Logger logger = LoggerFactory.getLogger(this.getClass());
+    @Autowired
+    CategoryService categoryService;
 
+    private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     public void start(BufferedReader in, Dataset dataset) throws IOException {
         StringBuilder sb = new StringBuilder();
@@ -30,7 +34,14 @@ public abstract class BaseJSONImporter<T extends DatasetRecord> extends BaseImpo
         while ((line = in.readLine()) != null) {
             sb.append(line);
         }
-        JSONArray array = new JSONArray(sb.toString());
+        JSONObject main = new JSONObject(sb.toString());
+
+        JSONArray languages = main.getJSONArray("languages");
+        if (languages != null) {
+            languages.forEach(l -> categoryService.createIfNotExist(l.toString(), Language.class));
+        }
+
+        JSONArray array = main.getJSONArray("data");
         for (int i = 0; i < array.length(); i++) {
             JSONObject obj = array.getJSONObject(i);
             T record = read(obj);
