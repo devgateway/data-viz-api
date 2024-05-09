@@ -35,6 +35,7 @@ public class DimensionUtils {
         for (Field field : fieldUtils.getFields(annotatedClass)) {
             if (field.isAnnotationPresent(Dimension.class)) {
                 Dimension[] d;
+                // TODO: Here we could read more complex labels from the annotation like {en: "Spain", es: "España"}
                 d = field.getAnnotationsByType(Dimension.class);
                 list.add(new org.devgateway.viz.commons.pojo.Dimension(field.getName(), field.getName(), d[0].label(),null, field.getType().getSimpleName()));
             }
