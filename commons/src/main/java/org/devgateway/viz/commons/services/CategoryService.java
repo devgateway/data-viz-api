@@ -122,6 +122,9 @@ public class CategoryService {
         return createIfNotExist(value, codify(value), null, type, position, null, true, null, Optional.of(styles), Optional.empty());
     }
 
+    public Category createIfNotExist(final String value, final Class type, List<LocaleText> translations) {
+        return createIfNotExist(value, codify(value), null, type, null, null, true, null, Optional.empty(), Optional.of(translations));
+    }
 
     public Category get(String value, final Class type) {
         return createIfNotExist(value, codify(value), null, type, null, null, false, null, Optional.empty(), Optional.empty());
