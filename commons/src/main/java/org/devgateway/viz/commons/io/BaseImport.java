@@ -1,5 +1,6 @@
 package org.devgateway.viz.commons.io;
 
+import liquibase.pro.packaged.T;
 import org.apache.commons.lang.StringUtils;
 import org.devgateway.viz.commons.services.CategoryService;
 import org.slf4j.Logger;
@@ -94,7 +95,7 @@ public abstract class BaseImport<T, R> {
                 return ((Integer) value).doubleValue();
             }
             if (value instanceof String) {
-                if (!((String) value).isEmpty()) {
+                if (!((String) value).isEmpty() && !((String) value).equalsIgnoreCase("null")) {
                     return Double.parseDouble((String) value);
                 } else {
                     return null;
