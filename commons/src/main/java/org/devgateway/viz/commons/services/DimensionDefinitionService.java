@@ -55,6 +55,15 @@ public class DimensionDefinitionService {
         }
     }
 
+    public DimensionDefinition createDimensionDefinitionIfNotExists(String field, String name, String label, String type, List<LocaleText> translations) {
+        DimensionDefinition dimensionDefinition = createDimensionDefinitionIfNotExists(field, name, label, type);
+        if (translations != null) {
+            dimensionDefinition.setLabels(translations);
+            this.dimensionDefinitionRepository.save(dimensionDefinition);
+        }
+        return dimensionDefinition;
+    }
+
     public DimensionDefinition createDimensionDefinitionIfNotExists(String field, String name, String label, String type) {
         if (StringUtils.isBlank(name)) {
             throw new IllegalArgumentException("Dimension definition name cannot be null or empty");
@@ -126,5 +135,29 @@ public class DimensionDefinitionService {
     public List<Dimension> getDimensions() {
         List<DimensionDefinition> dimensionDefinitions = getAllDimensionDefinitions();
         return dimensionDefinitions.stream().map(d -> new Dimension(d.getField(), d.getCode(), d.getValue(), d.getLabels(), d.getFieldType())).collect(Collectors.toList());
+    }
+
+    /**
+     * Update the labels of an existing Dimension.
+     * ONLY labels for a new language can be updated through this method to avoid overriding translations made with
+     * the admin module (or db patches).
+     */
+    public void updateLabels(String field, List<LocaleText> labels) {
+        DimensionDefinition dimension = dimensionDefinitionRepository.findByCode(field);
+        if (dimension == null) {
+            throw new RuntimeException("Dimension definition with field " + field + " does not exist");
+        }
+        if (dimension.getLabels() == null) {
+            dimension.setLabels(labels);
+        } else {
+            if (labels != null) {
+                labels.forEach(label -> {
+                    if (dimension.getLabels().stream().noneMatch(l -> l.getLanguage().getCode().equals(label.getLanguage().getCode()))) {
+                        dimension.getLabels().add(label);
+                    }
+                });
+            }
+        }
+        this.dimensionDefinitionRepository.save(dimension);
     }
 }
