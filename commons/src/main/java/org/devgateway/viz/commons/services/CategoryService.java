@@ -169,6 +169,11 @@ public class CategoryService {
             Iterable<Category> items = (code != null) ? categoryRepository.findAll(cat.code.equalsIgnoreCase(code).and(cat.type.equalsIgnoreCase(typeName))) : categoryRepository.findAll(cat.value.equalsIgnoreCase(value).and(cat.type.equalsIgnoreCase(typeName)));
 
             if (items.iterator().hasNext()) {
+                // Always update translations if the current are empty and we have new ones.
+                Category category = items.iterator().next();
+                if (translations != null && translations.isPresent() && !translations.get().isEmpty() && category.getLabels().isEmpty()) {
+                    category.setLabels(translations.get());
+                }
                 return items.iterator().next();
             } else if (create) {
                 final Category retValue = createNewCategory(type);
