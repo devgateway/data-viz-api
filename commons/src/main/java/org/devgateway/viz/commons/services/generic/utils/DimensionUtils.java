@@ -1,6 +1,10 @@
 package org.devgateway.viz.commons.services.generic.utils;
 
+import org.devgateway.viz.commons.domain.Language;
+import org.devgateway.viz.commons.domain.LocaleText;
 import org.devgateway.viz.commons.domain.annotations.Dimension;
+import org.devgateway.viz.commons.domain.annotations.Translation;
+import org.devgateway.viz.commons.services.CategoryService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,6 +25,9 @@ public class DimensionUtils {
     @Autowired
     FieldUtils fieldUtils;
 
+    @Autowired
+    CategoryService categoryService;
+
     @Cacheable("utils")
     public List<org.devgateway.viz.commons.pojo.Dimension> getDimensions(Class annotatedClass) {
 
@@ -29,18 +36,24 @@ public class DimensionUtils {
                 .findFirst()
                 .map(StackWalker.StackFrame::getMethodName));
 
-        logger.info("------- "+methodName + " ----");
+        logger.info("------- " + methodName + " ----");
 
         List<org.devgateway.viz.commons.pojo.Dimension> list = new ArrayList<>();
         for (Field field : fieldUtils.getFields(annotatedClass)) {
             if (field.isAnnotationPresent(Dimension.class)) {
                 Dimension[] d;
-                // TODO: Here we could read more complex labels from the annotation like {en: "Spain", es: "España"}
+                // Here we can read more complex labels from the annotation like {"en": "Spain", "es": "España"}
+                List<LocaleText> translations = new ArrayList<>();
                 d = field.getAnnotationsByType(Dimension.class);
-                list.add(new org.devgateway.viz.commons.pojo.Dimension(field.getName(), field.getName(), d[0].label(),null, field.getType().getSimpleName()));
+                if (d[0].translations() != null) {
+                    for (Translation t : d[0].translations()) {
+                        Language l = (Language) categoryService.createIfNotExist(t.lang(), Language.class);
+                        translations.add(new LocaleText(t.value(), l));
+                    }
+                }
+                list.add(new org.devgateway.viz.commons.pojo.Dimension(field.getName(), field.getName(), d[0].label(), translations, field.getType().getSimpleName()));
             }
         }
-
         return list;
     }
 
