@@ -12,7 +12,12 @@ import java.util.List;
 @Entity
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 @DiscriminatorColumn(name = "type", discriminatorType = DiscriminatorType.STRING)
-
+@Table(indexes = {
+        @Index(name = "fk_index_type", columnList = "type"),
+        @Index(name = "fk_index_code", columnList = "code"),
+        @Index(name = "fk_index_value", columnList = "value"),
+        @Index(name = "fk_index_parent", columnList = "parent_id")
+})
 public abstract class Category {
 
     @Id
