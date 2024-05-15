@@ -65,7 +65,7 @@ public class ConfigService {
             if (!dbMeasures.contains(m.getValue())) {
                 measureDefinitionService.createIfNotExists(m.getValue(),
                         m.getLabel(), m.getField(), m.getExpression(),
-                        m.getDelegate().getCanonicalName(), m.getFilter(), m.getGroup().getLabel(), m.getPosition(), m.getStyles());
+                        m.getDelegate().getCanonicalName(), m.getFilter(), m.getGroup().getLabel(), m.getPosition(), m.getStyles(), m.getLabels());
             }
         }
     }
