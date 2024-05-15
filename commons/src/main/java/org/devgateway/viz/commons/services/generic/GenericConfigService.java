@@ -94,7 +94,11 @@ public abstract class GenericConfigService<S> {
                         m.getFilter(),
                         m.getGroup().getLabel(),
                         m.getPosition(),
-                        new Styles(m.getStyles().getColor()));
+                        new Styles(m.getStyles().getColor()),
+                        m.getLabels());
+            } else {
+                // Labels are expected to change over time, so we should update them.
+                measureDefinitionService.updateLabels(m.getValue(), m.getLabels());
             }
         }
     }
