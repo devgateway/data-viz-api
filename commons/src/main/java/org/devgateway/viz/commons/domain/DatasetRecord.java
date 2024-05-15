@@ -7,6 +7,7 @@ import org.devgateway.viz.commons.domain.annotations.Measure;
 import org.devgateway.viz.commons.domain.annotations.Measures;
 
 import javax.persistence.*;
+import org.devgateway.viz.commons.domain.annotations.Translation;
 
 @Entity
 @Inheritance(strategy = InheritanceType.TABLE_PER_CLASS)
@@ -14,7 +15,11 @@ public abstract class DatasetRecord {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    @Measures(values = @Measure(label = "Records", expression = "count", group = "Aggregations", name = "count"))
+    @Measures(values = @Measure(label = "Records", expression = "count", group = "Aggregations", name = "count",
+            translations = {
+                    @Translation(lang = "en", value = "Records"),
+                    @Translation(lang = "fr", value = "Enregistrements")
+            }))
     private Long id;
 
     @ManyToOne
