@@ -20,7 +20,6 @@ public class Measure extends Translatable {
     private Integer position;
 
 
-
     private Boolean enabled;
 
     @JsonIgnore
@@ -43,7 +42,7 @@ public class Measure extends Translatable {
         this.label = label;
     }
 
-    public Measure(String value, String label, String expression, Class<? extends Delegate> delegate, Translatable group, String field, String filter, Integer position, String color) {
+    public Measure(String value, String label, String expression, Class<? extends Delegate> delegate, Translatable group, String field, String filter, Integer position, String color, List<LocaleText> translations) {
         this.value = value;
         this.label = label;
         this.expression = expression;
@@ -53,6 +52,7 @@ public class Measure extends Translatable {
         this.delegate = delegate;
         this.styles = new Styles(color);
         this.position = position;
+        this.labels = translations;
     }
 
     public String getValue() {
