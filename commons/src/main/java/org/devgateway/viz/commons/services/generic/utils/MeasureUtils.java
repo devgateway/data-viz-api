@@ -1,8 +1,13 @@
 package org.devgateway.viz.commons.services.generic.utils;
 
+import org.devgateway.viz.commons.domain.Language;
+import org.devgateway.viz.commons.domain.LocaleText;
+import org.devgateway.viz.commons.domain.annotations.Dimension;
 import org.devgateway.viz.commons.domain.annotations.Measures;
+import org.devgateway.viz.commons.domain.annotations.Translation;
 import org.devgateway.viz.commons.pojo.Measure;
 import org.devgateway.viz.commons.pojo.Translatable;
+import org.devgateway.viz.commons.services.CategoryService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,6 +28,9 @@ public class MeasureUtils {
     @Autowired
     FieldUtils fieldUtils;
 
+    @Autowired
+    CategoryService categoryService;
+
     @Cacheable("utils")
     public List<Measure> getMeasures(Class annotatedClass) {
         StackWalker walker = StackWalker.getInstance();
@@ -30,29 +38,35 @@ public class MeasureUtils {
                 .findFirst()
                 .map(StackWalker.StackFrame::getMethodName));
 
-         logger.info("-------  " + this.getClass().getSimpleName() + " ------- " + methodName + " ----");
-
+        logger.info("-------  " + this.getClass().getSimpleName() + " ------- " + methodName + " ----");
 
         List<Measure> measures = new ArrayList<>();
         for (Field field : fieldUtils.getFields(annotatedClass)) {
             Measures ms = AnnotationUtils.findAnnotation(field, Measures.class);
             if (ms != null) {
-
                 String filter = fieldUtils.getFilter(field);
-                measures.addAll(Arrays.stream(ms.values()).map((measure) ->
-                        new Measure(
-                                measure.name(),
-                                measure.label(),
-                                measure.expression(),
-                                measure.delegate(),
-                                new Translatable(measure.group()),
-                                field.getName(), filter,
-                                measure.position(),
-                                measure.color()
-                        )).collect(Collectors.toList()));
+                Arrays.stream(ms.values()).forEach(m -> {
+                    List<LocaleText> translations = new ArrayList<>();
+                    if (m.translations() != null) {
+                        for (Translation t : m.translations()) {
+                            Language l = (Language) categoryService.createIfNotExist(t.lang(), Language.class);
+                            translations.add(new LocaleText(t.value(), l));
+                        }
+                    }
+                    Measure measure = new Measure(
+                            m.name(),
+                            m.label(),
+                            m.expression(),
+                            m.delegate(),
+                            new Translatable(m.group()),
+                            field.getName(), filter,
+                            m.position(),
+                            m.color(),
+                            translations);
+                    measures.add(measure);
+                });
             }
         }
-
         return measures;
     }
 
