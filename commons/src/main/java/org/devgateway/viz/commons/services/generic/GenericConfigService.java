@@ -94,7 +94,11 @@ public abstract class GenericConfigService<S> {
                         m.getFilter(),
                         m.getGroup().getLabel(),
                         m.getPosition(),
-                        new Styles(m.getStyles().getColor()));
+                        new Styles(m.getStyles().getColor()),
+                        m.getLabels());
+            } else {
+                // Labels are expected to change over time, so we should update them.
+                measureDefinitionService.updateLabels(m.getValue(), m.getLabels());
             }
         }
     }
@@ -107,8 +111,11 @@ public abstract class GenericConfigService<S> {
 
         for (Dimension d : dimensions) {
             if (!dbDimensions.containsKey(d.getValue())) {
-                dimensionDefinitionService.createDimensionDefinitionIfNotExists(d.getField(), d.getValue(), d.getLabel(), d.getType());
+                dimensionDefinitionService.createDimensionDefinitionIfNotExists(d.getField(), d.getValue(), d.getLabel(), d.getType(), d.getLabels());
             } else {
+                // Labels are expected to change over time, so we should update them.
+                dimensionDefinitionService.updateLabels(d.getField(), d.getLabels());
+
                 if (!StringUtils.equalsIgnoreCase(dbDimensions.get(d.getValue()), d.getType())) {
                     throw new RuntimeException("Dimension " + d.getLabel() + " has a different type in the database");
                 }

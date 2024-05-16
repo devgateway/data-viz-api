@@ -4,6 +4,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.devgateway.viz.commons.domain.LocaleText;
 import org.devgateway.viz.commons.domain.MeasureGroup;
 import org.devgateway.viz.commons.domain.Styles;
+import org.devgateway.viz.commons.domain.metadata.DimensionDefinition;
 import org.devgateway.viz.commons.domain.metadata.MeasureDefinition;
 import org.devgateway.viz.commons.pojo.Measure;
 import org.devgateway.viz.commons.pojo.MeasureMetadata;
@@ -46,20 +47,20 @@ public class MeasureDefinitionService {
         return this.measureDefinitionRepository.findAll();
     }
 
-    public MeasureDefinition createIfNotExists(String code, String label, String field, String expression, String delegate, String filter, String group, Integer position, Styles styles) {
+    public MeasureDefinition createIfNotExists(String code, String label, String field, String expression, String delegate, String filter, String group, Integer position, Styles styles, List<LocaleText> labels) {
         if (StringUtils.isBlank(code)) {
             throw new IllegalArgumentException("Measure definition name cannot be null or empty");
         }
         MeasureDefinition measureDefinition = this.measureDefinitionRepository.findByCode(code);
         if (measureDefinition == null) {
-            measureDefinition = createMeasureDefinition(code, label, field, expression, delegate, filter, group, position, styles);
+            measureDefinition = createMeasureDefinition(code, label, field, expression, delegate, filter, group, position, styles, labels);
         }
 
         return measureDefinition;
     }
 
 
-    public MeasureDefinition createMeasureDefinition(String name, String label, String field, String expression, String delegate, String filter, String group, Integer position, Styles styles) {
+    public MeasureDefinition createMeasureDefinition(String name, String label, String field, String expression, String delegate, String filter, String group, Integer position, Styles styles, List<LocaleText> labels) {
         MeasureDefinition measureDefinition = new MeasureDefinition();
         measureDefinition.setCode(name);
         measureDefinition.setValue(label);
@@ -70,6 +71,7 @@ public class MeasureDefinitionService {
         measureDefinition.setParent(categoryService.createIfNotExist(group, MeasureGroup.class));
         measureDefinition.setCategoryStyle(styles);
         measureDefinition.setPosition(position);
+        measureDefinition.setLabels(labels);
         return this.measureDefinitionRepository.save(measureDefinition);
     }
 
@@ -192,5 +194,29 @@ public class MeasureDefinitionService {
 
             return measure;
         }).collect(Collectors.toList());
+    }
+
+    /**
+     * Update the labels of an existing Measure.
+     * ONLY labels for a new language can be updated through this method to avoid overriding translations made with
+     * the admin module (or db patches).
+     */
+    public void updateLabels(String field, List<LocaleText> labels) {
+        MeasureDefinition measure = measureDefinitionRepository.findByCode(field);
+        if (measure == null) {
+            throw new RuntimeException("Measure definition with field " + field + " does not exist");
+        }
+        if (measure.getLabels() == null) {
+            measure.setLabels(labels);
+        } else {
+            if (labels != null) {
+                labels.forEach(label -> {
+                    if (measure.getLabels().stream().noneMatch(l -> l.getLanguage().getCode().equals(label.getLanguage().getCode()))) {
+                        measure.getLabels().add(label);
+                    }
+                });
+            }
+        }
+        this.measureDefinitionRepository.save(measure);
     }
 }
