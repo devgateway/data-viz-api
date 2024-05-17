@@ -200,14 +200,6 @@ public class CategoryService {
                             localeTextRepository.deleteAll(category.getLabels());
                         }
                         category.setLabels(translations.get());
-                    } else if (category.getLabels() == null || category.getLabels().isEmpty()) {
-                        category.setLabels(translations.get());
-                    } else {
-                        for (LocaleText label : translations.get()) {
-                            if (category.getLabels().stream().noneMatch(l -> l.getLanguage().getCode().equals(label.getLanguage().getCode()))) {
-                                category.getLabels().add(label);
-                            }
-                        }
                     }
                 }
                 return items.iterator().next();
