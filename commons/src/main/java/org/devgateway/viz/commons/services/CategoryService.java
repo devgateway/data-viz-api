@@ -9,6 +9,7 @@ import org.devgateway.viz.commons.domain.Category;
 import org.devgateway.viz.commons.domain.DatasetRecord;
 import org.devgateway.viz.commons.domain.Language;
 import org.devgateway.viz.commons.domain.LocaleText;
+import org.devgateway.viz.commons.repositories.LocaleTextRepository;
 import org.devgateway.viz.commons.domain.QCategory;
 import org.devgateway.viz.commons.domain.Styles;
 import org.devgateway.viz.commons.domain.metadata.DimensionDefinition;
@@ -48,11 +49,14 @@ public class CategoryService {
     }
 
     private CategoryRepository categoryRepository;
+    private final LocaleTextRepository localeTextRepository;
 
 
     @Autowired
-    public CategoryService(final CategoryRepository categoryRepository, final GoogleTranslationService googleTranslationService) {
+    public CategoryService(final CategoryRepository categoryRepository, final GoogleTranslationService googleTranslationService,
+                           LocaleTextRepository localeTextRepository) {
         this.categoryRepository = categoryRepository;
+        this.localeTextRepository = localeTextRepository;
     }
 
 
@@ -85,49 +89,60 @@ public class CategoryService {
 
     public Category createIfNotExist(String value, String code, final Class type) {
 
-        return createIfNotExist(value, code, null, type, null, null, true, null, Optional.empty(), Optional.empty());
+        return createIfNotExist(value, code, null, type, null, null, true, null, Optional.empty(), Optional.empty(), false);
 
     }
 
     public Category createIfNotExist(String value, String code, final Class type, Integer position) {
 
-        return createIfNotExist(value, code, null, type, position, null, true, null, Optional.empty(), Optional.empty());
+        return createIfNotExist(value, code, null, type, position, null, true, null, Optional.empty(), Optional.empty(), false);
 
     }
 
 
     public Category createIfNotExist(String value, final Class type) {
-        return createIfNotExist(value, codify(value), null, type, null, null, true, null, Optional.empty(), Optional.empty());
+        return createIfNotExist(value, codify(value), null, type, null, null, true, null, Optional.empty(), Optional.empty(), false);
 
     }
 
     public Category createIfNotExist(String value, final Class type, Styles styles) {
-        return createIfNotExist(value, codify(value), null, type, null, null, true, null, Optional.of(styles), Optional.empty());
+        return createIfNotExist(value, codify(value), null, type, null, null, true, null, Optional.of(styles), Optional.empty(), false);
     }
 
     public Category createIfNotExist(final String value, final Class type, Integer position) {
-        return createIfNotExist(value, codify(value), null, type, position, null, true, null, Optional.empty(), Optional.empty());
+        return createIfNotExist(value, codify(value), null, type, position, null, true, null, Optional.empty(), Optional.empty(), false);
     }
 
 
     public Category createIfNotExist(String value, String code, final Class type, Integer position, Styles styles) {
-        return createIfNotExist(value, code, null, type, position, null, true, null, Optional.of(styles), Optional.empty());
+        return createIfNotExist(value, code, null, type, position, null, true, null, Optional.of(styles), Optional.empty(), false);
     }
 
     public Category createIfNotExist(final String value, final Class type, Integer position, Styles styles, List<LocaleText> translations) {
-        return createIfNotExist(value, codify(value), null, type, position, null, true, null, Optional.of(styles), Optional.of(translations));
+        return createIfNotExist(value, codify(value), null, type, position, null, true, null, Optional.of(styles), Optional.of(translations), false);
     }
 
     public Category createIfNotExist(final String value, final Class type, Integer position, Styles styles) {
-        return createIfNotExist(value, codify(value), null, type, position, null, true, null, Optional.of(styles), Optional.empty());
+        return createIfNotExist(value, codify(value), null, type, position, null, true, null, Optional.of(styles), Optional.empty(), false);
     }
 
-    public Category createIfNotExist(final String value, final Class type, List<LocaleText> translations) {
-        return createIfNotExist(value, codify(value), null, type, null, null, true, null, Optional.empty(), Optional.of(translations));
+    /**
+     * We use this method when importing data from a JSON file. We want to be able to override both the default translations
+     * defined with an annotation and also old translations created by previous data imports.
+     * NOTE: if @param forceTranslationsUpdate is true, then we might override manual translations done with the wicket tool.
+     *
+     * @param value
+     * @param type
+     * @param translations
+     * @param forceTranslationsUpdate
+     * @return
+     */
+    public Category createIfNotExist(final String value, final Class type, List<LocaleText> translations, boolean forceTranslationsUpdate) {
+        return createIfNotExist(value, codify(value), null, type, null, null, true, null, Optional.empty(), Optional.of(translations), forceTranslationsUpdate);
     }
 
     public Category get(String value, final Class type) {
-        return createIfNotExist(value, codify(value), null, type, null, null, false, null, Optional.empty(), Optional.empty());
+        return createIfNotExist(value, codify(value), null, type, null, null, false, null, Optional.empty(), Optional.empty(), false);
     }
 
     public Category getByCode(String code, final Class type) {
@@ -149,11 +164,14 @@ public class CategoryService {
     }
 
     public Category getByValue(String value, final Class type) {
-        return createIfNotExist(value, codify(value), null, type, null, null, false, null, Optional.empty(), Optional.empty());
+        return createIfNotExist(value, codify(value), null, type, null, null, false, null, Optional.empty(), Optional.empty(), false);
     }
 
 
-    private Category createIfNotExist(final String value, String code, List<LocaleText> labels, final Class type, final Integer position, List<LocaleText> descriptions, final Boolean create, Category parent, Optional<Styles> styles, Optional<List<LocaleText>> translations) {
+    private Category createIfNotExist(final String value, String code, List<LocaleText> labels, final Class type,
+                                      final Integer position, List<LocaleText> descriptions, final Boolean create,
+                                      Category parent, Optional<Styles> styles, Optional<List<LocaleText>> translations,
+                                      boolean forceTranslationsUpdate) {
         try {
 
             if (value != null && value.isEmpty() && create) {
@@ -169,10 +187,20 @@ public class CategoryService {
             Iterable<Category> items = (code != null) ? categoryRepository.findAll(cat.code.equalsIgnoreCase(code).and(cat.type.equalsIgnoreCase(typeName))) : categoryRepository.findAll(cat.value.equalsIgnoreCase(value).and(cat.type.equalsIgnoreCase(typeName)));
 
             if (items.iterator().hasNext()) {
-                // Always update translations if the current are empty and we have new ones.
+                /*  To be safe with other uses of the API we cant just update the value of a category if it is already in use (same language).
+                    Problem: there is a tool to edit the category labels directly in the DB, and now we can also annotate the main entity with default translations.
+                    So if we mix both, then everytime we start the API the manually updated values will be overwritten by the default translations.
+                    The solution is to not allow the update of the value of a category if it is already in use (for the same language).
+                 */
                 Category category = items.iterator().next();
-                if (translations != null && translations.isPresent() && !translations.get().isEmpty() && category.getLabels().isEmpty()) {
-                    category.setLabels(translations.get());
+                if (translations != null && translations.isPresent() && !translations.get().isEmpty()) {
+                    if (forceTranslationsUpdate) {
+                        // Avoid duplicates.
+                        if (category.getLabels() != null) {
+                            localeTextRepository.deleteAll(category.getLabels());
+                        }
+                        category.setLabels(translations.get());
+                    }
                 }
                 return items.iterator().next();
             } else if (create) {
@@ -250,6 +278,7 @@ public class CategoryService {
      * Look for categories that are not in use in any DatasetRecord (the main entity in the API) and delete them.
      */
     public void clearCategories() {
+        logger.info("Clearing categories...");
         List<Dimension> dimensions = dimensionDefinitionService.getDimensions();
         List<String> dimensionTypes = dimensions.stream().map(m -> m.getType()).collect(Collectors.toList());
         Query query = em.createQuery("select c from Category c where c.type in :types")

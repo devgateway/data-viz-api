@@ -81,7 +81,7 @@ public abstract class BaseJSONImporter<T extends DatasetRecord> extends BaseImpo
         try {
             List<LocaleText> translations = extractJSONField(row, field);
             String value = StringEscapeUtils.unescapeCsv(((JSONObject) row.get(field)).get("en").toString());
-            Category category = categoryService.createIfNotExist(value, clazz, translations);
+            Category category = categoryService.createIfNotExist(value, clazz, translations, true);
             method.invoke(entity, category);
         } catch (Exception e) {
             logger.error("Error while reading row: " + row + " - " + e.getMessage());
