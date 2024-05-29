@@ -131,7 +131,7 @@
 
             <dependency>
                 <groupId>org.devgateway.viz.api</groupId>
-                <artifactId>commons</artifactId>
+                <artifactId>api-commons</artifactId>
                 <version>0.0.1-SNAPSHOT</version>
             </dependency>
 
