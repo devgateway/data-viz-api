@@ -130,8 +130,8 @@
             </dependency>
 
             <dependency>
-                <groupId>org.devgateway.viz.api</groupId>
-                <artifactId>api-commons</artifactId>
+                <groupId>org.devgateway.tcdi</groupId>
+                <artifactId>commons</artifactId>
                 <version>0.0.1-SNAPSHOT</version>
             </dependency>
 
