@@ -11,7 +11,7 @@
     </parent>
 
     <groupId>org.devgateway.viz.api</groupId>
-    <artifactId>api-commons</artifactId>
+    <artifactId>commons</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <name>commons</name>
     <description>Common Micro Service Code</description>
