@@ -7,6 +7,5 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 @RequestMapping(produces = APPLICATION_JSON_VALUE)
 @RestController
-@CrossOrigin("*")
 public class BaseCategoryController {
 }
