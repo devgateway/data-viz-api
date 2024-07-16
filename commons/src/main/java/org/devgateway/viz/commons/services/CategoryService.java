@@ -18,6 +18,8 @@ import org.devgateway.viz.commons.pojo.request.CategoryRequest;
 import org.devgateway.viz.commons.repositories.CategoryRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -86,13 +88,15 @@ public class CategoryService {
                 .collect(Collectors.toList());
     }
 
-
+    @Cacheable("categories")
     public Category createIfNotExist(String value, String code, final Class type) {
 
         return createIfNotExist(value, code, null, type, null, null, true, null, Optional.empty(), Optional.empty(), false);
 
     }
 
+
+    @Cacheable("categories")
     public Category createIfNotExist(String value, String code, final Class type, Integer position) {
 
         return createIfNotExist(value, code, null, type, position, null, true, null, Optional.empty(), Optional.empty(), false);
@@ -100,28 +104,33 @@ public class CategoryService {
     }
 
 
+   @Cacheable("categories")
     public Category createIfNotExist(String value, final Class type) {
         return createIfNotExist(value, codify(value), null, type, null, null, true, null, Optional.empty(), Optional.empty(), false);
 
     }
 
+    @Cacheable("categories")
     public Category createIfNotExist(String value, final Class type, Styles styles) {
         return createIfNotExist(value, codify(value), null, type, null, null, true, null, Optional.of(styles), Optional.empty(), false);
     }
 
+    @Cacheable("categories")
     public Category createIfNotExist(final String value, final Class type, Integer position) {
         return createIfNotExist(value, codify(value), null, type, position, null, true, null, Optional.empty(), Optional.empty(), false);
     }
 
-
+    @Cacheable("categories")
     public Category createIfNotExist(String value, String code, final Class type, Integer position, Styles styles) {
         return createIfNotExist(value, code, null, type, position, null, true, null, Optional.of(styles), Optional.empty(), false);
     }
 
+    @Cacheable("categories")
     public Category createIfNotExist(final String value, final Class type, Integer position, Styles styles, List<LocaleText> translations) {
         return createIfNotExist(value, codify(value), null, type, position, null, true, null, Optional.of(styles), Optional.of(translations), false);
     }
 
+    @Cacheable("categories")
     public Category createIfNotExist(final String value, final Class type, Integer position, Styles styles) {
         return createIfNotExist(value, codify(value), null, type, position, null, true, null, Optional.of(styles), Optional.empty(), false);
     }
@@ -137,6 +146,7 @@ public class CategoryService {
      * @param forceTranslationsUpdate
      * @return
      */
+    @Cacheable("categories")
     public Category createIfNotExist(final String value, final Class type, List<LocaleText> translations, boolean forceTranslationsUpdate) {
         return createIfNotExist(value, codify(value), null, type, null, null, true, null, Optional.empty(), Optional.of(translations), forceTranslationsUpdate);
     }
@@ -168,6 +178,7 @@ public class CategoryService {
     }
 
 
+   @Cacheable("categories")
     private Category createIfNotExist(final String value, String code, List<LocaleText> labels, final Class type,
                                       final Integer position, List<LocaleText> descriptions, final Boolean create,
                                       Category parent, Optional<Styles> styles, Optional<List<LocaleText>> translations,
