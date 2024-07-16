@@ -5,25 +5,25 @@ import org.devgateway.viz.commons.services.generic.GenericCategoryService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.Collection;
 import java.util.Map;
 
-@RestController
-public class GenericCategoryController<S extends GenericCategoryService> extends BaseCategoryController {
+public class GenericCategoryController<S extends GenericCategoryService>  extends Controller {
 
-    private final S service;
-    private final Class<?> entityClass;
+    private S service;
 
-    public GenericCategoryController(S service, Class<?> entityClass) {
+    private Class entityClass;
+
+    public GenericCategoryController(S service, Class entityClass) {
         this.service = service;
         this.entityClass = entityClass;
     }
 
     @GetMapping("/generic-categories")
     public ResponseEntity<Collection<CategoryResponse>> getCategories(HttpServletRequest req, @RequestParam Map<String, String> allParams) {
+
         return service.categories(allParams);
     }
 }
