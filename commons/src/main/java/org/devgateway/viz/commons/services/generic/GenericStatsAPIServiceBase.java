@@ -78,39 +78,39 @@ public abstract class GenericStatsAPIServiceBase<R extends JpaRepository, Q exte
 
         logger.info("-------  " + this.getClass().getSimpleName() + " ------- " + methodName + " ----");
 
-        final String locale = params.get("locale");
-        if (locale != null) {
-            logger.info("Language set to " + params.get("locale"));
+        // Null check for params and dimensionsNames
+        if (params == null) {
+            logger.error("Params map is null");
+            throw new NullPointerException("Params map is null");
+        }
+        if (dimensionsNames == null) {
+            logger.error("Dimensions names list is null");
+            throw new NullPointerException("Dimensions names list is null");
         }
 
+        final String locale = params.get("locale");
+        if (locale != null) {
+            logger.info("Language set to " + locale);
+        }
 
         List<MeasureMetadata> measures = measureDefinitionService.getMeasuresMetadata();
-        //List<Measure> measures = measureDefinitionService.getMeasures().stream().filter(measure -> measure.getEnabled()!=Boolean.FALSE).collect(Collectors.toList());
-
-        List<MeasureMetadata> delegatedMeasures = measures.stream().filter(measure -> measure.isDelegated()).collect(Collectors.toList());
-
+        List<MeasureMetadata> delegatedMeasures = measures.stream().filter(MeasureMetadata::isDelegated).collect(Collectors.toList());
         List<MeasureMetadata> nonDelegatedMeasures = measures.stream().filter(measure -> !measure.isDelegated()).collect(Collectors.toList());
 
-        /*Collect and create deletates */
-        delegatedMeasures.stream().forEach(measure -> {
+        // Collect and create delegates
+        delegatedMeasures.forEach(measure -> {
             try {
                 if (delegates.get(measure.getValue()) == null) {
-                    if (delegates.get(measure) == null) {
-
-                        Delegate d = measure.getDelegate().getDeclaredConstructor(String.class, StatsDSL.class).newInstance(measure.getFilter(), statsDSL);
-                        delegates.put(measure.getValue(), d);
-
-                    }
+                    Delegate d = measure.getDelegate().getDeclaredConstructor(String.class, StatsDSL.class).newInstance(measure.getFilter(), statsDSL);
+                    delegates.put(measure.getValue(), d);
                 }
             } catch (NoSuchMethodException | InstantiationException | IllegalAccessException | InvocationTargetException e) {
-                logger.error("Error when trying to construct a delegate");
+                logger.error("Error when trying to construct a delegate for measure: " + measure.getValue(), e);
             }
         });
 
-        // List<Dimension> dimensions = dimensionDefinitionService.getDimensionsByNames(dimensionsNames);
-
-        if (dimensionsNames.size() != dimensionsNames.size()) {
-            logger.warn("Not valid dimensionsNames provided");
+        if (dimensionsNames.isEmpty()) {
+            logger.warn("No valid dimensions names provided");
             return new Response();
         }
 
@@ -118,23 +118,33 @@ public abstract class GenericStatsAPIServiceBase<R extends JpaRepository, Q exte
         HashMap<String, Response> map = new HashMap<>();
         Response root = new Response();
 
-        //Get expressions from non delegated measures
-        List<Expression> expressions = nonDelegatedMeasures.stream().map(measure -> strToExpression(measure.getExpression(), measure.getField())).collect(Collectors.toList());
-        //Compute values for expressions
+        // Get expressions from non-delegated measures
+        List<Expression> expressions = nonDelegatedMeasures.stream()
+                .map(measure -> strToExpression(measure.getExpression(), measure.getField()))
+                .collect(Collectors.toList());
+
+        // Compute values for expressions
         Tuple sum = statsDSL.computeStats(expressions, params, querydslType, annotatedClass);
+        if (sum == null) {
+            logger.error("Sum computation returned null");
+            return new Response();
+        }
+
         int idx = 0;
-        for (MeasureMetadata s : measures.stream().filter(measure -> !measure.isDelegated()).collect(Collectors.toList())) {
+        for (MeasureMetadata s : nonDelegatedMeasures) {
             root.addAttrValues(new AttrValue(s.getValue(), sum.get(idx++, Double.class)));
         }
         root.setType(TOTAL);
         root.setValue(TOTAL);
 
-
-        /*Compute delegated values*/
-        delegatedMeasures.stream().forEach(measure -> {
-            // Number total = delegates.get(measure.getValue()).computeStats(params);
+        // Compute delegated values
+        delegatedMeasures.forEach(measure -> {
             Number total = cachedDelegatedComputation.computeStats(delegates.get(measure.getValue()), params);
-            root.addAttrValues(new AttrValue(measure.getValue(), total));
+            if (total != null) {
+                root.addAttrValues(new AttrValue(measure.getValue(), total));
+            } else {
+                logger.error("Delegated computation for measure " + measure.getValue() + " returned null");
+            }
         });
 
         map.put("", root);
@@ -142,15 +152,28 @@ public abstract class GenericStatsAPIServiceBase<R extends JpaRepository, Q exte
 
         while (sub.size() < dimensionsNames.size()) {
             String name = dimensionsNames.get(i++);
-            //Dimension d = dimensions.get(i++);
             Dimension d = dimensionDefinitionService.getDimensionsByName(name);
+            if (d == null) {
+                logger.error("Dimension returned null for name: " + name);
+                return new Response();
+            }
             sub.add(d);
-            HashMap<String, Tuple> totals = statsDSL.computeStats(expressions, params, sub, querydslType, annotatedClass);
-            // Compute delegates
-            final HashMap<String, HashMap> subValues = new HashMap<>();
 
-            delegatedMeasures.stream().forEach(measure -> {
-                subValues.put(measure.getValue(), delegates.get(measure.getValue()).computeStats(totals.keySet(), params, sub));
+            HashMap<String, Tuple> totals = statsDSL.computeStats(expressions, params, sub, querydslType, annotatedClass);
+            if (totals == null) {
+                logger.error("Totals computation returned null for sub-dimensions: " + sub);
+                return new Response();
+            }
+
+            // Compute delegates
+            final HashMap<String, HashMap<String, Number>> subValues = new HashMap<>();
+            delegatedMeasures.forEach(measure -> {
+                HashMap<String, Number> vals = delegates.get(measure.getValue()).computeStats(totals.keySet(), params, sub);
+                if (vals != null) {
+                    subValues.put(measure.getValue(), vals);
+                } else {
+                    logger.error("Sub-values computation for measure " + measure.getValue() + " returned null");
+                }
             });
 
             for (String tKey : totals.keySet()) {
@@ -160,25 +183,24 @@ public abstract class GenericStatsAPIServiceBase<R extends JpaRepository, Q exte
                 r.setValue(tuple.get(tuple.size() - expressions.size() - 1, String.class));
                 int ix = sub.size();
 
-                //                                                   Dimension, First Measure,  Second Measure,
-                //tuple contains dimensions and all measures values  Female,    11845,          48334436,
                 for (MeasureMetadata s : nonDelegatedMeasures) {
-                    //Add measure value to response object
                     r.addAttrValues(new AttrValue(s.getValue(), tuple.get(ix++, Double.class)));
                 }
                 for (MeasureMetadata s : delegatedMeasures) {
                     HashMap<String, Number> vals = subValues.get(s.getValue());
-                    //Add measure value to response object
                     r.addAttrValues(new AttrValue(s.getValue(), vals.get(tKey)));
                 }
 
                 String parentKey = "";
-                //parent key is always the last key before expressions
                 for (int j = 0; j < tuple.size() - expressions.size() - 1; j++) {
                     parentKey = parentKey.concat(tuple.get(j, Object.class).toString()).toUpperCase();
                 }
                 Response parent = map.get(parentKey);
-                parent.addChild(r);
+                if (parent != null) {
+                    parent.addChild(r);
+                } else {
+                    logger.error("Parent response is null for key: " + parentKey);
+                }
                 String key = "";
                 for (int j = 0; j < tuple.size() - expressions.size(); j++) {
                     key = key.concat(tuple.get(j, Object.class).toString()).toUpperCase();
@@ -188,9 +210,8 @@ public abstract class GenericStatsAPIServiceBase<R extends JpaRepository, Q exte
             }
         }
 
-        //computed custom measures
+        // Compute custom measures
         root.addAttrValues(new AttrValue("metadata", getMetadata(sub)));
-
         root.addAttrValues(new AttrValue(ITEMS_SIZE, statsDSL.getItemsSize(params, querydslType, annotatedClass)));
         return root;
     }
