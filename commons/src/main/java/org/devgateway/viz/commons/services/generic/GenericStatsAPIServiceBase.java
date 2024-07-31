@@ -14,7 +14,6 @@ import org.devgateway.viz.commons.services.MeasureDefinitionService;
 import org.devgateway.viz.commons.services.generic.delegates.CachedDelegatedComputation;
 import org.devgateway.viz.commons.services.generic.delegates.Delegate;
 import org.devgateway.viz.commons.services.generic.utils.FieldUtils;
-import org.devgateway.viz.commons.pojo.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -111,7 +110,7 @@ public abstract class GenericStatsAPIServiceBase<R extends JpaRepository, Q exte
 
         if (dimensionsNames.isEmpty()) {
             logger.warn("No valid dimensions names provided");
-            return new Response();
+//            return new Response();
         }
 
         Integer i = 0;
