@@ -1,8 +1,7 @@
 package org.devgateway.viz.commons.domain.metadata;
 
 import org.devgateway.viz.commons.domain.Category;
-
-import javax.persistence.Entity;
+import jakarta.persistence.Entity;
 
 @Entity
 public class DimensionDefinition extends Category {
