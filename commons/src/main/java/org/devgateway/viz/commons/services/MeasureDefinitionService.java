@@ -1,10 +1,11 @@
 package org.devgateway.viz.commons.services;
 
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.Query;
 import org.apache.commons.lang3.StringUtils;
 import org.devgateway.viz.commons.domain.LocaleText;
 import org.devgateway.viz.commons.domain.MeasureGroup;
 import org.devgateway.viz.commons.domain.Styles;
-import org.devgateway.viz.commons.domain.metadata.DimensionDefinition;
 import org.devgateway.viz.commons.domain.metadata.MeasureDefinition;
 import org.devgateway.viz.commons.pojo.Measure;
 import org.devgateway.viz.commons.pojo.MeasureMetadata;
@@ -18,8 +19,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import springfox.documentation.annotations.Cacheable;
 
-import javax.persistence.EntityManager;
-import javax.persistence.Query;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;

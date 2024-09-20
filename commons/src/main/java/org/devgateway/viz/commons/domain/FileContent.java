@@ -2,10 +2,11 @@
 package org.devgateway.viz.commons.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import jakarta.persistence.*;
 import org.hibernate.annotations.GenericGenerator;
-import org.hibernate.annotations.Type;
+import org.hibernate.annotations.JdbcTypeCode;
 
-import javax.persistence.*;
+import java.sql.Types;
 import java.time.ZonedDateTime;
 import java.util.UUID;
 
@@ -28,7 +29,7 @@ public class FileContent {
 
     @Lob
     @Column(length = LOB_LENGTH)
-    @Type(type = "org.hibernate.type.BinaryType")
+    @JdbcTypeCode(Types.VARBINARY)
     @JsonIgnore
     private byte[] bytes;
 
