@@ -2,8 +2,8 @@ package org.devgateway.viz.commons.domain;
 
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
-import javax.persistence.Entity;
-import javax.persistence.ManyToOne;
+import jakarta.persistence.Entity;
+import jakarta.persistence.ManyToOne;
 import java.time.ZonedDateTime;
 
 @Entity
