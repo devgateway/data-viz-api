@@ -1,4 +1,4 @@
-FROM maven:3.6-jdk-11-slim AS compiler
+FROM maven:3.8-openjdk-17-slim AS compiler
 WORKDIR /tmp/build
 COPY ./pom.xml ./
 RUN mvn -B -f pom.xml dependency:go-offline
@@ -10,7 +10,7 @@ RUN mkdir /opt/tcdi \
   && mv ./target/*-0.0.1-SNAPSHOT.jar /opt/tcdi \
   && rm -rf *
 
-FROM openjdk:11-jdk-slim
+FROM openjdk:17-jdk-slim
 WORKDIR /opt/tcdi
 COPY --from=compiler /opt/tcdi ./
 EXPOSE 8761
