@@ -3,4 +3,49 @@
                    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.4.xsd">
 
+    <!--Create a sequence if it doesn't exist -->
+    <changeSet id="1" author="dmbugua@developmentgateway.org">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <sequenceExists sequenceName="locale_text_seq" schemaName="public"/>
+            </not>
+        </preConditions>
+        <createSequence sequenceName="locale_text_seq" startValue="1" incrementBy="50"/>
+    </changeSet>
+
+    <changeSet id="2" author="dmbugua@developmentgateway.org">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <sequenceExists sequenceName="job_seq" schemaName="public"/>
+            </not>
+        </preConditions>
+        <createSequence sequenceName="job_seq" startValue="1" incrementBy="50"/>
+    </changeSet>
+
+    <changeSet id="3" author="dmbugua@developmentgateway.org">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <sequenceExists sequenceName="division_seq" schemaName="public"/>
+            </not>
+        </preConditions>
+        <createSequence sequenceName="division_seq" startValue="1" incrementBy="50"/>
+    </changeSet>
+
+    <changeSet id="4" author="dmbugua@developmentgateway.org">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <sequenceExists sequenceName="dataset_record_seq" schemaName="public"/>
+            </not>
+        </preConditions>
+        <createSequence sequenceName="dataset_record_seq" startValue="1" incrementBy="50"/>
+    </changeSet>
+
+    <changeSet id="5" author="dmbugua@developmentgateway.org">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <sequenceExists sequenceName="category_seq" schemaName="public"/>
+            </not>
+        </preConditions>
+        <createSequence sequenceName="category_seq" startValue="1" incrementBy="50"/>
+    </changeSet>
 </databaseChangeLog>
