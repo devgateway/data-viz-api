@@ -10,7 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import springfox.documentation.annotations.Cacheable;
+import org.springframework.cache.annotation.Cacheable;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.Query;
