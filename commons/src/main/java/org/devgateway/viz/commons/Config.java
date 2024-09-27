@@ -16,14 +16,14 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
-import springfox.documentation.swagger2.annotations.EnableSwagger2;
+//import springfox.documentation.swagger2.annotations.EnableSwagger2;
 
 import java.util.Arrays;
 import java.util.concurrent.Executor;
 
 @Configuration()
 @EnableTransactionManagement
-@EnableSwagger2
+//@EnableSwagger2
 @EntityScan(basePackages = "org.devgateway.viz.commons.domain")
 @EnableJpaRepositories(basePackages = "org.devgateway.viz.commons.repositories")
 @ComponentScan(basePackages = "org.devgateway.viz")
