@@ -5,7 +5,7 @@ import java.io.IOException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
-import org.apache.commons.lang.StringEscapeUtils;
+import org.apache.commons.lang3.StringEscapeUtils;
 import org.devgateway.viz.commons.domain.Category;
 import org.devgateway.viz.commons.domain.Dataset;
 import org.devgateway.viz.commons.domain.DatasetRecord;
