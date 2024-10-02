@@ -1,5 +1,31 @@
 package org.devgateway.viz.commons.services.generic;
 
+import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+
+import org.apache.commons.lang.StringUtils;
+import org.devgateway.viz.commons.domain.Category;
+import org.devgateway.viz.commons.pojo.Dimension;
+import org.devgateway.viz.commons.services.FilterDefinitionService;
+import org.devgateway.viz.commons.services.Utils;
+import org.devgateway.viz.commons.services.generic.utils.FieldUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Service;
+
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.Tuple;
 import com.querydsl.core.types.Expression;
@@ -10,25 +36,6 @@ import com.querydsl.core.types.dsl.EntityPathBase;
 import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.core.types.dsl.SimplePath;
 import com.querydsl.jpa.impl.JPAQuery;
-import org.apache.commons.lang.StringUtils;
-import org.devgateway.viz.commons.domain.Category;
-import org.devgateway.viz.commons.services.FilterDefinitionService;
-import org.devgateway.viz.commons.services.Utils;
-import org.devgateway.viz.commons.services.generic.utils.FieldUtils;
-import org.devgateway.viz.commons.pojo.Dimension;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.annotation.Cacheable;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Service;
-
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
-import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
-import java.util.*;
-import java.util.stream.Collectors;
 
 
 
@@ -110,12 +117,12 @@ public class StatsDSL<R extends JpaRepository, Q extends EntityPathBase, S> {
     @Cacheable("stats")
     public Tuple computeStats(List<Expression> expressions, Map<String, String> params, Q qEntity, Class entityClass) {
 
-            StackWalker walker = StackWalker.getInstance();
+        StackWalker walker = StackWalker.getInstance();
         Optional<String> methodName = walker.walk(frames -> frames
                 .findFirst()
                 .map(StackWalker.StackFrame::getMethodName));
 
-        logger.info("------- "+methodName + " ----");
+        logger.info("------- " + methodName + " ----");
 
 
         BooleanBuilder builder = getFilters(params, qEntity, entityClass);
