@@ -1,14 +1,24 @@
 package org.devgateway.viz.commons.services.generic;
 
-import com.querydsl.core.Tuple;
-import com.querydsl.core.types.Expression;
-import com.querydsl.core.types.dsl.EntityPathBase;
-import com.querydsl.core.types.dsl.Expressions;
-import com.querydsl.core.types.dsl.NumberPath;
-import com.querydsl.jpa.impl.JPAQuery;
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+
 import org.devgateway.viz.commons.domain.Category;
 import org.devgateway.viz.commons.domain.QCategory;
-import org.devgateway.viz.commons.pojo.*;
+import org.devgateway.viz.commons.pojo.AttrValue;
+import org.devgateway.viz.commons.pojo.Dimension;
+import org.devgateway.viz.commons.pojo.MeasureMetadata;
+import org.devgateway.viz.commons.pojo.Response;
+import org.devgateway.viz.commons.pojo.Type;
 import org.devgateway.viz.commons.services.DimensionDefinitionService;
 import org.devgateway.viz.commons.services.MeasureDefinitionService;
 import org.devgateway.viz.commons.services.generic.delegates.CachedDelegatedComputation;
@@ -20,12 +30,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
-import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
-import java.util.*;
-import java.util.stream.Collectors;
+import com.querydsl.core.Tuple;
+import com.querydsl.core.types.Expression;
+import com.querydsl.core.types.dsl.EntityPathBase;
+import com.querydsl.core.types.dsl.Expressions;
+import com.querydsl.core.types.dsl.NumberPath;
+import com.querydsl.jpa.impl.JPAQuery;
 
 /***
  * @author sdimunzio
@@ -96,6 +106,8 @@ public abstract class GenericStatsAPIServiceBase<R extends JpaRepository, Q exte
         List<MeasureMetadata> delegatedMeasures = measures.stream().filter(MeasureMetadata::isDelegated).collect(Collectors.toList());
         List<MeasureMetadata> nonDelegatedMeasures = measures.stream().filter(measure -> !measure.isDelegated()).collect(Collectors.toList());
 
+        logger.info("Delegated measures: {}", delegatedMeasures);
+
         // Collect and create delegates
         delegatedMeasures.forEach(measure -> {
             try {
@@ -117,13 +129,20 @@ public abstract class GenericStatsAPIServiceBase<R extends JpaRepository, Q exte
         HashMap<String, Response> map = new HashMap<>();
         Response root = new Response();
 
+
+        logger.info("Non-delegated measures: {}", nonDelegatedMeasures);
+
         // Get expressions from non-delegated measures
         List<Expression> expressions = nonDelegatedMeasures.stream()
                 .map(measure -> strToExpression(measure.getExpression(), measure.getField()))
                 .collect(Collectors.toList());
 
+        logger.info("Expressions: {}", expressions);
+
         // Compute values for expressions
         Tuple sum = statsDSL.computeStats(expressions, params, querydslType, annotatedClass);
+        logger.info("Computed sum: {}", sum);
+
         if (sum == null) {
             logger.error("Sum computation returned null");
             return new Response();
@@ -136,10 +155,13 @@ public abstract class GenericStatsAPIServiceBase<R extends JpaRepository, Q exte
         root.setType(TOTAL);
         root.setValue(TOTAL);
 
+        logger.info("Delegated measures: {}", delegatedMeasures);
+
         // Compute delegated values
         delegatedMeasures.forEach(measure -> {
             Number total = cachedDelegatedComputation.computeStats(delegates.get(measure.getValue()), params);
             if (total != null) {
+                logger.info("Delegated measure: {} = {}", measure.getValue(), total);
                 root.addAttrValues(new AttrValue(measure.getValue(), total));
             } else {
                 logger.error("Delegated computation for measure " + measure.getValue() + " returned null");
