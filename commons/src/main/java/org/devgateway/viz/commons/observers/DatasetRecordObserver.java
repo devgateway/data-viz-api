@@ -9,9 +9,9 @@ import java.io.IOException;
 
 public class DatasetRecordObserver<T extends DatasetRecord> implements DatasetObserver {
 
-    private final DatasetRecordService<T> datasetRecordService;
+    private final DatasetRecordService datasetRecordService;
 
-    public DatasetRecordObserver(final DatasetRecordService<T> datasetRecordService) {
+    public DatasetRecordObserver(final DatasetRecordService datasetRecordService) {
         this.datasetRecordService = datasetRecordService;
     }
 

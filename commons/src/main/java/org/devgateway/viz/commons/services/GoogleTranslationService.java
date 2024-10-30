@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 @Service
@@ -27,7 +28,7 @@ public class GoogleTranslationService {
     String app;
 
     public String translate(String source, String locale) {
-        List<TranslationsResource> values = translate(Arrays.asList(source), locale);
+        List<TranslationsResource> values = translate(Collections.singletonList(source), locale);
         if (values.size() > 0) {
             return values.iterator().next().getTranslatedText();
         }

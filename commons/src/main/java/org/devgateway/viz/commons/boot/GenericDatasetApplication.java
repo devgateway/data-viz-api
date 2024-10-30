@@ -1,14 +1,13 @@
 package org.devgateway.viz.commons.boot;
 
-import org.devgateway.viz.commons.domain.DatasetRecord;
-import org.devgateway.viz.commons.io.BaseCSVImporter;
+import org.devgateway.viz.commons.domain.Dataset;
+import org.devgateway.viz.commons.io.BaseImport;
 import org.devgateway.viz.commons.observers.CacheManagerDatasetObserver;
 import org.devgateway.viz.commons.observers.DatasetListener;
 import org.devgateway.viz.commons.observers.DatasetRecordObserver;
 import org.devgateway.viz.commons.services.generic.DatasetRecordService;
 import org.devgateway.viz.commons.services.generic.DatasetService;
 import org.devgateway.viz.commons.services.generic.GenericConfigService;
-import org.devgateway.viz.commons.services.generic.utils.CommonConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,10 +16,7 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.cache.CacheManager;
 
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.UUID;
+import java.util.List;
 
 public class GenericDatasetApplication implements CommandLineRunner {
 
@@ -42,7 +38,7 @@ public class GenericDatasetApplication implements CommandLineRunner {
     @Autowired
     DatasetService datasetService;
 
-    public GenericDatasetApplication(final BaseCSVImporter importer,
+    public GenericDatasetApplication(final BaseImport importer,
                                      final DatasetRecordService datasetRecordService,
                                      final GenericConfigService configService) {
         this.importer = importer;
@@ -50,7 +46,7 @@ public class GenericDatasetApplication implements CommandLineRunner {
         this.configService = configService;
     }
 
-    private final BaseCSVImporter<? extends DatasetRecord> importer;
+    private final BaseImport  importer;
 
     private final DatasetRecordService datasetRecordService;
 
@@ -73,32 +69,22 @@ public class GenericDatasetApplication implements CommandLineRunner {
             if (datasetService.getAllDatasets().size() > 0) {
                 logger.info("Initial startup import will not run having previous imported data");
             } else {
-
-                Path path = Paths.get(importDirectory);
                 try {
-
-                    Files.list(path)
-                            .filter(file -> !file.getFileName().toString().equalsIgnoreCase(CommonConstants.TEMPLATE_FILE_NAME))
-                            .forEach(file -> {
+                    List<Dataset> datasets = importer.createDataSets();
+                    datasets.forEach(ds -> {
                         try {
-                            UUID uuid = UUID.randomUUID();
-                            String name = file.getFileName().toString();
-                            name = name.substring(0, name.lastIndexOf(".")).toUpperCase();
+                            importer.start(ds);
 
-                            datasetService.createDataset(uuid.toString(), name, file.getFileName().toString(), Files.probeContentType(file.toAbsolutePath()), Files.readAllBytes(file.toAbsolutePath()));
-
-
-                        } catch (Exception e) {
-                            logger.error("error when creating dataset", e);
+                        } catch (IOException e) {
+                            logger.error(e.getMessage(), e);
                         }
-
-                        //
                     });
-                } catch (IOException e) {
+                } catch (Exception e) {
                     logger.error(e.getMessage(), e);
                 }
             }
         }
+
     }
 
 

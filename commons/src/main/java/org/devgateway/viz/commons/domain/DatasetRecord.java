@@ -8,6 +8,7 @@ import org.devgateway.viz.commons.domain.annotations.Measures;
 
 import javax.persistence.*;
 import org.devgateway.viz.commons.domain.annotations.Translation;
+import org.hibernate.annotations.Cascade;
 
 @Entity
 @Inheritance(strategy = InheritanceType.TABLE_PER_CLASS)
@@ -25,6 +26,7 @@ public abstract class DatasetRecord {
     @ManyToOne
     @QueryType(value = PropertyType.NONE)
     @Filter(param = "ds", label = "Dataset", description = "Dataset Filter")
+    @Cascade(org.hibernate.annotations.CascadeType.ALL)
     private Dataset dataset;
 
     public Long getId() {

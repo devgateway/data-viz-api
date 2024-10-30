@@ -5,6 +5,7 @@ import org.devgateway.viz.commons.domain.Dataset;
 import org.devgateway.viz.commons.domain.DatasetRecord;
 import org.devgateway.viz.commons.domain.FileContent;
 import org.devgateway.viz.commons.io.BaseCSVImporter;
+import org.devgateway.viz.commons.io.BaseImport;
 import org.devgateway.viz.commons.repositories.DatasetRecordRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,16 +16,16 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.List;
 
-public class DatasetRecordService<T extends DatasetRecord> {
+public class DatasetRecordService<T extends DatasetRecord, R> {
 
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
-    BaseCSVImporter<T> importer;
+    BaseImport<T,R> importer;
 
     private final DatasetRecordRepository<T> datasetRecordRepository;
 
     public DatasetRecordService(final DatasetRecordRepository<T> datasetRecordRepository,
-                                final BaseCSVImporter<T> datasetRecordImporter) {
+                                final BaseImport<T,R> datasetRecordImporter) {
         this.datasetRecordRepository = datasetRecordRepository;
         this.importer = datasetRecordImporter;
     }

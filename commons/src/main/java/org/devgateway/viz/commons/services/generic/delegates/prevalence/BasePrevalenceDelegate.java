@@ -43,12 +43,12 @@ public abstract class BasePrevalenceDelegate extends FilteredDelegate {
             // get the totals for a measure without blanks
             prevParams.put(filter, "true,false");
             //compute total of group
-            Tuple totalSum = statsDSL.computeStats(Arrays.asList(getWeightSumExpression()), prevParams, getEntityPath(), getAnnotatedClass());
+            Tuple totalSum = statsDSL.computeStats(Collections.singletonList(getWeightSumExpression()), prevParams, getEntityPath(), getAnnotatedClass());
             if (totalSum != null) {
                 //get smokers only (filter by current field as true)
                 prevParams.put(filter, "true");
                 //compute smokers only total
-                final Tuple partialTotal = statsDSL.computeStats(Arrays.asList(getWeightSumExpression()), prevParams, getEntityPath(), getAnnotatedClass());
+                final Tuple partialTotal = statsDSL.computeStats(Collections.singletonList(getWeightSumExpression()), prevParams, getEntityPath(), getAnnotatedClass());
                 //return value
                 if (partialTotal != null) {
                     //calculate % total / smokers
@@ -72,10 +72,10 @@ public abstract class BasePrevalenceDelegate extends FilteredDelegate {
             prevParams.putAll(filters);
             // get the totals for a measure without blanks
             prevParams.put(filter, "true,false");
-            HashMap<String, Tuple> t = statsDSL.computeStats(Arrays.asList(getWeightSumExpression()), prevParams, sub, getEntityPath(), getAnnotatedClass());
+            HashMap<String, Tuple> t = statsDSL.computeStats(Collections.singletonList(getWeightSumExpression()), prevParams, sub, getEntityPath(), getAnnotatedClass());
             // get the totals for a measure to calculate the prevalence
             prevParams.put(filter, "true");
-            HashMap<String, Tuple> p = statsDSL.computeStats(Arrays.asList(getWeightSumExpression()), prevParams, sub, getEntityPath(), getAnnotatedClass());
+            HashMap<String, Tuple> p = statsDSL.computeStats(Collections.singletonList(getWeightSumExpression()), prevParams, sub, getEntityPath(), getAnnotatedClass());
             keys.stream().forEach(s -> {
                 if (p.get(s) != null && !t.isEmpty()) {
                     Double total = t.get(s).get(sub.size(), Double.class);

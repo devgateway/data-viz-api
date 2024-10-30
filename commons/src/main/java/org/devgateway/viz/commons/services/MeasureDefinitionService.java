@@ -148,7 +148,7 @@ public class MeasureDefinitionService {
                 try {
                     String name = (String) objs[i++];
                     if (name != null && !name.isEmpty()) {
-                        m.setDelegate((Class<? extends Delegate>) Class.forName(((String) name)));
+                        m.setDelegate((Class<? extends Delegate>) Class.forName(name));
                     }
                 } catch (ClassNotFoundException e) {
                     logger.error("error when loading class", e);

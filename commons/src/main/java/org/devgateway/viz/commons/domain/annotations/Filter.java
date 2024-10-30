@@ -11,5 +11,5 @@ import java.lang.annotation.Target;
 public @interface Filter {
     String param();
     String label();
-    String description()  default "[unassigned]"; ;
+    String description()  default "[unassigned]";
 }

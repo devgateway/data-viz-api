@@ -32,7 +32,7 @@ public abstract class BasePopulationDelegate extends FilteredDelegate {
             Map<String, String> prevParams = new HashMap<>();
             prevParams.putAll(filters);
             prevParams.put(filter, "true");
-            final Tuple partialTotal = statsDSL.computeStats(Arrays.asList(getWeightSumExpression()), prevParams, getEntityPath(), getAnnotatedClass());
+            final Tuple partialTotal = statsDSL.computeStats(Collections.singletonList(getWeightSumExpression()), prevParams, getEntityPath(), getAnnotatedClass());
             return partialTotal != null ? partialTotal.get(0, Double.class) : 0d;
         }
     }
@@ -50,7 +50,7 @@ public abstract class BasePopulationDelegate extends FilteredDelegate {
             //TODO:check what is this about
             prevParams.remove(filter);
             prevParams.put(filter, "true");
-            HashMap<String, Tuple> p = statsDSL.computeStats(Arrays.asList(getWeightSumExpression()), prevParams, sub, getEntityPath(), getAnnotatedClass());
+            HashMap<String, Tuple> p = statsDSL.computeStats(Collections.singletonList(getWeightSumExpression()), prevParams, sub, getEntityPath(), getAnnotatedClass());
 
             keys.stream().forEach(s -> {
                 Tuple val = p.get(s);

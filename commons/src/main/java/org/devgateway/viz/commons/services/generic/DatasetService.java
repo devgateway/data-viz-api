@@ -13,6 +13,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.CacheManager;
 import org.springframework.scheduling.annotation.Async;
+import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
@@ -21,6 +22,7 @@ import javax.transaction.Transactional;
 import java.io.IOException;
 import java.time.ZonedDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class DatasetService {
@@ -69,9 +71,14 @@ public class DatasetService {
         return dataset;
     }
 
-    public Dataset createDataset(final String code, final String name, String fileName, String contentType, byte[] content) throws IOException {
-        validateDatasetParameters(name);
 
+    public Dataset createDataset(final String code, final String name, String fileName, String contentType, byte[] content) throws IOException {
+        return this.createDataset(code, name, fileName, contentType, content, true);
+
+    }
+
+    public Dataset createDataset(final String code, final String name, String fileName, String contentType, byte[] content, Boolean notifyObserver) throws IOException {
+        validateDatasetParameters(name);
         ZonedDateTime time = ZonedDateTime.now();
         Dataset dataset = new Dataset();
         dataset.setValue(name);
@@ -81,10 +88,11 @@ public class DatasetService {
         FileContent fileContent = fileContentService.saveFile(fileName, contentType, content);
         dataset.setFileContent(fileContent);
         Dataset ds = datasetRepository.save(dataset);
-
         //Will trigger the event
         try {
-            datasetListener.notifyDatasetObservers(dataset, DatasetObserver.DatasetAction.SAVE);
+            if (notifyObserver) {
+                datasetListener.notifyDatasetObservers(dataset, DatasetObserver.DatasetAction.SAVE);
+            }
         } catch (Exception e) {
             logger.error("error when creating dataset", e);
             deleteDataset(code);

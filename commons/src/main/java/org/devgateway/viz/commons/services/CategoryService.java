@@ -19,6 +19,7 @@ import org.devgateway.viz.commons.repositories.CategoryRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.lang.reflect.InvocationTargetException;
@@ -87,12 +88,14 @@ public class CategoryService {
     }
 
 
+    @Cacheable(value = "categories")
     public Category createIfNotExist(String value, String code, final Class type) {
 
         return createIfNotExist(value, code, null, type, null, null, true, null, Optional.empty(), Optional.empty(), false);
 
     }
 
+    @Cacheable(value = "categories")
     public Category createIfNotExist(String value, String code, final Class type, Integer position) {
 
         return createIfNotExist(value, code, null, type, position, null, true, null, Optional.empty(), Optional.empty(), false);
@@ -100,6 +103,8 @@ public class CategoryService {
     }
 
 
+
+    @Cacheable(value = "categories")
     public Category createIfNotExist(String value, final Class type) {
         return createIfNotExist(value, codify(value), null, type, null, null, true, null, Optional.empty(), Optional.empty(), false);
 
@@ -114,10 +119,12 @@ public class CategoryService {
     }
 
 
+    @Cacheable(value = "categories")
     public Category createIfNotExist(String value, String code, final Class type, Integer position, Styles styles) {
         return createIfNotExist(value, code, null, type, position, null, true, null, Optional.of(styles), Optional.empty(), false);
     }
 
+    @Cacheable(value = "categories")
     public Category createIfNotExist(final String value, final Class type, Integer position, Styles styles, List<LocaleText> translations) {
         return createIfNotExist(value, codify(value), null, type, position, null, true, null, Optional.of(styles), Optional.of(translations), false);
     }
@@ -137,6 +144,8 @@ public class CategoryService {
      * @param forceTranslationsUpdate
      * @return
      */
+
+    @Cacheable(value = "categories")
     public Category createIfNotExist(final String value, final Class type, List<LocaleText> translations, boolean forceTranslationsUpdate) {
         return createIfNotExist(value, codify(value), null, type, null, null, true, null, Optional.empty(), Optional.of(translations), forceTranslationsUpdate);
     }
@@ -162,6 +171,8 @@ public class CategoryService {
     public Category save(Category category) {
         return categoryRepository.save(category);
     }
+
+    @Cacheable(value = "categories")
 
     public Category getByValue(String value, final Class type) {
         return createIfNotExist(value, codify(value), null, type, null, null, false, null, Optional.empty(), Optional.empty(), false);

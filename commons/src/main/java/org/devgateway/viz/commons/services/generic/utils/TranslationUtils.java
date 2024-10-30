@@ -18,7 +18,7 @@ public class TranslationUtils {
             logger.info("No locale selected, returing default label");
             return defaultValue;
         }
-        List<LocaleText> filtered = (List<LocaleText>) labels.stream().filter(localeText -> localeText.getLanguage().getValue().equalsIgnoreCase(locale)).collect(Collectors.toList());
+        List<LocaleText> filtered = labels.stream().filter(localeText -> localeText.getLanguage().getValue().equalsIgnoreCase(locale)).collect(Collectors.toList());
         if (filtered.size() > 0) {
 
             return filtered.iterator().next().getText();

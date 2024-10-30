@@ -82,7 +82,7 @@ public class JobService {
         List<Job> jobs = jobRepository.findAllByCodeAndStatusIn(code, List.of(JobStatus.SUBMITTED, JobStatus.IN_PROGRESS));
         if (jobs.size() > 0) {
             throw new RuntimeException("There is already a job for code: " + code);
-        };
+        }
 
         Job job = new Job();
         job.setStatus(JobStatus.SUBMITTED);

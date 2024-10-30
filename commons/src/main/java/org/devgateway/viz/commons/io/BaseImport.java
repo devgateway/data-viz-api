@@ -1,20 +1,38 @@
 package org.devgateway.viz.commons.io;
 
-import liquibase.pro.packaged.T;
 import org.apache.commons.lang.StringUtils;
+import org.devgateway.viz.commons.domain.Dataset;
+import org.devgateway.viz.commons.domain.FileContent;
 import org.devgateway.viz.commons.services.CategoryService;
+import org.devgateway.viz.commons.services.generic.DatasetService;
+import org.devgateway.viz.commons.services.generic.utils.CommonConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.transaction.Transactional;
+import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
+import java.util.stream.Stream;
 
 @Transactional
 public abstract class BaseImport<T, R> {
-
+    @Value("${viz.import.directory}")
+    String importDirectory;
     protected boolean shouldRunImport = true;
+    @Autowired
+    private DatasetService datasetService;
 
     protected void beforeStart() {
         clean();
@@ -23,6 +41,7 @@ public abstract class BaseImport<T, R> {
 
 
     public abstract T read(R row);
+
 
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
@@ -109,12 +128,48 @@ public abstract class BaseImport<T, R> {
         return null;
     }
 
-    protected abstract void init();
+    protected abstract void init() throws Exception;
+
+    public Stream<Path> getImportFiles() throws Exception {
+        Path path = Paths.get(importDirectory);
+        return Files.list(path).filter(file -> !file.getFileName().toString().equalsIgnoreCase(CommonConstants.TEMPLATE_FILE_NAME));
+    }
+
+
+    public List<Dataset> createDataSets() throws Exception {
+        List<Dataset> datasets = new ArrayList<>();
+        getImportFiles().forEach(file -> {
+            try {
+                UUID uuid = UUID.randomUUID();
+                String name = file.getFileName().toString();
+                name = name.substring(0, name.lastIndexOf(".")).toUpperCase();
+                Dataset ds = datasetService.createDataset(uuid.toString(), name, file.getFileName().toString(), Files.probeContentType(file.toAbsolutePath()), Files.readAllBytes(file.toAbsolutePath()), false);
+                datasets.add(ds);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        });
+
+        return datasets;
+    }
+
+    ;
+
+    public void start(Dataset dataset) throws IOException {
+        FileContent f = dataset.getFileContent();
+        BufferedReader in = new BufferedReader(new InputStreamReader(new ByteArrayInputStream(f.getBytes())));
+        start(in, dataset);
+    }
+
+    public void start(BufferedReader in, Dataset dataset) throws IOException {
+        throw new RuntimeException("Not implemented");
+    }
 
     protected abstract void clean();
 
 
     public void save(T record) {
+        logger.info("Saving Entity "+record.toString());
         entityManager.persist(record);
     }
 
