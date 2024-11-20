@@ -1,6 +1,6 @@
 package org.devgateway.viz.commons.domain;
 
-import javax.persistence.Entity;
+import jakarta.persistence.Entity;
 
 @Entity
 public class Language extends Category {

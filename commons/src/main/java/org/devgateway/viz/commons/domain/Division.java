@@ -1,6 +1,6 @@
 package org.devgateway.viz.commons.domain;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
 
 @Entity
 public class Division {
