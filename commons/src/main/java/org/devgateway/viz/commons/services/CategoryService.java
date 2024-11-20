@@ -1,9 +1,9 @@
 package org.devgateway.viz.commons.services;
 
 import com.google.common.collect.ImmutableList;
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
-import javax.persistence.Query;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+import jakarta.persistence.Query;
 import org.apache.commons.lang3.StringUtils;
 import org.devgateway.viz.commons.domain.Category;
 import org.devgateway.viz.commons.domain.DatasetRecord;
@@ -19,6 +19,7 @@ import org.devgateway.viz.commons.repositories.CategoryRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 import java.lang.reflect.InvocationTargetException;
@@ -38,6 +39,7 @@ public class CategoryService {
     private EntityManager em;
 
     @Autowired
+    @Lazy
     private DimensionDefinitionService dimensionDefinitionService;
 
     private final static List<String> NOT_ALLOWED_CATEGORIES_TYPES_FOR_EDITING =

@@ -6,7 +6,7 @@ import org.devgateway.viz.commons.domain.annotations.Filter;
 import org.devgateway.viz.commons.domain.annotations.Measure;
 import org.devgateway.viz.commons.domain.annotations.Measures;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
 import org.devgateway.viz.commons.domain.annotations.Translation;
 
 @Entity
