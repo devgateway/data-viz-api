@@ -6,10 +6,10 @@ import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 import org.springframework.context.annotation.Bean;
 import org.springframework.web.filter.ForwardedHeaderFilter;
 
+
 import java.util.Collections;
 
 @SpringBootApplication
-@EnableGateway
 @EnableDiscoveryClient
 public class Main {
 
