@@ -10,7 +10,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.2.9</version>
+        <version>3.2.10</version>
         <relativePath></relativePath>
     </parent>
 
@@ -28,15 +28,8 @@
 
 <!--        <dependency>-->
 <!--            <groupId>org.springframework.cloud</groupId>-->
-<!--            <artifactId>spring-cloud-starter-netflix-zuul</artifactId>-->
-<!--            <version>2.2.10.RELEASE</version>-->
+<!--            <artifactId>spring-cloud-starter-gateway-mvc</artifactId>-->
 <!--        </dependency>-->
-
-
-        <dependency>
-            <groupId>org.springframework.cloud</groupId>
-            <artifactId>spring-cloud-gateway-mvc</artifactId>
-        </dependency>
 
         <dependency>
             <groupId>org.springframework.security</groupId>

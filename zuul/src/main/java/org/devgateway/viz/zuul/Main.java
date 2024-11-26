@@ -18,11 +18,11 @@ public class Main {
     }
 
 
-    @Bean
-    public FilterRegistrationBean forwardedHeaderFilter() {
-        final FilterRegistrationBean<ForwardedHeaderFilter> filter = new FilterRegistrationBean<>(new ForwardedHeaderFilter());
-        filter.setName("Forwarded Header filter");
-        filter.setUrlPatterns(Collections.singletonList("/actuator/*"));
-        return filter;
-    }
+//    @Bean
+//    public FilterRegistrationBean forwardedHeaderFilter() {
+//        final FilterRegistrationBean<ForwardedHeaderFilter> filter = new FilterRegistrationBean<>(new ForwardedHeaderFilter());
+//        filter.setName("Forwarded Header filter");
+//        filter.setUrlPatterns(Collections.singletonList("/actuator/*"));
+//        return filter;
+//    }
 }
