@@ -1,7 +1,7 @@
-package org.devgateway.viz.zuul.controller;
+package org.devgateway.viz.gateway.controller;
 
-import org.devgateway.viz.zuul.security.bean.AuthResponse;
-import org.devgateway.viz.zuul.service.LoginService;
+import org.devgateway.viz.gateway.security.bean.AuthResponse;
+import org.devgateway.viz.gateway.service.LoginService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -64,6 +64,11 @@ public class LoginController {
     @ResponseBody
     public Boolean isValidToken(@RequestHeader(value = "Authorization") String token) {
         return loginService.isValidToken(token);
+    }
+
+    @GetMapping("/test")
+    public String test(){
+        return "Hello this is a test";
     }
 
 }

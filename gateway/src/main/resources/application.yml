@@ -1,0 +1,45 @@
+spring:
+  application:
+    name: gateway
+
+  cloud:
+    gateway:
+      mvc:
+        routes:
+          - id: registry
+            uri: lb://registry
+            predicates:
+              - Path=/registry/**
+            filters:
+              - StripPrefix=1
+
+          - id: zuul-server
+            uri: lb://zuul-server
+            predicates:
+              - Path=/zuul-server/**
+            filters:
+              - StripPrefix=1
+
+          - id: example-service
+            uri: lb://example-service
+            predicates:
+              - Path=/example-service/**
+            filters:
+              - StripPrefix=1
+
+          - id: cashew-pricing
+            uri: lb://cashew-pricing
+            predicates:
+              - Path=/cashew-pricing/**
+            filters:
+              - StripPrefix=1
+
+          - id: amp-funding
+            uri: lb://amp-funding
+            predicates:
+              - Path=/amp-funding/**
+            filters:
+              - StripPrefix=1
+
+server:
+  port: 8763
