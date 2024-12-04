@@ -1,0 +1,9 @@
+_format_version: "3.0"
+services:
+  - name: zuul-service
+    url: http://zuul:8762/gateway
+    routes:
+      - paths:
+          - /gateway
+        name: zuul-route
+        strip_path: true
