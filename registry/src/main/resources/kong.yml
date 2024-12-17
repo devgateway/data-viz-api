@@ -1,9 +1,0 @@
-_format_version: "3.0"
-services:
-  - name: eureka-service
-    url: http://eureka:8761
-    routes:
-      - paths:
-          - /registry
-        name: eureka-route
-        strip_path: true
