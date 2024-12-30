@@ -1,4 +1,7 @@
 package org.devgateway.viz.zuul;
+import io.swagger.v3.oas.annotations.OpenAPIDefinition;
+import io.swagger.v3.oas.annotations.info.Info;
+import io.swagger.v3.oas.annotations.servers.Server;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
@@ -12,6 +15,7 @@ import java.util.Collections;
 @SpringBootApplication
 @EnableZuulProxy
 @EnableDiscoveryClient
+@OpenAPIDefinition(info = @Info(title = "Zuul Service API", version = "v1"), servers = @Server(url = "http://zuul:8762"))
 public class Main {
 
     public static void main(String[] args) {
