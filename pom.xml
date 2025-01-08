@@ -14,7 +14,7 @@
     <groupId>org.devgateway.viz</groupId>
     <artifactId>api-commons</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>DVZ API</name>
+    <name>Data Viz Root</name>
 
     <description>Parent Services Project</description>
 
