@@ -8,7 +8,7 @@ import java.util.List;
 
 
 @RestController
-@RequestMapping("/api/alive-superset")
+@RequestMapping("/")
 @CrossOrigin(origins = "*") // Allow all origins
 public class SupersetController {
 
