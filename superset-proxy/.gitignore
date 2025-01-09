@@ -1,0 +1,38 @@
+target/
+!.mvn/wrapper/maven-wrapper.jar
+!**/src/main/**/target/
+!**/src/test/**/target/
+
+***REMOVED******REMOVED******REMOVED*** IntelliJ IDEA ***REMOVED******REMOVED******REMOVED***
+.idea/modules.xml
+.idea/jarRepositories.xml
+.idea/compiler.xml
+.idea/libraries/
+*.iws
+*.iml
+*.ipr
+
+***REMOVED******REMOVED******REMOVED*** Eclipse ***REMOVED******REMOVED******REMOVED***
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+
+***REMOVED******REMOVED******REMOVED*** NetBeans ***REMOVED******REMOVED******REMOVED***
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+build/
+!**/src/main/**/build/
+!**/src/test/**/build/
+
+***REMOVED******REMOVED******REMOVED*** VS Code ***REMOVED******REMOVED******REMOVED***
+.vscode/
+
+***REMOVED******REMOVED******REMOVED*** Mac OS ***REMOVED******REMOVED******REMOVED***
+.DS_Store
