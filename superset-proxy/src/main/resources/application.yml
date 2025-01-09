@@ -11,6 +11,17 @@ eureka:
 spring:
   application:
     name: superset-proxy
+
+superset:
+  url: https://superset.alive.dgstg.org/
+
 server:
   port: 8080
 
+
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
