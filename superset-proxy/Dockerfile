@@ -14,4 +14,4 @@ FROM openjdk:17-jdk-slim
 WORKDIR /opt/viz
 COPY --from=compiler /opt/viz ./
 EXPOSE 8762
-CMD ["java","-jar","/opt/viz/api-gateway-0.0.1-SNAPSHOT.jar"]
+CMD ["java","-jar","/opt/viz/superset-proxy-0.0.1-SNAPSHOT.jar"]
