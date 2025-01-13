@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/alive-superset")
+@RequestMapping("/")
 public class StatusController {
     @GetMapping("/status")
     public Map<String, String> status() {
