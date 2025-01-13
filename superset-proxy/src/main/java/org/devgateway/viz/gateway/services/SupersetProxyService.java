@@ -127,7 +127,7 @@ public class SupersetProxyService {
 
         Map<String, Object> datasource = createDatasource(datasetId);
         Map<String, Object> query1 = createQuery(field);
-        JsonNode requestNode = objectMapper.valueToTree(createSupersetRequest(datasource, query1));
+        JsonNode requestNode = objectMapper.valueToTree(createSupersetRequest(datasource, Collections.singletonList(query1)));
         JsonNode supersetResp = supersetApiClient.postChartData(supersetUrl, requestNode);
 
         if (supersetResp != null && supersetResp.has("result") && supersetResp.get("result").isArray()) {
@@ -184,7 +184,7 @@ public class SupersetProxyService {
 
         JsonNode queriesNode = requestBody.get("queries");
         if (queriesNode.isArray() && !queriesNode.isEmpty()) {
-            return transformData(resultArray.get(0), queriesNode.get(0).get("groupby"), queriesNode.get(0).get("metrics"));
+            return transformData(resultArray, queriesNode.get(0).get("groupby"), queriesNode.get(0).get("metrics"), groupsPath.split("/"));
         }
         return Collections.emptyList();
     }
@@ -193,49 +193,71 @@ public class SupersetProxyService {
         List<String> measuresArr = extractUniqueMeasures(supersetApiClient.fetchDataset(supersetUrl, datasetId).get("result"));
 
         Map<String, Object> datasource = createDatasource(datasetId);
-        Map<String, Object> query1 = createQuery(groupsPath != null ? groupsPath.split("/") : new String[0], measuresArr, queryParams);
 
-        return objectMapper.valueToTree(createSupersetRequest(datasource, query1));
+        List<Map<String, Object>> queries = new ArrayList<>();
+        String[] groupsArray = groupsPath.split("/");
+
+        Map<String, Object> queryForDimension1 = createQuery(new String[] {groupsArray[0]}, measuresArr, queryParams);
+        queries.add(queryForDimension1);
+        if (groupsArray.length > 1) {
+            Map<String, Object> queryForDimension2 = createQuery(groupsArray, measuresArr, queryParams);
+            queries.add(queryForDimension2);
+        }
+
+        return objectMapper.valueToTree(createSupersetRequest(datasource, queries));
     }
 
-    private Map<String, Object> transformData(JsonNode data, JsonNode dimensionsNode, JsonNode metricsNode) {
-        Map<String, Object> transformed = createTransformedData();
+    private Map<String, Object> transformData(JsonNode data, JsonNode dimensionsNode, JsonNode metricsNode, String[] dimensionsArray) {
+    Map<String, Object> transformed = createTransformedData();
+    List<Map<String, Object>> measuresList = new ArrayList<>();
+    List<Map<String, Object>> typesList = new ArrayList<>();
+    transformed.put("metadata", createMetadata(measuresList, typesList));
+    transformed.put("children", new ArrayList<>());
 
-        List<Map<String, Object>> measuresList = new ArrayList<>();
-        List<Map<String, Object>> typesList = new ArrayList<>();
-        transformed.put("metadata", createMetadata(measuresList, typesList));
-        transformed.put("children", new ArrayList<>());
+    JsonNode resultsForFirstDimension = data.get(0);
+    if (resultsForFirstDimension == null || !resultsForFirstDimension.has("data")) {
+        return transformed;
+    }
 
-        if (data == null || !data.has("data")) {
-            return transformed;
-        }
+    for (JsonNode metric : metricsNode) {
+        measuresList.add(createMeasure(metric.asText(), "Overall", "#555"));
+    }
 
-        for (JsonNode metric : metricsNode) {
-            measuresList.add(createMeasure(metric.asText(), "Overall", "#555"));
-        }
+    List<String> dimList = Arrays.asList(dimensionsArray);
+    for (String dim : dimList) {
+        typesList.add(createType(dim));
+    }
 
-        List<String> dimList = new ArrayList<>();
-        for (JsonNode dim : dimensionsNode) {
-            dimList.add(dim.asText());
-        }
-
+    for (JsonNode row : resultsForFirstDimension.get("data")) {
         for (String dim : dimList) {
-            typesList.add(createType(dim));
+            if (row.has(dim)) {
+                Map<String, Object> dataItem = createDataItem(dim, row.get(dim).asText(), metricsNode, row);
+                ((List<Map<String, Object>>) transformed.get("children")).add(dataItem);
+            }
         }
+    }
 
-        for (JsonNode row : data.get("data")) {
-            for (String dim : dimList) {
-                if (row.has(dim)) {
-                    Map<String, Object> dataItem = createDataItem(dim, row.get(dim).asText(), metricsNode, row);
-                    ((List<Map<String, Object>>) transformed.get("children")).add(dataItem);
+    JsonNode resultsForSecondDimension = data.get(1);
+    if (resultsForSecondDimension != null && resultsForSecondDimension.has("data")) {
+        for (JsonNode row : resultsForSecondDimension.get("data")) {
+            String parentDim = dimensionsArray[0];
+            String childDim = dimensionsArray[1];
+            if (row.has(childDim)) {
+                Map<String, Object> dataItem = createDataItem(childDim, row.get(childDim).asText(), metricsNode, row);
+                for (Map<String, Object> child : (List<Map<String, Object>>) transformed.get("children")) {
+                    if (child.get("value").equals(row.get(parentDim).asText())) {
+                        ((List<Map<String, Object>>) child.computeIfAbsent("children", k -> new ArrayList<>())).add(dataItem);
+                    }
                 }
             }
         }
-        transformed.put("itemsSize", data.get("data").size());
-        transformed.put("count", data.get("data").size());
-
-        return transformed;
     }
+
+    transformed.put("itemsSize", resultsForFirstDimension.get("data").size());
+    transformed.put("count", resultsForFirstDimension.get("data").size());
+
+    return transformed;
+}
 
     private Map<String, Object> createDatasource(String datasetId) {
         Map<String, Object> datasource = new HashMap<>();
@@ -272,10 +294,10 @@ public class SupersetProxyService {
         return query;
     }
 
-    private Map<String, Object> createSupersetRequest(Map<String, Object> datasource, Map<String, Object> query) {
+    private Map<String, Object> createSupersetRequest(Map<String, Object> datasource, List<Map<String, Object>> queries) {
         Map<String, Object> supersetRequest = new HashMap<>();
         supersetRequest.put("datasource", datasource);
-        supersetRequest.put("queries", Collections.singletonList(query));
+        supersetRequest.put("queries", queries);
         return supersetRequest;
     }
 
