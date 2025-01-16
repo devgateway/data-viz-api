@@ -2,6 +2,8 @@ package org.devgateway.viz.gateway.services;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.devgateway.viz.gateway.common.Constants;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.slf4j.Logger;
@@ -98,6 +100,7 @@ public class SupersetProxyService {
         return measures;
     }
 
+    @Cacheable("categories")
     public List<Map<String, Object>> fetchCategories(String supersetUrl, String datasetId) {
         if (datasetId == null) {
             return Collections.emptyList();
@@ -128,6 +131,7 @@ public class SupersetProxyService {
         Map<String, Object> datasource = createDatasource(datasetId);
         Map<String, Object> query1 = createQuery(field);
         JsonNode requestNode = objectMapper.valueToTree(createSupersetRequest(datasource, Collections.singletonList(query1)));
+        logger.info(requestNode.toString());
         JsonNode supersetResp = supersetApiClient.postChartData(supersetUrl, requestNode);
 
         if (supersetResp != null && supersetResp.has("result") && supersetResp.get("result").isArray()) {
@@ -169,6 +173,7 @@ public class SupersetProxyService {
         return measures;
     }
 
+    @Cacheable("stats")
     public Object getStats(String supersetUrl, String datasetId, Map<String, String> queryParams, String groupsPath) throws Exception {
         if (datasetId == null || groupsPath == null || groupsPath.isEmpty()) {
             return Collections.emptyList();
@@ -279,10 +284,11 @@ public class SupersetProxyService {
         query.put("groupby", Arrays.asList(groupArray));
         query.put("columns", Arrays.asList(groupArray));
         query.put("metrics", measuresArr);
+        query.put("row_limit", Constants.ROW_LIMIT);
 
         List<Map<String, Object>> filters = new ArrayList<>();
         for (Map.Entry<String, String> entry : queryParams.entrySet()) {
-            if (!"row_limit".equals(entry.getKey()) && !"datasetId".equals(entry.getKey())) {
+            if (!Constants.SPECIAL_PARAMS.contains(entry.getKey())) {
                 Map<String, Object> filter = new HashMap<>();
                 filter.put("col", entry.getKey());
                 filter.put("op", "in");
@@ -358,6 +364,7 @@ public class SupersetProxyService {
             String metricName = metric.asText();
             dataItem.put(metricName, row.has(metricName) ? row.get(metricName).asDouble() : 0.0);
         }
+
         return dataItem;
     }
 

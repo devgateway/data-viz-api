@@ -2,10 +2,14 @@ package org.devgateway.viz.gateway.controllers;
 
 import org.devgateway.viz.gateway.services.SupersetProxyService;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.CacheManager;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+
 import org.springframework.http.ResponseEntity;
 import jakarta.servlet.http.HttpServletRequest;
 
@@ -23,8 +27,18 @@ public class SupersetController {
     @Value("${superset.url}")
     private String supersetUrl;
 
-    public SupersetController(SupersetProxyService supersetService) {
+    CacheManager cacheManager;
+
+    public SupersetController(SupersetProxyService supersetService,
+                              CacheManager cacheManager) {
         this.supersetService = supersetService;
+        this.cacheManager = cacheManager;
+    }
+
+    @GetMapping("/cacheEvict")
+    public ResponseEntity<Object> cacheEvict(HttpServletRequest req, @RequestParam Map<String, String> allParams) {
+        cacheManager.getCacheNames().forEach(s -> Objects.requireNonNull(cacheManager.getCache(s)).clear());
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 
     @GetMapping("/charts")
@@ -72,7 +86,6 @@ public class SupersetController {
             String dimensions = req.getRequestURI().substring(req.getRequestURI().indexOf("stats") + 6);
             return supersetService.getStats(supersetUrl, datasetId, allParams, dimensions);
         } catch (Exception e) {
-            e.printStackTrace();
             return ResponseEntity.internalServerError().body("Failed to fetch stats");
         }
     }
