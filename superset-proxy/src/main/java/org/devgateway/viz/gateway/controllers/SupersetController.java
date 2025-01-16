@@ -86,6 +86,7 @@ public class SupersetController {
             String dimensions = req.getRequestURI().substring(req.getRequestURI().indexOf("stats") + 6);
             return supersetService.getStats(supersetUrl, datasetId, allParams, dimensions);
         } catch (Exception e) {
+            e.printStackTrace();
             return ResponseEntity.internalServerError().body("Failed to fetch stats");
         }
     }
