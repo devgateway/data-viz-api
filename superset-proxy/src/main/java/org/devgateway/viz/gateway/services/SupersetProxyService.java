@@ -83,20 +83,13 @@ public class SupersetProxyService {
         }
 
         JsonNode resultNode = supersetApiClient.fetchDataset(supersetUrl, datasetId).get("result");
-        List<String> measuresList = extractUniqueMeasures(resultNode);
 
         List<Map<String, Object>> measures = new ArrayList<>();
-        for (String measure : measuresList) {
-            Map<String, Object> data = new HashMap<>();
-            data.put("label", measure);
-            data.put("labels", new HashMap<>());
-            data.put("value", measure);
-            data.put("group", createGroup("Population"));
-            data.put("styles", createStyles("***REMOVED***555"));
-            data.put("position", 0);
-            data.put("enabled", null);
-            measures.add(data);
+
+        for (JsonNode metric : resultNode.get("metrics")) {
+            measures.add(createMeasure(metric));
         }
+
         return measures;
     }
 
@@ -225,7 +218,7 @@ public class SupersetProxyService {
     }
 
     for (JsonNode metric : metricsNode) {
-        measuresList.add(createMeasure(metric.asText(), "Overall", "***REMOVED***555"));
+        measuresList.add(createMeasure(metric.asText(), metric.asText()));
     }
 
     List<String> dimList = Arrays.asList(dimensionsArray);
@@ -322,13 +315,18 @@ public class SupersetProxyService {
         return metadata;
     }
 
-    private Map<String, Object> createMeasure(String metricName, String groupLabel, String color) {
+    private Map<String, Object> createMeasure(JsonNode metric) {
+        String label = metric.get("verbose_name") != null ? metric.get("verbose_name").asText() : metric.get("metric_name").asText();
+        return createMeasure(metric.get("metric_name").asText(), label);
+    }
+
+    private Map<String, Object> createMeasure(String name, String label) {
         Map<String, Object> measure = new HashMap<>();
-        measure.put("label", metricName);
+        measure.put("label", label);
         measure.put("labels", new HashMap<>());
-        measure.put("value", metricName);
-        measure.put("group", createGroup(groupLabel));
-        measure.put("styles", createStyles(color));
+        measure.put("value", name);
+        measure.put("group", createGroup(Constants.MEASURE_GROUP_LABEL));
+        measure.put("styles", createStyles(Constants.DEFAULT_COLOR));
         measure.put("position", 0);
         measure.put("enabled", null);
         return measure;
