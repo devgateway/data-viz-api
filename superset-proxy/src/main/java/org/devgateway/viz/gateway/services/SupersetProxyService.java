@@ -110,7 +110,8 @@ public class SupersetProxyService {
             category.put("type", field);
             List<Map<String, Object>> items = new ArrayList<>();
             for (String value : fetchDistinctDimensionValues(supersetUrl, field, datasetId)) {
-                items.add(createItem(field, value, "#BA4747"));
+                items.add(createItem(field, value,
+                        Constants.COLORS.get(items.size() % Constants.COLORS.size())));
             }
             category.put("items", items);
             categories.add(category);
