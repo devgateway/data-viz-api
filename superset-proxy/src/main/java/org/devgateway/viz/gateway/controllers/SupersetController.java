@@ -90,8 +90,8 @@ public class SupersetController {
             return ResponseEntity.internalServerError().body("Failed to fetch stats");
         }
     }
-    
-    @GetMapping("/categories")
+
+    @GetMapping(value = {"/categories", "/categories/"})
     public Object getCategories(@RequestParam(required = false) String datasetId) {
         if (datasetId == null || datasetId.isEmpty()) {
             return List.of();
