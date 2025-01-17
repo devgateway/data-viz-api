@@ -206,35 +206,41 @@ public class SupersetProxyService {
         return objectMapper.valueToTree(createSupersetRequest(datasource, queries));
     }
 
-    private Map<String, Object> transformData(JsonNode data, JsonNode dimensionsNode, JsonNode metricsNode, String[] dimensionsArray) {
-    Map<String, Object> transformed = createTransformedData();
-    List<Map<String, Object>> measuresList = new ArrayList<>();
-    List<Map<String, Object>> typesList = new ArrayList<>();
-    transformed.put("metadata", createMetadata(measuresList, typesList));
-    transformed.put("children", new ArrayList<>());
+    private Object transformData(JsonNode data, JsonNode dimensionsNode, JsonNode metricsNode, String[] dimensionsArray) {
+        JsonNode resultsForFirstDimension = data.get(0);
 
-    JsonNode resultsForFirstDimension = data.get(0);
-    if (resultsForFirstDimension == null || !resultsForFirstDimension.has("data")) {
-        return transformed;
-    }
+        Map<String, Object> transformed = createTransformedData();
+        List<Map<String, Object>> measuresList = new ArrayList<>();
+        List<Map<String, Object>> typesList = new ArrayList<>();
+        transformed.put("metadata", createMetadata(measuresList, typesList));
 
-    for (JsonNode metric : metricsNode) {
-        measuresList.add(createMeasure(metric.asText(), metric.asText()));
-    }
+        transformed.put("itemsSize", resultsForFirstDimension.get("data").size());
+        transformed.put("count", resultsForFirstDimension.get("data").size());
 
-    List<String> dimList = Arrays.asList(dimensionsArray);
-    for (String dim : dimList) {
-        typesList.add(createType(dim));
-    }
+        if (!resultsForFirstDimension.has("data") || resultsForFirstDimension.get("data").isEmpty()) {
+            return transformed;
+        }
 
-    for (JsonNode row : resultsForFirstDimension.get("data")) {
+        transformed.put("children", new ArrayList<>());
+
+
+        for (JsonNode metric : metricsNode) {
+            measuresList.add(createMeasure(metric.asText(), metric.asText()));
+        }
+
+        List<String> dimList = Arrays.asList(dimensionsArray);
         for (String dim : dimList) {
-            if (row.has(dim)) {
-                Map<String, Object> dataItem = createDataItem(dim, row.get(dim).asText(), metricsNode, row);
-                ((List<Map<String, Object>>) transformed.get("children")).add(dataItem);
+            typesList.add(createType(dim));
+        }
+
+        for (JsonNode row : resultsForFirstDimension.get("data")) {
+            for (String dim : dimList) {
+                if (row.has(dim)) {
+                    Map<String, Object> dataItem = createDataItem(dim, row.get(dim).asText(), metricsNode, row);
+                    ((List<Map<String, Object>>) transformed.get("children")).add(dataItem);
+                }
             }
         }
-    }
 
     JsonNode resultsForSecondDimension = data.get(1);
     if (resultsForSecondDimension != null && resultsForSecondDimension.has("data")) {
@@ -252,8 +258,7 @@ public class SupersetProxyService {
         }
     }
 
-    transformed.put("itemsSize", resultsForFirstDimension.get("data").size());
-    transformed.put("count", resultsForFirstDimension.get("data").size());
+
 
     return transformed;
 }
