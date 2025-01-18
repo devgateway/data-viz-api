@@ -14,7 +14,6 @@ import org.springframework.http.ResponseEntity;
 import jakarta.servlet.http.HttpServletRequest;
 
 
-
 @RestController
 @RequestMapping("/")
 @CrossOrigin(origins = "*") // Allow all origins
@@ -22,15 +21,9 @@ public class SupersetController {
 
     private final SupersetProxyService supersetService;
 
-      
-
-    @Value("${superset.url}")
-    private String supersetUrl;
-
     CacheManager cacheManager;
 
-    public SupersetController(SupersetProxyService supersetService,
-                              CacheManager cacheManager) {
+    public SupersetController(SupersetProxyService supersetService, CacheManager cacheManager) {
         this.supersetService = supersetService;
         this.cacheManager = cacheManager;
     }
@@ -42,61 +35,59 @@ public class SupersetController {
     }
 
     @GetMapping("/charts")
-    public Object getCharts() {
-        return supersetService.fetchCharts(supersetUrl);
+    public Object getCharts(@RequestParam(required = false) String apacheSupersetUrl) {
+        return supersetService.fetchCharts(apacheSupersetUrl);
     }
 
     @GetMapping("/datasets")
-    public Object getDatasets() {
-        return supersetService.fetchDatasets(supersetUrl);
+    public Object getDatasets(@RequestParam(required = false) String apacheSupersetUrl) {
+        return supersetService.fetchDatasets(apacheSupersetUrl);
     }
 
     @GetMapping("/dimensions")
-    public Object getDimensions(@RequestParam(required = false) String datasetId) {
+    public Object getDimensions(@RequestParam(required = false) String apacheSupersetUrl, @RequestParam(required = false) String datasetId) {
         if (datasetId == null || datasetId.isEmpty()) {
             return List.of();
         }
 
-        
-        return supersetService.fetchDimensions(supersetUrl, datasetId);       
+        return supersetService.fetchDimensions(apacheSupersetUrl, datasetId);
     }
 
     @GetMapping("/measures")
-    public Object getMeasures(@RequestParam(required = false) String datasetId) {
-       if (datasetId == null || datasetId.isEmpty()) {
-            return List.of();
-      }
-
-       return supersetService.fetchMeasures(supersetUrl, datasetId);        
-    }
-
-    @GetMapping("/filters")
-    public Object getFilters(@RequestParam(required = false) String datasetId) {
+    public Object getMeasures(@RequestParam(required = false) String apacheSupersetUrl, @RequestParam(required = false) String datasetId) {
         if (datasetId == null || datasetId.isEmpty()) {
             return List.of();
         }
-       
-        return supersetService.fetchFilters(supersetUrl, datasetId);        
+
+        return supersetService.fetchMeasures(apacheSupersetUrl, datasetId);
+    }
+
+    @GetMapping("/filters")
+    public Object getFilters(@RequestParam(required = false) String apacheSupersetUrl, @RequestParam(required = false) String datasetId) {
+        if (datasetId == null || datasetId.isEmpty()) {
+            return List.of();
+        }
+
+        return supersetService.fetchFilters(apacheSupersetUrl, datasetId);
+    }
+
+    @GetMapping(value = {"/categories", "/categories/"})
+    public Object getCategories(@RequestParam(required = false) String apacheSupersetUrl, @RequestParam(required = false) String datasetId) {
+        if (datasetId == null || datasetId.isEmpty()) {
+            return List.of();
+        }
+
+        return supersetService.fetchCategories(apacheSupersetUrl, datasetId);
     }
 
     @GetMapping("/stats/**")
-    public Object getStats(HttpServletRequest req, @RequestParam(required = false) String datasetId,
-            @RequestParam Map<String, String> allParams) {
+    public Object getStats(HttpServletRequest req, @RequestParam(required = false) String datasetId, @RequestParam(required = false) String apacheSupersetUrl, @RequestParam Map<String, String> allParams) {
         try {
             String dimensions = req.getRequestURI().substring(req.getRequestURI().indexOf("stats") + 6);
-            return supersetService.getStats(supersetUrl, datasetId, allParams, dimensions);
+            return supersetService.getStats(apacheSupersetUrl, datasetId, allParams, dimensions);
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.internalServerError().body("Failed to fetch stats");
         }
     }
-
-    @GetMapping(value = {"/categories", "/categories/"})
-    public Object getCategories(@RequestParam(required = false) String datasetId) {
-        if (datasetId == null || datasetId.isEmpty()) {
-            return List.of();
-        }
-
-        return supersetService.fetchCategories(supersetUrl, datasetId);         
-    }   
 }
