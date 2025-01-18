@@ -5,7 +5,7 @@ import java.util.List;
 public class Constants {
     public static final Long ROW_LIMIT = Long.MAX_VALUE;
 
-    public static final List<String> SPECIAL_PARAMS = List.of("datasetId", "row_limit");
+    public static final List<String> SPECIAL_PARAMS = List.of("datasetId", "row_limit", "apacheSupersetUrl");
 
     public static final String MEASURE_GROUP_LABEL = "Summary Statistics";
 
