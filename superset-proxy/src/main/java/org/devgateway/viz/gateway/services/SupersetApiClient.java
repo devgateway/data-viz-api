@@ -11,15 +11,25 @@ public class SupersetApiClient {
 
     private final RestTemplate restTemplate;
 
+    @Value("${superset.url}")
+    private String supersetUrlFromProperties;
+
     public SupersetApiClient() {
         this.restTemplate = new RestTemplate();
+    }
+
+    public String getSupersetUrl(String url) {
+        if (url != null && !url.isEmpty()) {
+            return url;
+        }
+        return supersetUrlFromProperties;
     }
 
     /**
      * Fetch list of all charts
      */
     public JsonNode fetchCharts(String supersetUrl) {
-        String url = supersetUrl + "/api/v1/chart/";
+        String url = getSupersetUrl(supersetUrl) + "/api/v1/chart/";
         ResponseEntity<JsonNode> response = restTemplate.getForEntity(url, JsonNode.class);
         return response.getBody();
     }
@@ -28,7 +38,7 @@ public class SupersetApiClient {
      * Fetch list of all datasets
      */
     public JsonNode fetchDatasets(String supersetUrl) {
-        String url = supersetUrl + "/api/v1/dataset/";
+        String url = getSupersetUrl(supersetUrl) + "/api/v1/dataset/";
         ResponseEntity<JsonNode> response = restTemplate.getForEntity(url, JsonNode.class);
         return response.getBody();
     }
@@ -37,7 +47,7 @@ public class SupersetApiClient {
      * Fetch a single dataset by ID
      */
     public JsonNode fetchDataset(String supersetUrl, String datasetId) {
-        String url = supersetUrl + "/api/v1/dataset/" + datasetId;
+        String url = getSupersetUrl(supersetUrl) + "/api/v1/dataset/" + datasetId;
         ResponseEntity<JsonNode> response = restTemplate.getForEntity(url, JsonNode.class);
         return response.getBody();
     }
@@ -46,7 +56,7 @@ public class SupersetApiClient {
      * Post a query to Superset /api/v1/chart/data
      */
     public JsonNode postChartData(String supersetUrl, JsonNode requestBody) {
-        String url = supersetUrl + "/api/v1/chart/data";
+        String url = getSupersetUrl(supersetUrl) + "/api/v1/chart/data";
         ResponseEntity<JsonNode> response = restTemplate.postForEntity(url, requestBody, JsonNode.class);
         return response.getBody();
     }
