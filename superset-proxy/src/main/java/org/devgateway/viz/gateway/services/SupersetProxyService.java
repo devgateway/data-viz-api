@@ -210,76 +210,65 @@ public class SupersetProxyService {
         return objectMapper.valueToTree(createSupersetRequest(datasource, queries));
     }
 
-    private Object transformData(JsonNode data, JsonNode dimensionsNode, JsonNode metricsNode, String[] dimensionsArray) {
-        JsonNode resultsForFirstDimension = data.get(0);
+   private Object transformData(JsonNode data, JsonNode dimensionsNode, JsonNode metricsNode, String[] dimensionsArray) {
+    Map<String, Object> transformed = createTransformedData();
+    List<Map<String, Object>> measuresList = new ArrayList<>();
+    List<Map<String, Object>> typesList = new ArrayList<>();
+    transformed.put("metadata", createMetadata(measuresList, typesList));
+    transformed.put("children", new ArrayList<>());
 
-        Map<String, Object> transformed = createTransformedData();
-        List<Map<String, Object>> measuresList = new ArrayList<>();
-        List<Map<String, Object>> typesList = new ArrayList<>();
-        transformed.put("metadata", createMetadata(measuresList, typesList));
+    JsonNode resultsForFirstDimension = data.get(0);
+    if (resultsForFirstDimension == null || !resultsForFirstDimension.has("data")) {
+        return transformed;
+    }
 
+    for (JsonNode metric : metricsNode) {
+        measuresList.add(createMeasure(metric.asText(), metric.asText()));
+    }
 
-        if (!resultsForFirstDimension.has("data") || resultsForFirstDimension.get("data").isEmpty()) {
-            return transformed;
-        }
+    List<String> dimList = Arrays.asList(dimensionsArray);
+    for (String dim : dimList) {
+        typesList.add(createType(dim));
+    }
 
+    JsonNode overallData = data.get(data.size() - 1);
+    if (overallData != null && overallData.has("data")) {
         for (JsonNode metric : metricsNode) {
-            measuresList.add(createMeasure(metric.asText(), metric.asText()));
+            transformed.put(metric.asText(), overallData.get("data").get(0).get(metric.asText()).asDouble());
         }
+        transformed.put("itemsSize", overallData.get("data").get(0).get("count").asInt());
+    }
 
-        List<String> dimList = Arrays.asList(dimensionsArray);
-        for (String dim : dimList) {
-            typesList.add(createType(dim));
+    String firstDim = dimensionsArray[0];
+    for (JsonNode row : resultsForFirstDimension.get("data")) {
+        if (row.has(firstDim)) {
+            typesList.stream()
+                .filter(t -> t.get("dimension").equals(firstDim))
+                .findFirst()
+                .ifPresent(type -> ((List<Map<String, Object>>) type.computeIfAbsent("items", k -> new ArrayList<>()))
+                    .add(createItem(firstDim, row.get(firstDim).asText(), Constants.COLORS.get(0))));
+
+            Map<String, Object> dataItem = createDataItem(firstDim, row.get(firstDim).asText(), metricsNode, row);
+            ((List<Map<String, Object>>) transformed.get("children")).add(dataItem);
         }
+    }
 
-        JsonNode overallData = data.get(data.size() - 1);
-        if (overallData != null && overallData.has("data")) {
-            for (JsonNode metric : metricsNode) {
-                transformed.put(metric.asText(), overallData.get("data").get(0).get(metric.asText()).asDouble());
-            }
-
-            transformed.put("itemsSize", overallData.get("data").get(0).get("count").asInt());
-        }
-
-        transformed.put("children", new ArrayList<>());
-        String firstDim = dimensionsArray[0];
-        for (JsonNode row : resultsForFirstDimension.get("data")) {
-            if (row.has(firstDim)) {
-                Map<String, Object> type = typesList.stream()
-                        .filter(t -> t.get("dimension").equals(firstDim))
-                        .findFirst()
-                        .orElse(null);
-                if (type != null) {
-                    List<Map<String, Object>> items = new ArrayList<>();
-                    items = (List<Map<String, Object>>) type.get("items");
-                    items.add(createItem(firstDim, row.get(firstDim).asText(), Constants.COLORS.get(0)));
-                }
-
-                Map<String, Object> dataItem = createDataItem(firstDim, row.get(firstDim).asText(), metricsNode, row);
-                ((List<Map<String, Object>>) transformed.get("children")).add(dataItem);
-            }
-        }
-
-
-        if (dimList.size() == 2) {
-            JsonNode resultsForSecondDimension = data.get(1);
-            if (resultsForSecondDimension != null && resultsForSecondDimension.has("data")) {
-                String secondDim = dimensionsArray[1];
-                for (JsonNode row : resultsForSecondDimension.get("data")) {
-                    if (row.has(secondDim)) {
-                        Map<String, Object> dataItem = createDataItem(secondDim, row.get(secondDim).asText(), metricsNode, row);
-                        for (Map<String, Object> child : (List<Map<String, Object>>) transformed.get("children")) {
-                            if (child.get("value").equals(row.get(firstDim).asText())) {
-                                ((List<Map<String, Object>>) child.computeIfAbsent("children", k -> new ArrayList<>())).add(dataItem);
-                            }
+    if (dimList.size() == 2) {
+        JsonNode resultsForSecondDimension = data.get(1);
+        if (resultsForSecondDimension != null && resultsForSecondDimension.has("data")) {
+            String secondDim = dimensionsArray[1];
+            for (JsonNode row : resultsForSecondDimension.get("data")) {
+                if (row.has(secondDim)) {
+                    Map<String, Object> dataItem = createDataItem(secondDim, row.get(secondDim).asText(), metricsNode, row);
+                    for (Map<String, Object> child : (List<Map<String, Object>>) transformed.get("children")) {
+                        if (child.get("value").equals(row.get(firstDim).asText())) {
+                            ((List<Map<String, Object>>) child.computeIfAbsent("children", k -> new ArrayList<>())).add(dataItem);
                         }
                     }
                 }
             }
         }
-
-
-
+    }
 
     return transformed;
 }
