@@ -210,68 +210,68 @@ public class SupersetProxyService {
         return objectMapper.valueToTree(createSupersetRequest(datasource, queries));
     }
 
-   private Object transformData(JsonNode data, JsonNode dimensionsNode, JsonNode metricsNode, String[] dimensionsArray) {
-    Map<String, Object> transformed = createTransformedData();
-    List<Map<String, Object>> measuresList = new ArrayList<>();
-    List<Map<String, Object>> typesList = new ArrayList<>();
-    transformed.put("metadata", createMetadata(measuresList, typesList));
-    transformed.put("children", new ArrayList<>());
+    private Object transformData(JsonNode data, JsonNode dimensionsNode, JsonNode metricsNode, String[] dimensionsArray) {
+        Map<String, Object> transformed = createTransformedData();
+        List<Map<String, Object>> measuresList = new ArrayList<>();
+        List<Map<String, Object>> typesList = new ArrayList<>();
+        transformed.put("metadata", createMetadata(measuresList, typesList));
+        transformed.put("children", new ArrayList<>());
 
-    JsonNode resultsForFirstDimension = data.get(0);
-    if (resultsForFirstDimension == null || !resultsForFirstDimension.has("data")) {
-        return transformed;
-    }
+        JsonNode resultsForFirstDimension = data.get(0);
+        if (resultsForFirstDimension == null || !resultsForFirstDimension.has("data")) {
+            return transformed;
+        }
 
-    for (JsonNode metric : metricsNode) {
-        measuresList.add(createMeasure(metric.asText(), metric.asText()));
-    }
-
-    List<String> dimList = Arrays.asList(dimensionsArray);
-    for (String dim : dimList) {
-        typesList.add(createType(dim));
-    }
-
-    JsonNode overallData = data.get(data.size() - 1);
-    if (overallData != null && overallData.has("data")) {
         for (JsonNode metric : metricsNode) {
-            transformed.put(metric.asText(), overallData.get("data").get(0).get(metric.asText()).asDouble());
+            measuresList.add(createMeasure(metric.asText(), metric.asText()));
         }
-        transformed.put("itemsSize", overallData.get("data").get(0).get("count").asInt());
-    }
 
-    String firstDim = dimensionsArray[0];
-    for (JsonNode row : resultsForFirstDimension.get("data")) {
-        if (row.has(firstDim)) {
-            typesList.stream()
-                .filter(t -> t.get("dimension").equals(firstDim))
-                .findFirst()
-                .ifPresent(type -> ((List<Map<String, Object>>) type.computeIfAbsent("items", k -> new ArrayList<>()))
-                    .add(createItem(firstDim, row.get(firstDim).asText(), Constants.COLORS.get(0))));
-
-            Map<String, Object> dataItem = createDataItem(firstDim, row.get(firstDim).asText(), metricsNode, row);
-            ((List<Map<String, Object>>) transformed.get("children")).add(dataItem);
+        List<String> dimList = Arrays.asList(dimensionsArray);
+        for (String dim : dimList) {
+            typesList.add(createType(dim));
         }
-    }
 
-    if (dimList.size() == 2) {
-        JsonNode resultsForSecondDimension = data.get(1);
-        if (resultsForSecondDimension != null && resultsForSecondDimension.has("data")) {
-            String secondDim = dimensionsArray[1];
-            for (JsonNode row : resultsForSecondDimension.get("data")) {
-                if (row.has(secondDim)) {
-                    Map<String, Object> dataItem = createDataItem(secondDim, row.get(secondDim).asText(), metricsNode, row);
-                    for (Map<String, Object> child : (List<Map<String, Object>>) transformed.get("children")) {
-                        if (child.get("value").equals(row.get(firstDim).asText())) {
-                            ((List<Map<String, Object>>) child.computeIfAbsent("children", k -> new ArrayList<>())).add(dataItem);
+        JsonNode overallData = data.get(data.size() - 1);
+        if (overallData != null && overallData.has("data")) {
+            for (JsonNode metric : metricsNode) {
+                transformed.put(metric.asText(), overallData.get("data").get(0).get(metric.asText()).asDouble());
+            }
+            transformed.put("itemsSize", overallData.get("data").get(0).get("count").asInt());
+        }
+
+        String firstDim = dimensionsArray[0];
+        for (JsonNode row : resultsForFirstDimension.get("data")) {
+            if (row.has(firstDim)) {
+                typesList.stream()
+                    .filter(t -> t.get("dimension").equals(firstDim))
+                    .findFirst()
+                    .ifPresent(type -> ((List<Map<String, Object>>) type.computeIfAbsent("items", k -> new ArrayList<>()))
+                        .add(createItem(firstDim, row.get(firstDim).asText(), Constants.COLORS.get(0))));
+
+                Map<String, Object> dataItem = createDataItem(firstDim, row.get(firstDim).asText(), metricsNode, row);
+                ((List<Map<String, Object>>) transformed.get("children")).add(dataItem);
+            }
+        }
+
+        if (dimList.size() == 2) {
+            JsonNode resultsForSecondDimension = data.get(1);
+            if (resultsForSecondDimension != null && resultsForSecondDimension.has("data")) {
+                String secondDim = dimensionsArray[1];
+                for (JsonNode row : resultsForSecondDimension.get("data")) {
+                    if (row.has(secondDim)) {
+                        Map<String, Object> dataItem = createDataItem(secondDim, row.get(secondDim).asText(), metricsNode, row);
+                        for (Map<String, Object> child : (List<Map<String, Object>>) transformed.get("children")) {
+                            if (child.get("value").equals(row.get(firstDim).asText())) {
+                                ((List<Map<String, Object>>) child.computeIfAbsent("children", k -> new ArrayList<>())).add(dataItem);
+                            }
                         }
                     }
                 }
             }
         }
-    }
 
-    return transformed;
-}
+        return transformed;
+    }
 
     private Map<String, Object> createDatasource(String datasetId) {
         Map<String, Object> datasource = new HashMap<>();
