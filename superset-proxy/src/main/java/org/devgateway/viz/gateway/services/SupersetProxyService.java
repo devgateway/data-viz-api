@@ -233,32 +233,38 @@ public class SupersetProxyService {
             typesList.add(createType(dim));
         }
 
+        String firstDim = dimensionsArray[0];
         for (JsonNode row : resultsForFirstDimension.get("data")) {
-            for (String dim : dimList) {
-                if (row.has(dim)) {
-                    Map<String, Object> dataItem = createDataItem(dim, row.get(dim).asText(), metricsNode, row);
-                    ((List<Map<String, Object>>) transformed.get("children")).add(dataItem);
+            if (row.has(firstDim)) {
+                Map<String, Object> type = typesList.stream()
+                        .filter(t -> t.get("dimension").equals(firstDim))
+                        .findFirst()
+                        .orElse(null);
+                if (type != null) {
+                    List<Map<String, Object>> items = new ArrayList<>();
+                    items = (List<Map<String, Object>>) type.get("items");
+                    items.add(createItem(firstDim, row.get(firstDim).asText(), Constants.COLORS.get(0)));
                 }
+
+                Map<String, Object> dataItem = createDataItem(firstDim, row.get(firstDim).asText(), metricsNode, row);
+                ((List<Map<String, Object>>) transformed.get("children")).add(dataItem);
             }
         }
 
     JsonNode resultsForSecondDimension = data.get(1);
     if (resultsForSecondDimension != null && resultsForSecondDimension.has("data")) {
+        String secondDim = dimensionsArray[1];
         for (JsonNode row : resultsForSecondDimension.get("data")) {
-            String parentDim = dimensionsArray[0];
-            String childDim = dimensionsArray[1];
-            if (row.has(childDim)) {
-                Map<String, Object> dataItem = createDataItem(childDim, row.get(childDim).asText(), metricsNode, row);
+              if (row.has(secondDim)) {
+                Map<String, Object> dataItem = createDataItem(secondDim, row.get(secondDim).asText(), metricsNode, row);
                 for (Map<String, Object> child : (List<Map<String, Object>>) transformed.get("children")) {
-                    if (child.get("value").equals(row.get(parentDim).asText())) {
+                    if (child.get("value").equals(row.get(firstDim).asText())) {
                         ((List<Map<String, Object>>) child.computeIfAbsent("children", k -> new ArrayList<>())).add(dataItem);
                     }
                 }
             }
         }
     }
-
-
 
     return transformed;
 }
