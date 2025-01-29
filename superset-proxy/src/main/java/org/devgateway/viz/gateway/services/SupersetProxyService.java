@@ -141,7 +141,7 @@ public class SupersetProxyService {
     private List<Map<String, Object>> extractDimensions(JsonNode result) {
         List<Map<String, Object>> dimensions = new ArrayList<>();
         for (JsonNode column : result.get("columns")) {
-            if (column.path("type").asText("").contains("STRING") && column.path("groupby").asBoolean(false)) {
+            if (column.path("groupby").asBoolean(false)) {
                 String colName = column.path("column_name").asText();
                 String verboseName = column.path("verbose_name").isNull() ? colName : column.path("verbose_name").asText();
 
