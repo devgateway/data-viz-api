@@ -1,14 +1,20 @@
 package org.devgateway.viz.commons.services.generic.delegates.prevalence;
 
-import com.querydsl.core.Tuple;
-import com.querydsl.core.types.dsl.NumberExpression;
+import java.math.BigDecimal;
+import java.math.MathContext;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import org.devgateway.viz.commons.pojo.Dimension;
 import org.devgateway.viz.commons.services.generic.StatsDSL;
 import org.devgateway.viz.commons.services.generic.delegates.FilteredDelegate;
 
-import java.math.BigDecimal;
-import java.math.MathContext;
-import java.util.*;
+import com.querydsl.core.Tuple;
+import com.querydsl.core.types.dsl.NumberExpression;
 
 public abstract class BasePrevalenceDelegate extends FilteredDelegate {
 
@@ -27,12 +33,15 @@ public abstract class BasePrevalenceDelegate extends FilteredDelegate {
     }
 
     /**
-     * If the field involved in the measure is also a filter  returns filter param name
-     **/
+     * If the field involved in the measure is also a filter returns filter
+     * param name
+     *
+     */
     @Override
     /**
      * Prevalence is calculated as total population / smokers
-     * */
+     *
+     */
     public Number computeStats(Map<String, String> filters) {
         if (isFilteredOut(filters)) {
             //if measure is also a filter and it was turned to false
@@ -59,6 +68,7 @@ public abstract class BasePrevalenceDelegate extends FilteredDelegate {
             return 0;
         }
     }
+
     @Override
     //compute at dimension level per dimension key
     public HashMap<String, Number> computeStats(Set<String> keys, Map<String, String> filters, List<Dimension> sub) {
