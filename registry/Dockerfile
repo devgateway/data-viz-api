@@ -13,5 +13,7 @@ RUN mkdir /opt/tcdi \
 FROM openjdk:21-jdk-slim
 WORKDIR /opt/tcdi
 COPY --from=compiler /opt/tcdi ./
+RUN apt-get update && apt-get install -y \
+curl
 EXPOSE 8761
 CMD ["java","-jar","/opt/tcdi/registry-0.0.1-SNAPSHOT.jar"]
