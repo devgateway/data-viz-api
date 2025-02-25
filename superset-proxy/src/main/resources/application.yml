@@ -12,12 +12,10 @@ spring:
     name: superset-proxy
 
 superset:
-  url: https://superset.alive.dgstg.org/
+  url: http://host.docker.internal:8088
 
 server:
   port: 8080
-
-
 
 management:
   endpoints:
