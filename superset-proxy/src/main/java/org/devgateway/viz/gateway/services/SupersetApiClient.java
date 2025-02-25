@@ -6,6 +6,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
+import java.util.logging.Logger;
+
 @Component
 public class SupersetApiClient {
 
@@ -14,22 +16,18 @@ public class SupersetApiClient {
     @Value("${superset.url}")
     private String supersetUrlFromProperties;
 
+    Logger logger = Logger.getLogger(SupersetApiClient.class.getName());
+
     public SupersetApiClient() {
         this.restTemplate = new RestTemplate();
     }
 
-    public String getSupersetUrl(String url) {
-        if (url != null && !url.isEmpty()) {
-            return url;
-        }
-        return supersetUrlFromProperties;
-    }
 
     /**
      * Fetch list of all charts
      */
-    public JsonNode fetchCharts(String supersetUrl) {
-        String url = getSupersetUrl(supersetUrl) + "/api/v1/chart/";
+    public JsonNode fetchCharts() {
+        String url = supersetUrlFromProperties + "/api/v1/chart/";
         ResponseEntity<JsonNode> response = restTemplate.getForEntity(url, JsonNode.class);
         return response.getBody();
     }
@@ -37,8 +35,9 @@ public class SupersetApiClient {
     /**
      * Fetch list of all datasets
      */
-    public JsonNode fetchDatasets(String supersetUrl) {
-        String url = getSupersetUrl(supersetUrl) + "/api/v1/dataset/";
+    public JsonNode fetchDatasets() {
+        String url = supersetUrlFromProperties + "/api/v1/dataset/";
+        logger.info("Fetching datasets from " + url);
         ResponseEntity<JsonNode> response = restTemplate.getForEntity(url, JsonNode.class);
         return response.getBody();
     }
@@ -46,8 +45,8 @@ public class SupersetApiClient {
     /**
      * Fetch a single dataset by ID
      */
-    public JsonNode fetchDataset(String supersetUrl, String datasetId) {
-        String url = getSupersetUrl(supersetUrl) + "/api/v1/dataset/" + datasetId;
+    public JsonNode fetchDataset(String datasetId) {
+        String url = supersetUrlFromProperties + "/api/v1/dataset/" + datasetId;
         ResponseEntity<JsonNode> response = restTemplate.getForEntity(url, JsonNode.class);
         return response.getBody();
     }
@@ -55,8 +54,8 @@ public class SupersetApiClient {
     /**
      * Post a query to Superset /api/v1/chart/data
      */
-    public JsonNode postChartData(String supersetUrl, JsonNode requestBody) {
-        String url = getSupersetUrl(supersetUrl) + "/api/v1/chart/data";
+    public JsonNode postChartData(JsonNode requestBody) {
+        String url = supersetUrlFromProperties + "/api/v1/chart/data";
         ResponseEntity<JsonNode> response = restTemplate.postForEntity(url, requestBody, JsonNode.class);
         return response.getBody();
     }
