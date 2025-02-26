@@ -1,40 +1,35 @@
-#!/bin/bash
+FROM maven:3.6-jdk-11-slim AS compiler
+WORKDIR /tmp/build
+COPY api-common/commons/pom.xml api-common/commons/
+COPY api-common/pom.xml api-common/pom.xml
 
- 		PROP_FILE="/etc/$1.properties"
-	  truncate -s 0 $PROP_FILE
-  	echo "..................... Writing to $PROP_FILE: ............... "
+RUN cd  api-common \
+    && mvn -B -f pom.xml dependency:go-offline
 
-    while IFS='=' read -r -d '' n v; do
-        if [[ $n == SPRING*  ||   $n == EUREKA* ]]; then
-				  VAR_NAME="$(echo "$n" | tr '[:upper:]' '[:lower:]' | tr '_' '.' |  sed 's/--/_/g' )"
-				  echo "$VAR_NAME=$v" >> $PROP_FILE
-			  fi
-    done < <(env -0)
+COPY api-common api-common
+RUN mkdir /opt/viz \
+    && cd api-common \
+    && mvn -B clean compile package install -DskipTests \
+    && mv */target/*-0.0.1-SNAPSHOT.jar /opt/viz \
+    && cd /..
 
-    while IFS='=' read -r -d '' n v; do
-        if [[ $n == VIZ_* ]]; then
-				  VAR_NAME="$(echo "$n" | tr '[:upper:]_' '[:lower:].')"
-				  echo "$VAR_NAME=$v" >> $PROP_FILE
-			  fi
-    done < <(env -0)
+COPY ./ services
 
+RUN  cd services  \
+      && mvn -B -f pom.xml dependency:go-offline
 
-    echo "................. Properties ................."
-    cat $PROP_FILE
-    echo "................. End sou ................."
+COPY ./ services
+RUN  cd services \
+    && mvn -B clean compile package -DskipTests \
+    && mv -f */target/*.jar /opt/viz \
+    && cd /..
+COPY api-common/entrypoint.sh /opt/viz/
 
-    MODULE="$1"
-		shift
-		JAR="$MODULE-0.0.1-SNAPSHOT.jar"
-		JAVA_OPTS="$JAVA_OPTS --spring.config.location=file://$PROP_FILE"
-
-		echo "--- JAVA_OPTS ---"
-		echo "$JAVA_OPTS"
-		echo "--- JAVA_OPTS ---"
-
-		exec su -s /bin/sh -c "java -jar '$JAR' $JAVA_OPTS $@" nobody
-		;;
-	*)
-		exec $@
-		;;
-esac
+FROM openjdk:11-jdk-slim
+RUN apt-get update && apt-get install -y curl
+WORKDIR /opt/viz
+COPY --from=compiler /opt/viz ./
+RUN ls -l /opt/viz
+COPY files ./
+EXPOSE 8082 8761
+ENTRYPOINT ["/opt/viz/entrypoint.sh"]
