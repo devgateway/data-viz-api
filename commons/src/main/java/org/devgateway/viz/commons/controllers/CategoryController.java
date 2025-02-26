@@ -38,5 +38,9 @@ public class CategoryController extends Controller {
         return new ResponseEntity<>(categoriesMap.values(), HttpStatus.OK);
     }
 
+    @GetMapping("/categories-health")
+    public ResponseEntity<String> healthCheck() {
+        return new ResponseEntity<>("OK", HttpStatus.OK);
+    }
 
 }
