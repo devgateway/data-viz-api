@@ -37,7 +37,6 @@ public class SupersetApiClient {
      */
     public JsonNode fetchDatasets() {
         String url = supersetUrlFromProperties + "/api/v1/dataset/";
-        logger.info("Fetching datasets from " + url);
         ResponseEntity<JsonNode> response = restTemplate.getForEntity(url, JsonNode.class);
         return response.getBody();
     }

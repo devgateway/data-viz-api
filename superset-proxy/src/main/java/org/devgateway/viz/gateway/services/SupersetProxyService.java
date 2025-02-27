@@ -55,11 +55,13 @@ public class SupersetProxyService {
 
     public List<Map<String, Object>> fetchFilters(String datasetId) {
         JsonNode root = supersetApiClient.fetchDataset(datasetId);
+
         if (root == null || !root.has("result")) {
             return Collections.emptyList();
         }
 
         List<Map<String, Object>> filters = new ArrayList<>();
+
         for (JsonNode column : root.get("result").get("columns")) {
             if (column.path("filterable").asBoolean(false)) {
                 String colName = column.path("column_name").asText();
