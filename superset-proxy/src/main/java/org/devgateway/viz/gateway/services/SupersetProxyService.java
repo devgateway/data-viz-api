@@ -61,7 +61,7 @@ public class SupersetProxyService {
 
         List<Map<String, Object>> filters = new ArrayList<>();
         for (JsonNode column : root.get("result").get("columns")) {
-            if (column.path("type").asText("").contains("STRING") && column.path("filterable").asBoolean(false)) {
+            if (column.path("filterable").asBoolean(false)) {
                 String colName = column.path("column_name").asText();
                 String verboseName = column.path("verbose_name").isNull() ? colName : column.path("verbose_name").asText();
 
