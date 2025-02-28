@@ -22,7 +22,8 @@ public class LocaleText {
 
     private boolean machineTranslation;
 
-    @ManyToOne(targetEntity = Language.class)
+
+    @ManyToOne(targetEntity = Language.class, fetch = jakarta.persistence.FetchType.EAGER)
     private Language language;
 
     public LocaleText() {

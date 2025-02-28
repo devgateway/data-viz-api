@@ -74,7 +74,7 @@ public class GenericDatasetApplication implements CommandLineRunner {
                 logger.info("Initial startup import will not run having previous imported data");
             } else {
 
-                Path path = Paths.get(importDirectory);
+                    Path path = Paths.get(importDirectory);
                 try {
 
                     Files.list(path)
