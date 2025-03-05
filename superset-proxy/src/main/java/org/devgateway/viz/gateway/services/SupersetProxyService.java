@@ -24,12 +24,12 @@ public class SupersetProxyService {
         this.objectMapper = new ObjectMapper();
     }
 
-    public JsonNode fetchCharts(String supersetUrl) {
-        return supersetApiClient.fetchCharts(supersetUrl);
+    public JsonNode fetchCharts() {
+        return supersetApiClient.fetchCharts();
     }
 
-    public List<Map<String, Object>> fetchDatasets(String supersetUrl) {
-        JsonNode root = supersetApiClient.fetchDatasets(supersetUrl);
+    public List<Map<String, Object>> fetchDatasets() {
+        JsonNode root = supersetApiClient.fetchDatasets();
         if (root == null || !root.has("result")) {
             return Collections.emptyList();
         }
@@ -45,21 +45,23 @@ public class SupersetProxyService {
         return datasets;
     }
 
-    public List<Map<String, Object>> fetchDimensions(String supersetUrl, String datasetId) {
-        JsonNode root = supersetApiClient.fetchDataset(supersetUrl, datasetId);
+    public List<Map<String, Object>> fetchDimensions(String datasetId) {
+        JsonNode root = supersetApiClient.fetchDataset(datasetId);
         if (root == null || !root.has("result")) {
             return Collections.emptyList();
         }
         return extractDimensions(root.get("result"));
     }
 
-    public List<Map<String, Object>> fetchFilters(String supersetUrl, String datasetId) {
-        JsonNode root = supersetApiClient.fetchDataset(supersetUrl, datasetId);
+    public List<Map<String, Object>> fetchFilters(String datasetId) {
+        JsonNode root = supersetApiClient.fetchDataset(datasetId);
+
         if (root == null || !root.has("result")) {
             return Collections.emptyList();
         }
 
         List<Map<String, Object>> filters = new ArrayList<>();
+
         for (JsonNode column : root.get("result").get("columns")) {
             if (column.path("filterable").asBoolean(false)) {
                 String colName = column.path("column_name").asText();
@@ -77,12 +79,12 @@ public class SupersetProxyService {
         return filters;
     }
 
-    public List<Map<String, Object>> fetchMeasures(String supersetUrl, String datasetId) {
+    public List<Map<String, Object>> fetchMeasures(String datasetId) {
         if (datasetId == null) {
             return Collections.emptyList();
         }
 
-        JsonNode resultNode = supersetApiClient.fetchDataset(supersetUrl, datasetId).get("result");
+        JsonNode resultNode = supersetApiClient.fetchDataset(datasetId).get("result");
 
         List<Map<String, Object>> measures = new ArrayList<>();
 
@@ -94,12 +96,12 @@ public class SupersetProxyService {
     }
 
     @Cacheable("categories")
-    public List<Map<String, Object>> fetchCategories(String supersetUrl, String datasetId) {
+    public List<Map<String, Object>> fetchCategories(String datasetId) {
         if (datasetId == null) {
             return Collections.emptyList();
         }
 
-        JsonNode result = supersetApiClient.fetchDataset(supersetUrl, datasetId).get("result");
+        JsonNode result = supersetApiClient.fetchDataset(datasetId).get("result");
         List<Map<String, Object>> dimensions = extractDimensions(result);
         List<String> measures = extractUniqueMeasures(result);
         List<Map<String, Object>> categories = new ArrayList<>();
@@ -109,7 +111,7 @@ public class SupersetProxyService {
             Map<String, Object> category = new HashMap<>();
             category.put("type", field);
             List<Map<String, Object>> items = new ArrayList<>();
-            for (String value : fetchDistinctDimensionValues(supersetUrl, field, datasetId)) {
+            for (String value : fetchDistinctDimensionValues(field, datasetId)) {
                 items.add(createItem(field, value,
                         Constants.COLORS.get(items.size() % Constants.COLORS.size())));
             }
@@ -119,14 +121,14 @@ public class SupersetProxyService {
         return categories;
     }
 
-    private Set<String> fetchDistinctDimensionValues(String supersetUrl, String field, String datasetId) {
+    private Set<String> fetchDistinctDimensionValues(String field, String datasetId) {
         Set<String> uniqueValues = new HashSet<>();
 
         Map<String, Object> datasource = createDatasource(datasetId);
         Map<String, Object> query1 = createQuery(field);
         JsonNode requestNode = objectMapper.valueToTree(createSupersetRequest(datasource, Collections.singletonList(query1)));
         logger.info(requestNode.toString());
-        JsonNode supersetResp = supersetApiClient.postChartData(supersetUrl, requestNode);
+        JsonNode supersetResp = supersetApiClient.postChartData(requestNode);
 
         if (supersetResp != null && supersetResp.has("result") && supersetResp.get("result").isArray()) {
             for (JsonNode row : supersetResp.get("result").get(0).get("data")) {
@@ -168,13 +170,13 @@ public class SupersetProxyService {
     }
 
     @Cacheable("stats")
-    public Object getStats(String supersetUrl, String datasetId, Map<String, String> queryParams, String groupsPath) throws Exception {
+    public Object getStats(String datasetId, Map<String, String> queryParams, String groupsPath) throws Exception {
         if (datasetId == null || groupsPath == null || groupsPath.isEmpty()) {
             return Collections.emptyList();
         }
 
-        JsonNode requestBody = buildSupersetDataRequest(supersetUrl, datasetId, queryParams, groupsPath);
-        JsonNode supersetResponse = supersetApiClient.postChartData(supersetUrl, requestBody);
+        JsonNode requestBody = buildSupersetDataRequest(datasetId, queryParams, groupsPath);
+        JsonNode supersetResponse = supersetApiClient.postChartData(requestBody);
 
         JsonNode resultArray = supersetResponse.get("result");
         if (resultArray == null || !resultArray.isArray() || resultArray.isEmpty()) {
@@ -188,8 +190,8 @@ public class SupersetProxyService {
         return Collections.emptyList();
     }
 
-    private JsonNode buildSupersetDataRequest(String supersetUrl, String datasetId, Map<String, String> queryParams, String groupsPath) {
-        List<String> measuresArr = extractUniqueMeasures(supersetApiClient.fetchDataset(supersetUrl, datasetId).get("result"));
+    private JsonNode buildSupersetDataRequest(String datasetId, Map<String, String> queryParams, String groupsPath) {
+        List<String> measuresArr = extractUniqueMeasures(supersetApiClient.fetchDataset(datasetId).get("result"));
 
         Map<String, Object> datasource = createDatasource(datasetId);
 
