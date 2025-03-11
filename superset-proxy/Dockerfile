@@ -13,5 +13,7 @@ RUN mkdir /opt/viz \
 FROM openjdk:21-jdk-slim
 WORKDIR /opt/viz
 COPY --from=compiler /opt/viz ./
-EXPOSE 8762
-CMD ["java","-jar","/opt/viz/superset-proxy-0.0.1-SNAPSHOT.jar"]
+
+COPY entrypoint.sh /opt/viz/
+
+ENTRYPOINT ["/opt/viz/entrypoint.sh"]
