@@ -13,7 +13,7 @@ public class SupersetApiClient {
 
     private final RestTemplate restTemplate;
 
-    @Value("${superset.url}")
+    @Value("${viz.superset.url}")
     private String supersetUrlFromProperties;
 
     Logger logger = Logger.getLogger(SupersetApiClient.class.getName());
