@@ -3,14 +3,16 @@ eureka:
     metadata-map:
       type: data
       label: Superset Proxy
+      superset: true
   client:
     serviceUrl:
       defaultZone: http://localhost:8761/eureka
 spring:
   application:
     name: superset-proxy
-superset:
-  url: https://superset.alive.dgstg.org/
+viz:
+  superset:
+    url: https://superset.alive.dgstg.org/
 server:
   port: 8090
 
