@@ -28,6 +28,7 @@ public class SupersetProxyService {
         return supersetApiClient.fetchCharts();
     }
 
+    @Cacheable("datasets")
     public List<Map<String, Object>> fetchDatasets() {
         JsonNode root = supersetApiClient.fetchDatasets();
         if (root == null || !root.has("result")) {
@@ -45,6 +46,7 @@ public class SupersetProxyService {
         return datasets;
     }
 
+    @Cacheable(cacheNames = "dimensions", key = "#datasetId")
     public List<Map<String, Object>> fetchDimensions(String datasetId) {
         JsonNode root = supersetApiClient.fetchDataset(datasetId);
         if (root == null || !root.has("result")) {
@@ -169,7 +171,7 @@ public class SupersetProxyService {
         return measures;
     }
 
-    @Cacheable("stats")
+    @Cacheable(value = "stats", keyGenerator = "customKeyGenerator")
     public Object getStats(String datasetId, Map<String, String> queryParams, String groupsPath) throws Exception {
         if (datasetId == null || groupsPath == null || groupsPath.isEmpty()) {
             return Collections.emptyList();
@@ -198,7 +200,7 @@ public class SupersetProxyService {
         List<Map<String, Object>> queries = new ArrayList<>();
         String[] groupsArray = groupsPath.split("/");
 
-        Map<String, Object> queryForDimension1 = createQuery(new String[] {groupsArray[0]}, measuresArr, queryParams);
+        Map<String, Object> queryForDimension1 = createQuery(new String[]{groupsArray[0]}, measuresArr, queryParams);
         queries.add(queryForDimension1);
         if (groupsArray.length > 1) {
             Map<String, Object> queryForDimension2 = createQuery(groupsArray, measuresArr, queryParams);
@@ -206,7 +208,7 @@ public class SupersetProxyService {
         }
 
         //add query for overall data
-        Map<String, Object> queryForOverall = createQuery(new String[] {}, measuresArr, queryParams);
+        Map<String, Object> queryForOverall = createQuery(new String[]{}, measuresArr, queryParams);
         queries.add(queryForOverall);
 
         return objectMapper.valueToTree(createSupersetRequest(datasource, queries));
@@ -245,10 +247,10 @@ public class SupersetProxyService {
         for (JsonNode row : resultsForFirstDimension.get("data")) {
             if (row.has(firstDim)) {
                 typesList.stream()
-                    .filter(t -> t.get("dimension").equals(firstDim))
-                    .findFirst()
-                    .ifPresent(type -> ((List<Map<String, Object>>) type.computeIfAbsent("items", k -> new ArrayList<>()))
-                        .add(createItem(firstDim, row.get(firstDim).asText(), Constants.COLORS.get(0))));
+                        .filter(t -> t.get("dimension").equals(firstDim))
+                        .findFirst()
+                        .ifPresent(type -> ((List<Map<String, Object>>) type.computeIfAbsent("items", k -> new ArrayList<>()))
+                                .add(createItem(firstDim, row.get(firstDim).asText(), Constants.COLORS.get(0))));
 
                 Map<String, Object> dataItem = createDataItem(firstDim, row.get(firstDim).asText(), metricsNode, row);
                 ((List<Map<String, Object>>) transformed.get("children")).add(dataItem);
