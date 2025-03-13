@@ -88,6 +88,7 @@ public class SupersetController {
     @GetMapping("/stats/**")
     public Object getStats(HttpServletRequest req, @RequestParam(required = false) String datasetId, @RequestParam Map<String, String> allParams) {
         try {
+            return supersetService.getStats(datasetId, allParams, getDimensionsFromRequest(req));
             if (datasetId == null || datasetId.isEmpty()) {
                 return List.of();
             }
@@ -96,6 +97,15 @@ public class SupersetController {
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.internalServerError().body("Failed to fetch stats");
+        }
+    }
+    private static final String STATS = "stats";
+    private String getDimensionsFromRequest(HttpServletRequest req) {
+        try{
+        int statsIndex = req.getRequestURI().indexOf(STATS) + STATS.length() + 1;
+        return req.getRequestURI().substring(statsIndex);
+        } catch (Exception e) {
+            return "";
         }
     }
 }
