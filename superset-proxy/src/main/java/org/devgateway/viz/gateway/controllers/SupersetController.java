@@ -80,9 +80,17 @@ public class SupersetController {
         return supersetService.fetchCategories(datasetId);
     }
 
+    @GetMapping("/stats")
+    public Object stats(HttpServletRequest req, @RequestParam Map<String, String> allParams) {
+        return List.of();
+    }
+
     @GetMapping("/stats/**")
     public Object getStats(HttpServletRequest req, @RequestParam(required = false) String datasetId, @RequestParam Map<String, String> allParams) {
         try {
+            if (datasetId == null || datasetId.isEmpty()) {
+                return List.of();
+            }
             String dimensions = req.getRequestURI().substring(req.getRequestURI().indexOf("stats") + 6);
             return supersetService.getStats(datasetId, allParams, dimensions);
         } catch (Exception e) {
