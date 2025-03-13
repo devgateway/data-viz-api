@@ -129,7 +129,6 @@ public class SupersetProxyService {
         Map<String, Object> datasource = createDatasource(datasetId);
         Map<String, Object> query1 = createQuery(field);
         JsonNode requestNode = objectMapper.valueToTree(createSupersetRequest(datasource, Collections.singletonList(query1)));
-        logger.info(requestNode.toString());
         JsonNode supersetResp = supersetApiClient.postChartData(requestNode);
 
         if (supersetResp != null && supersetResp.has("result") && supersetResp.get("result").isArray()) {
@@ -171,9 +170,14 @@ public class SupersetProxyService {
         return measures;
     }
 
-    @Cacheable(value = "stats", keyGenerator = "customKeyGenerator")
+    private String [] getGroupsArray(String groupsPath) {
+        return groupsPath != null  &&  !groupsPath.trim().isEmpty() ?
+                groupsPath.split("/") : new String[] {};
+    }
+
+    @Cacheable("stats")
     public Object getStats(String datasetId, Map<String, String> queryParams, String groupsPath) throws Exception {
-        if (datasetId == null || groupsPath == null || groupsPath.isEmpty()) {
+        if (datasetId == null) {
             return Collections.emptyList();
         }
 
@@ -187,7 +191,8 @@ public class SupersetProxyService {
 
         JsonNode queriesNode = requestBody.get("queries");
         if (queriesNode.isArray() && !queriesNode.isEmpty()) {
-            return transformData(resultArray, queriesNode.get(0).get("groupby"), queriesNode.get(0).get("metrics"), groupsPath.split("/"));
+            return transformData(resultArray, queriesNode.get(0).get("groupby"), queriesNode.get(0).get("metrics"),
+                    getGroupsArray(groupsPath));
         }
         return Collections.emptyList();
     }
@@ -198,10 +203,13 @@ public class SupersetProxyService {
         Map<String, Object> datasource = createDatasource(datasetId);
 
         List<Map<String, Object>> queries = new ArrayList<>();
-        String[] groupsArray = groupsPath.split("/");
+        String[] groupsArray = getGroupsArray(groupsPath);
 
-        Map<String, Object> queryForDimension1 = createQuery(new String[]{groupsArray[0]}, measuresArr, queryParams);
-        queries.add(queryForDimension1);
+        if (groupsArray.length > 0) {
+            Map<String, Object> queryForDimension1 = createQuery(new String[] {groupsArray[0]}, measuresArr, queryParams);
+            queries.add(queryForDimension1);
+        }
+
         if (groupsArray.length > 1) {
             Map<String, Object> queryForDimension2 = createQuery(groupsArray, measuresArr, queryParams);
             queries.add(queryForDimension2);
@@ -243,6 +251,9 @@ public class SupersetProxyService {
             transformed.put("itemsSize", overallData.get("data").get(0).get("count").asInt());
         }
 
+        if (dimList.isEmpty()) {
+            return transformed;
+        }
         String firstDim = dimensionsArray[0];
         for (JsonNode row : resultsForFirstDimension.get("data")) {
             if (row.has(firstDim)) {
@@ -286,16 +297,21 @@ public class SupersetProxyService {
 
     private Map<String, Object> createQuery(String field) {
         Map<String, Object> query = new HashMap<>();
-        query.put("groupby", Collections.singletonList(field));
-        query.put("columns", Collections.emptyList());
+        if (field != null && !field.isEmpty()) {
+            query.put("groupby", Collections.singletonList(field));
+            query.put("columns", Collections.emptyList());
+        }
+
         query.put("metrics", Collections.emptyList());
         return query;
     }
 
     private Map<String, Object> createQuery(String[] groupArray, List<String> measuresArr, Map<String, String> queryParams) {
         Map<String, Object> query = new HashMap<>();
-        query.put("groupby", Arrays.asList(groupArray));
-        query.put("columns", Arrays.asList(groupArray));
+        if (groupArray.length > 0) {
+            query.put("groupby", Arrays.asList(groupArray));
+            query.put("columns", Arrays.asList(groupArray));
+        }
         query.put("metrics", measuresArr);
         query.put("row_limit", Constants.ROW_LIMIT);
 
