@@ -54,6 +54,7 @@ public class SupersetApiClient {
      * Post a query to Superset /api/v1/chart/data
      */
     public JsonNode postChartData(JsonNode requestBody) {
+        logger.info("Calling Superset API to fetch data");
         long startTime = System.currentTimeMillis();
 
         String url = supersetUrlFromProperties + "/api/v1/chart/data";
