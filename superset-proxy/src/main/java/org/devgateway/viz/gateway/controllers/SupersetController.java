@@ -45,39 +45,39 @@ public class SupersetController {
     }
 
     @GetMapping("/dimensions")
-    public Object getDimensions(@RequestParam(required = false) String datasetId) {
-        if (datasetId == null || datasetId.isEmpty()) {
+    public Object getDimensions(@RequestParam(required = false) String dvzProxyDatasetId) {
+        if (dvzProxyDatasetId == null || dvzProxyDatasetId.isEmpty()) {
             return List.of();
         }
 
-        return supersetService.fetchDimensions(datasetId);
+        return supersetService.fetchDimensions(dvzProxyDatasetId);
     }
 
     @GetMapping("/measures")
-    public Object getMeasures(@RequestParam(required = false) String datasetId) {
-        if (datasetId == null || datasetId.isEmpty()) {
+    public Object getMeasures(@RequestParam(required = false) String dvzProxyDatasetId) {
+        if (dvzProxyDatasetId == null || dvzProxyDatasetId.isEmpty()) {
             return List.of();
         }
 
-        return supersetService.fetchMeasures(datasetId);
+        return supersetService.fetchMeasures(dvzProxyDatasetId);
     }
 
     @GetMapping("/filters")
-    public Object getFilters(@RequestParam(required = false) String datasetId) {
-        if (datasetId == null || datasetId.isEmpty()) {
+    public Object getFilters(@RequestParam(required = false) String dvzProxyDatasetId) {
+        if (dvzProxyDatasetId == null || dvzProxyDatasetId.isEmpty()) {
             return List.of();
         }
 
-        return supersetService.fetchFilters(datasetId);
+        return supersetService.fetchFilters(dvzProxyDatasetId);
     }
 
     @GetMapping(value = {"/categories", "/categories/"})
-    public Object getCategories(@RequestParam(required = false) String datasetId) {
-        if (datasetId == null || datasetId.isEmpty()) {
+    public Object getCategories(@RequestParam(required = false) String dvzProxyDatasetId) {
+        if (dvzProxyDatasetId == null || dvzProxyDatasetId.isEmpty()) {
             return List.of();
         }
 
-        return supersetService.fetchCategories(datasetId);
+        return supersetService.fetchCategories(dvzProxyDatasetId);
     }
 
     @GetMapping("/stats")
@@ -86,13 +86,13 @@ public class SupersetController {
     }
 
     @GetMapping("/stats/**")
-    public Object getStats(HttpServletRequest req, @RequestParam(required = false) String datasetId, @RequestParam Map<String, String> allParams) {
+    public Object getStats(HttpServletRequest req, @RequestParam(required = false) String dvzProxyDatasetId, @RequestParam Map<String, String> allParams) {
         try {
-            if (datasetId == null || datasetId.isEmpty()) {
+            if (dvzProxyDatasetId == null || dvzProxyDatasetId.isEmpty()) {
                 return List.of();
             }
             String dimensions = req.getRequestURI().substring(req.getRequestURI().indexOf("stats") + 6);
-            return supersetService.getStats(datasetId, allParams, dimensions);
+            return supersetService.getStats(dvzProxyDatasetId, allParams, dimensions);
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.internalServerError().body("Failed to fetch stats");
