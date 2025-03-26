@@ -210,8 +210,19 @@ public class MeasureDefinitionService {
         } else {
             if (labels != null) {
                 labels.forEach(label -> {
-                    if (measure.getLabels().stream().noneMatch(l -> l.getLanguage().getCode().equals(label.getLanguage().getCode()))) {
-                        measure.getLabels().add(label);
+                    logger.info("Updating measure definition label " + label);
+                    if (label.getLanguage() != null && label.getLanguage().getCode() != null) {
+                        boolean isNewLang = measure.getLabels().stream()
+                                .filter(existingLabel -> existingLabel.getLanguage() != null && existingLabel.getLanguage().getCode() != null)
+                                .noneMatch(existingLabel ->
+                                        existingLabel.getLanguage().getCode().equals(label.getLanguage().getCode())
+                                );
+                        if (isNewLang) {
+                            measure.getLabels().add(label);
+                        }
+                    } else {
+                        // log warning
+                        logger.warn("Skipping label with null language: {}", label);
                     }
                 });
             }
