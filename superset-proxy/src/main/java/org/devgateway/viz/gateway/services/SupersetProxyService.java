@@ -260,7 +260,7 @@ public class SupersetProxyService {
                 typesList.stream()
                         .filter(t -> t.get("dimension").equals(firstDim))
                         .findFirst()
-                        .ifPresent(type -> ((List<Map<String, Object>>) type.computeIfAbsent("items", k -> new ArrayList<>()))
+                        .ifPresent(type -> ((Set<Map<String, Object>>) type.computeIfAbsent("items", k -> new HashSet<>()))
                                 .add(createItem(firstDim, row.get(firstDim).asText(), Constants.COLORS.get(0))));
 
                 Map<String, Object> dataItem = createDataItem(firstDim, row.get(firstDim).asText(), metricsNode, row);
@@ -274,6 +274,12 @@ public class SupersetProxyService {
                 String secondDim = dimensionsArray[1];
                 for (JsonNode row : resultsForSecondDimension.get("data")) {
                     if (row.has(secondDim)) {
+                       typesList.stream()
+                                .filter(t -> t.get("dimension").equals(secondDim))
+                                .findFirst()
+                                .ifPresent(type -> ((Set<Map<String, Object>>) type.computeIfAbsent("items", k -> new HashSet<>()))
+                                        .add(createItem(secondDim, row.get(secondDim).asText(), Constants.COLORS.get(0))));
+
                         Map<String, Object> dataItem = createDataItem(secondDim, row.get(secondDim).asText(), metricsNode, row);
                         for (Map<String, Object> child : (List<Map<String, Object>>) transformed.get("children")) {
                             if (child.get("value").equals(row.get(firstDim).asText())) {
@@ -385,7 +391,7 @@ public class SupersetProxyService {
         Map<String, Object> type = new HashMap<>();
         type.put("dimension", dim);
         type.put("category", dim);
-        type.put("items", new ArrayList<>());
+        type.put("items", new HashSet<>());
         return type;
     }
 
