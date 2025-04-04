@@ -1,17 +1,29 @@
-FROM maven:3-amazoncorretto-21 AS compiler
+FROM maven:3-amazoncorretto-21 AS base
+
+ARG PROJECT_NAME=api-gateway
+ARG VERSION
+
+MAINTAINER "Development Gateway"
+LABEL maintainer="development gateway"
+LABEL version=${VERSION}
+
+
+FROM base AS installer
 WORKDIR /tmp/build
 COPY pom.xml ./
-RUN mvn -B -f pom.xml dependency:go-offline
+RUN --mount=type=cache,target=/root/.m2 mvn -B -f pom.xml dependency:go-offline
+
+FROM installer AS builder
 
 COPY ./ ./
 
-RUN mkdir /opt/tcdi \
+RUN --mount=type=cache,target=/root/.m2 mkdir /opt/viz \
   && mvn -B compile package -DskipTests \
-  && mv ./target/*-0.0.1-SNAPSHOT.jar /opt/tcdi \
+  && mv ./target/*-0.0.1-SNAPSHOT.jar /opt/viz \
   && rm -rf *
 
-FROM openjdk:21-jdk-slim
-WORKDIR /opt/tcdi
-COPY --from=compiler /opt/tcdi ./
+FROM openjdk:21-jdk-slim as api-security
+WORKDIR /opt/viz
+COPY --from=builder /opt/viz ./
 EXPOSE 8763
-CMD ["java","-jar","/opt/tcdi/api-security-0.0.1-SNAPSHOT.jar"]
+CMD ["java","-jar","/opt/viz/api-gateway-0.0.1-SNAPSHOT.jar"]
