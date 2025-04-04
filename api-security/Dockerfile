@@ -2,10 +2,13 @@ FROM maven:3-amazoncorretto-21 AS base
 
 ARG PROJECT_NAME=api-gateway
 ARG VERSION
+ARG GITHUB_REPO
 
 MAINTAINER "Development Gateway"
 LABEL maintainer="development gateway"
 LABEL version=${VERSION}
+LABEL description="API Gateway for the Viz project"
+LABEL github_repo=${GITHUB_REPO}
 
 
 FROM base AS installer
@@ -22,7 +25,7 @@ RUN --mount=type=cache,target=/root/.m2 mkdir /opt/viz \
   && mv ./target/*-0.0.1-SNAPSHOT.jar /opt/viz \
   && rm -rf *
 
-FROM openjdk:21-jdk-slim as api-security
+FROM openjdk:21-jdk-slim AS api-security
 WORKDIR /opt/viz
 COPY --from=builder /opt/viz ./
 EXPOSE 8763
