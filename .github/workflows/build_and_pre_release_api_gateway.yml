@@ -3,9 +3,10 @@ name: Build And Release APIs
 on:
   workflow_dispatch:
   push:
+    paths:
+      - ./api-gateway/**
     branches:
-      - production
-      - release/*
+      - main
 
 permissions:
   contents: write
@@ -22,23 +23,12 @@ jobs:
       dockerfile: 'Dockerfile'
       docker_build_context: './api-gateway'
       docker_buildx_cache_from: 'api-gateway'
-      pre_release: 'false'
+      pre_release: 'true'
     secrets:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
       DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
 
-  build_and_release_api_security:
-    uses: ./.github/workflows/actions/release-template.yml
-    with:
-      project_name: 'api-security'
-      docker_buildx_cache_to: 'api-security'
-      docker_registry: ${{ vars.DOCKER_REGISTRY }}
-      dockerfile: 'Dockerfile'
-      docker_build_context: './api-security'
-      docker_buildx_cache_from: 'api-security'
-      pre_release: 'false'
-    secrets:
-      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-      DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+
+
+
