@@ -66,22 +66,22 @@ services:
     networks:
       backend-api:
 
-***REMOVED***  superset-proxy:
-***REMOVED***    image: ${REPO}/superset-proxy:${TAG}
-***REMOVED***    build:
-***REMOVED***      context: ./superset-proxy
-***REMOVED***      dockerfile: Dockerfile
-***REMOVED***    environment:
-***REMOVED***      SPRING_DATASOURCE_URL: "jdbc:postgresql://postgres:5432/viz"
-***REMOVED***      JAVA_OPTS: "-Xmx512m -Xms512m -XX:+UseG1GC -XX:InitialHeapSize=512m -XX:MaxHeapSize=512m -XX:+ParallelRefProcEnabled "
-***REMOVED***    ports:
-***REMOVED***      - "8090:8090"
-***REMOVED***    depends_on:
-***REMOVED***      - postgres
-***REMOVED***      - redis
-***REMOVED***      - eureka
-***REMOVED***    networks:
-***REMOVED***      - backend-api
+  superset-proxy:
+    build:
+      context: ./superset-proxy
+      dockerfile: Dockerfile
+    environment:
+      SPRING_DATASOURCE_URL: "jdbc:postgresql://postgres:5432/viz"
+      JAVA_OPTS: "-Xmx512m -Xms512m -XX:+UseG1GC -XX:InitialHeapSize=512m -XX:MaxHeapSize=512m -XX:+ParallelRefProcEnabled "
+      SPRING_PROFILES_ACTIVE: "dev"
+    ports:
+      - "8090:8090"
+    depends_on:
+      - postgres
+      - cache
+      - eureka
+    networks:
+      - backend-api
 
   cache:
     image: redis:6.2-alpine
