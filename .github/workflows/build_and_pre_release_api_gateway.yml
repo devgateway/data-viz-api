@@ -1,4 +1,4 @@
-name: Build And Release APIs
+name: Build And Pre Release API Registry
 
 on:
   workflow_dispatch:
