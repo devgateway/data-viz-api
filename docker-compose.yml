@@ -1,0 +1,101 @@
+services:
+  postgres:
+    image: postgres:16.8
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: admin
+      POSTGRES_DB: viz
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: [ "CMD", "pg_isready", "-U", "postgres" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      backend-api:
+
+  eureka:
+    build:
+      context: ./registry
+      dockerfile: Dockerfile
+    environment:
+      JAVA_OPTS: "-Xmx1024m -Xms1024m -XX:+UseG1GC -XX:InitialHeapSize=1024m -XX:MaxHeapSize=1024m -XX:+ParallelRefProcEnabled "
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8761/actuator/health" ]
+      interval: 10s
+      timeout: 30s
+      retries: 3
+      start_period: 50s
+    ports:
+      - "8761:8761"
+    depends_on:
+      - postgres
+    networks:
+      backend-api:
+
+  api-gateway:
+    build:
+      context: ./api-gateway
+      dockerfile: Dockerfile
+    environment:
+      SPRING_DATASOURCE_URL: "jdbc:postgresql://postgres:5432/viz"
+      SPRING_DATASOURCE_USERNAME: "postgres"
+      SPRING_DATASOURCE_PASSWORD: "admin"
+      JAVA_OPTS: "-Xmx512m -Xms512m -XX:+UseG1GC -XX:InitialHeapSize=512m -XX:MaxHeapSize=512m -XX:+ParallelRefProcEnabled"
+    ports:
+      - "8762:8762"
+    depends_on:
+      - postgres
+      - eureka
+    networks:
+      backend-api:
+
+  api-security:
+    build:
+      context: ./api-security
+      dockerfile: Dockerfile
+    environment:
+      SPRING_DATASOURCE_URL: "jdbc:postgresql://postgres:5432/viz"
+      JAVA_OPTS: "-Xmx512m -Xms512m -XX:+UseG1GC -XX:InitialHeapSize=512m -XX:MaxHeapSize=512m -XX:+ParallelRefProcEnabled "
+    ports:
+      - "8763:8763"
+    depends_on:
+      - postgres
+      - eureka
+    networks:
+      backend-api:
+
+***REMOVED***  superset-proxy:
+***REMOVED***    image: ${REPO}/superset-proxy:${TAG}
+***REMOVED***    build:
+***REMOVED***      context: ./superset-proxy
+***REMOVED***      dockerfile: Dockerfile
+***REMOVED***    environment:
+***REMOVED***      SPRING_DATASOURCE_URL: "jdbc:postgresql://postgres:5432/viz"
+***REMOVED***      JAVA_OPTS: "-Xmx512m -Xms512m -XX:+UseG1GC -XX:InitialHeapSize=512m -XX:MaxHeapSize=512m -XX:+ParallelRefProcEnabled "
+***REMOVED***    ports:
+***REMOVED***      - "8090:8090"
+***REMOVED***    depends_on:
+***REMOVED***      - postgres
+***REMOVED***      - redis
+***REMOVED***      - eureka
+***REMOVED***    networks:
+***REMOVED***      - backend-api
+
+  cache:
+    image: redis:6.2-alpine
+    restart: always
+    command: redis-server --save 20 1 --loglevel warning
+    volumes:
+      - cache:/data
+    ports:
+      - "6379:6379"
+    networks:
+      - backend-api
+
+volumes:
+  cache:
+
+networks:
+  backend-api:
