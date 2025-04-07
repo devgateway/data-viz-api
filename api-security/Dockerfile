@@ -1,13 +1,12 @@
 FROM maven:3-amazoncorretto-21 AS base
 
-ARG PROJECT_NAME=api-gateway
+ARG PROJECT_NAME=api-security
 ARG VERSION
 ARG GITHUB_REPO
 
-MAINTAINER "Development Gateway"
-LABEL maintainer="development gateway"
+LABEL maintainer="Development Gateway"
 LABEL version=${VERSION}
-LABEL description="API Gateway for the Viz project"
+LABEL description="API Security for the Data Viz project"
 LABEL github_repo=${GITHUB_REPO}
 
 
@@ -29,4 +28,4 @@ FROM openjdk:21-jdk-slim AS api-security
 WORKDIR /opt/viz
 COPY --from=builder /opt/viz ./
 EXPOSE 8763
-CMD ["java","-jar","/opt/viz/api-gateway-0.0.1-SNAPSHOT.jar"]
+CMD ["java","-jar","/opt/viz/api-security-0.0.1-SNAPSHOT.jar"]
