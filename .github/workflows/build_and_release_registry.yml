@@ -1,0 +1,35 @@
+name: Build And Release API Security
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - ./registry/**
+    branches:
+      - production
+      - release/*
+
+permissions:
+  contents: write
+  pull-requests: write
+  packages: write
+
+jobs:
+  build_and_release_api_security:
+    uses: ./.github/workflows/actions/release-template.yml
+    with:
+      project_name: 'registry'
+      docker_buildx_cache_to: 'registry'
+      docker_registry: ${{ vars.DOCKER_REGISTRY }}
+      dockerfile: 'Dockerfile'
+      docker_build_context: './registry'
+      docker_buildx_cache_from: 'registry'
+      pre_release: 'false'
+    secrets:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+      DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+
+
+
+
