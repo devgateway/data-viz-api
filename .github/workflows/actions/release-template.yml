@@ -126,6 +126,7 @@ jobs:
           tags: >
             ${{ inputs.docker_registry }}/data-viz/${{ inputs.project_name }}:latest
             ${{ inputs.docker_registry }}/data-viz/${{ inputs.project_name }}:v${{ needs.prepare-a-release.outputs.new_version }}
+
       - name: Cache Maven packages
         uses: actions/cache@v4
         with:
@@ -135,11 +136,13 @@ jobs:
           key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
           restore-keys: |
             ${{ runner.os }}-maven-
+
       - name: Build the Maven project
         run: |
           mkdir /opt/viz \
           && mvn -B compile package -DskipTests \
-          && mv ./target/*-0.0.1-SNAPSHOT.jar /opt/viz \
+          && mv ./target/*-0.0.1-SNAPSHOT.jar /opt/viz 
+
       - name: Generate a changelog
         uses: orhun/git-cliff-action@v4
         id: changelog
@@ -150,11 +153,12 @@ jobs:
           OUTPUT: CHANGELOG-${{ inputs.project_name }}.md
           GITHUB_REPO: ${{ inputs.github_repo }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Create Release
         id: create_release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ needs.build-and-push-docker-image.outputs.new_tag }}
+          tag_name: ${{ needs.prepare-a-release.outputs.new_tag }}
           files: /opt/viz/*.jar
           body_path: CHANGELOG-${{ inputs.project_name }}.md
           draft: false
