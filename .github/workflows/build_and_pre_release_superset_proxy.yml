@@ -14,7 +14,7 @@ permissions:
   packages: write
 
 jobs:
-  build_and_release_api_gateway:
+  build_and_release_superset_proxy:
     uses: ./.github/workflows/actions/release-template.yml
     with:
       project_name: 'superset-proxy'
