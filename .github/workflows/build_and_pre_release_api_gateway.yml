@@ -1,4 +1,4 @@
-name: Build And Pre Release API Registry
+name: Build And Pre Release API Gateway
 
 on:
   workflow_dispatch:
