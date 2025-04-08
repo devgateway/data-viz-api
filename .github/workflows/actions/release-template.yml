@@ -169,57 +169,6 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-    build_and_pre_release_project:
-      needs: prepare-a-pre-release
-      runs-on: ubuntu-latest
-      if: ${{ inputs.pre_release == true }}
-      outputs:
-        new_version: ${{ needs.prepare-a-pre-release.outputs.new_version }}
-        new_tag: ${{ needs.prepare-a-pre-release.outputs.new_tag }}
-      steps:
-        - name: Checkout Repository
-          uses: actions/checkout@v4
-        - name: Set up QEMU
-          uses: docker/setup-qemu-action@v3
-          with:
-            platforms: linux/amd64,linux/arm64
-        - name: Set up Docker Buildx
-          uses: docker/setup-buildx-action@v2
-        - name: Login to Docker Registry
-          uses: docker/login-action@v3
-          with:
-            registry: ${{ inputs.docker_registry }}
-            username: ${{ secrets.DOCKER_USERNAME }}
-            password: ${{ secrets.DOCKER_PASSWORD }}
-        - name: Build and push Docker image
-          uses: docker/build-push-action@v6
-          with:
-            platforms: linux/amd64,linux/arm64
-            cache-from: type=gha, scope=api-gateway
-            cache-to: type=gha, scope=api-gateway
-            context: ./api-gateway
-            push: true
-            build-args: |
-              VERSION=${{ needs.prepare-a-pre-release.outputs.new_version }}
-              TAG=${{ needs.prepare-a-pre-release.outputs.new_tag }}
-            tags: >
-              ${{ inputs.docker_registry }}/data-viz/api-gateway:v${{ needs.prepare-a-pre-release.outputs.new_version }}
-              
-
-        - name: Create Release
-          id: create_release
-          uses: softprops/action-gh-release@v2
-          with:
-            tag_name: ${{ needs.build_and_push_docker_image.outputs.new_tag }}
-            repository: ${{ inputs.github_repo }}
-            files: /opt/viz/*.jar
-            body_path: CHANGELOG.md
-            draft: false
-            prerelease: false
-            make_latest: "true"
-          env:
-            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
   build_and_pre_release_project:
     needs: prepare-a-pre-release
     runs-on: ubuntu-latest
@@ -255,16 +204,16 @@ jobs:
           context: ${{ inputs.docker_build_context }}
           push: true
           build-args: |
-            VERSION=${{ needs.prepare-a-release.outputs.new_version }}
-            TAG=${{ needs.prepare-a-release.outputs.new_tag }}
+            VERSION=${{ needs.prepare-a-pre-release.outputs.new_version }}
+            TAG=${{ needs.prepare-a-pre-release.outputs.new_tag }}
           tags: >
-            ${{ inputs.docker_registry }}/data-viz/${{ inputs.project_name }}:${{ needs.prepare-a-release.outputs.new_version }}
+            ${{ inputs.docker_registry }}/data-viz/${{ inputs.project_name }}:${{ needs.prepare-a-pre-release.outputs.new_version }}
 
       - name: Create Release
         id: create_release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ needs.build-and-push-docker-image.outputs.new_tag }}
+          tag_name: ${{ needs.prepare-a-pre-release.outputs.new_tag }}
           repository: ${{ inputs.github_repo }}
           draft: false
           prerelease: "true"
