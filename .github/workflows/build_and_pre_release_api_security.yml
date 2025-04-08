@@ -25,7 +25,6 @@ jobs:
       docker_buildx_cache_from: 'api-security'
       pre_release: 'true'
     secrets:
-      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
       DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
 
