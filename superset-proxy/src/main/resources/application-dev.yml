@@ -22,7 +22,7 @@ spring:
 
 viz:
   superset:
-    url: https://superset.alive.dgstg.org/
+    url: https://superset.alive.dgstg.org
 server:
   port: 8090
 

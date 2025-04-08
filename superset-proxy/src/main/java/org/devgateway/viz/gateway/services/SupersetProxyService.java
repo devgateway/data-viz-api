@@ -339,6 +339,7 @@ public class SupersetProxyService {
         Map<String, Object> supersetRequest = new HashMap<>();
         supersetRequest.put("datasource", datasource);
         supersetRequest.put("queries", queries);
+        supersetRequest.put("force", true);
         return supersetRequest;
     }
 
