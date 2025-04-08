@@ -259,8 +259,10 @@ public abstract class GenericStatsAPIServiceBase<R extends JpaRepository, Q exte
             JPAQuery query = new JPAQuery<>(em);
             query.select(QCategory.category).from(QCategory.category).where(QCategory.category.type.equalsIgnoreCase(cat));
             List<Category> values = null;
-                if (!s.getType().equalsIgnoreCase("LatLong")) {
+            if (!s.getType().equalsIgnoreCase("LatLong")) {
                 values = query.createQuery().getResultList();
+            }else{
+                values=new ArrayList<>();
             }
             //List<AttrValue> styles = values.stream().map(category -> new AttrValue(category.getValue(), category.getCategoryStyle(), category.getLabels())).collect(Collectors.toList());
 
