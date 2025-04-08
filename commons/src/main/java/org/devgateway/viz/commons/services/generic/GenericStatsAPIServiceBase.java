@@ -115,7 +115,8 @@ public abstract class GenericStatsAPIServiceBase<R extends JpaRepository, Q exte
                     Delegate d = measure.getDelegate().getDeclaredConstructor(String.class, StatsDSL.class).newInstance(measure.getFilter(), statsDSL);
                     delegates.put(measure.getValue(), d);
                 }
-            } catch (NoSuchMethodException | InstantiationException | IllegalAccessException | InvocationTargetException e) {
+            } catch (NoSuchMethodException | InstantiationException | IllegalAccessException |
+                     InvocationTargetException e) {
                 logger.error("Error when trying to construct a delegate for measure: " + measure.getValue(), e);
             }
         });
@@ -257,8 +258,12 @@ public abstract class GenericStatsAPIServiceBase<R extends JpaRepository, Q exte
             String cat = s.getType();
             JPAQuery query = new JPAQuery<>(em);
             query.select(QCategory.category).from(QCategory.category).where(QCategory.category.type.equalsIgnoreCase(cat));
-            List<Category> values = query.createQuery().getResultList();
+            List<Category> values = null;
+                if (!s.getType().equalsIgnoreCase("LatLong")) {
+                values = query.createQuery().getResultList();
+            }
             //List<AttrValue> styles = values.stream().map(category -> new AttrValue(category.getValue(), category.getCategoryStyle(), category.getLabels())).collect(Collectors.toList());
+
             return new Type(s.getValue(), cat, values);
         }).collect(Collectors.toList());
     }
