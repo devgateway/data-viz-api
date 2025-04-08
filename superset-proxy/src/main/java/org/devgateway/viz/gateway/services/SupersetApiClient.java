@@ -36,7 +36,7 @@ public class SupersetApiClient {
      * Fetch list of all datasets
      */
     public JsonNode fetchDatasets() {
-        String url = supersetUrlFromProperties + "/api/v1/dataset/";
+        String url = supersetUrlFromProperties + "/api/v1/dataset/?force=true";
         ResponseEntity<JsonNode> response = restTemplate.getForEntity(url, JsonNode.class);
         return response.getBody();
     }
@@ -45,7 +45,7 @@ public class SupersetApiClient {
      * Fetch a single dataset by ID
      */
     public JsonNode fetchDataset(String datasetId) {
-        String url = supersetUrlFromProperties + "/api/v1/dataset/" + datasetId;
+        String url = supersetUrlFromProperties + "/api/v1/dataset/" + datasetId + "?force=true";
         ResponseEntity<JsonNode> response = restTemplate.getForEntity(url, JsonNode.class);
         return response.getBody();
     }
