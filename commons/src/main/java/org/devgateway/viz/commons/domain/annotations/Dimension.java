@@ -11,6 +11,10 @@ import java.lang.annotation.Target;
 
 public @interface Dimension {
     String label()  default "[unassigned]";
+
+
     Class type() default Class.class;
     Translation[] translations() default {};
+
+    boolean ignoreInMetadata() default false;
 }
