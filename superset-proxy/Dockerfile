@@ -31,4 +31,6 @@ COPY --from=compiler /opt/viz ./
 
 COPY entrypoint.sh /opt/viz/
 
+EXPOSE 8090
+
 ENTRYPOINT ["/opt/viz/entrypoint.sh"]
