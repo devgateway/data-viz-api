@@ -15,7 +15,7 @@ permissions:
   packages: write
 
 jobs:
-  build_and_release_api_security:
+  build_and_release_api_registry:
     uses: ./.github/workflows/actions/release-template.yml
     with:
       project_name: 'registry'
