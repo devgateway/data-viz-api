@@ -4,10 +4,9 @@ on:
     secrets:
       DOCKER_USERNAME:
         required: true
-        type: string
       DOCKER_PASSWORD:
         required: true
-        type: string
+
     inputs:
       docker_registry:
         required: true
