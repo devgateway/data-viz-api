@@ -32,13 +32,13 @@ on:
         default: ${{ github.repository }}
       pre_release:
         required: false
-        type: boolean
-        default: false
+        type: string
+        default: "false"
 
 jobs:
   prepare-a-release:
     runs-on: ubuntu-latest
-    if: ${{ inputs.pre_release == false }}
+    if: ${{ inputs.pre_release == 'false' }}
     outputs:
       new_version: ${{ inputs.new_version}}
       new_tag: ${{ inputs.new_tag }}
@@ -60,7 +60,7 @@ jobs:
 
   prepare-a-pre-release:
     runs-on: ubuntu-latest
-    if: ${{ inputs.pre_release == true }}
+    if: ${{ inputs.pre_release == 'true' }}
     outputs:
       new_version: ${{ inputs.new_version }}
       new_tag: ${{ inputs.new_tag }}
@@ -88,7 +88,7 @@ jobs:
   build_and_release_project:
     needs: prepare-a-release
     runs-on: ubuntu-latest
-    if: ${{ inputs.pre_release == false }}
+    if: ${{ inputs.pre_release == 'false' }}
     outputs:
       new_version: ${{ needs.prepare-a-release.outputs.new_version }}
       new_tag: ${{ needs.prepare-a-release.outputs.new_tag }}
@@ -168,7 +168,7 @@ jobs:
   build_and_pre_release_project:
     needs: prepare-a-pre-release
     runs-on: ubuntu-latest
-    if: ${{ inputs.pre_release == true }}
+    if: ${{ inputs.pre_release == 'true' }}
     outputs:
       new_version: ${{ needs.prepare-a-pre-release.outputs.new_version }}
       new_tag: ${{ needs.prepare-a-pre-release.outputs.new_tag }}
