@@ -1,0 +1,221 @@
+name: Build and Release a Project
+on:
+  workflow_call:
+    secrets:
+      GITHUB_TOKEN:
+        required: true
+        type: string
+      DOCKER_USERNAME:
+        required: true
+        type: string
+      DOCKER_PASSWORD:
+        required: true
+        type: string
+    inputs:
+      docker_registry:
+        required: true
+        type: string
+      dockerfile:
+        required: true
+        type: string
+      docker_build_context:
+        required: true
+        type: string
+      docker_buildx_cache_from:
+        required: true
+        type: string
+      docker_buildx_cache_to:
+        required: true
+        type: string
+      project_name:
+        required: true
+        type: string
+      github_repo:
+        required: false
+        type: string
+        default: ${{ github.repository }}
+      pre_release:
+        required: false
+        type: boolean
+        default: false
+
+jobs:
+  prepare-a-release:
+    runs-on: ubuntu-latest
+    if: ${{ inputs.pre_release == false }}
+    outputs:
+      new_version: ${{ inputs.new_version}}
+      new_tag: ${{ inputs.new_tag }}
+      current_date: ${{ needs.prepare-a-release.outputs.current_date }}
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: "0"
+      - name: Generate Tag
+        id: tag_version
+        uses: mathieudutour/github-tag-action@v6.2
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          release_branches: production,release/*
+          pre_release_branches: main
+          tag_prefix: v
+          dry_run: "true"
+
+  prepare-a-pre-release:
+    runs-on: ubuntu-latest
+    if: ${{ inputs.pre_release == true }}
+    outputs:
+      new_version: ${{ inputs.new_version }}
+      new_tag: ${{ inputs.new_tag }}
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: "0"
+
+      - name: Get Current Date And Time
+        id: current_date
+        run: echo "current_date=$(date +'%Y%m%d')" >> $GITHUB_OUTPUT
+
+      - name: Generate Tag
+        id: tag_version
+        uses: mathieudutour/github-tag-action@v6.2
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          tag_prefix: v
+          release_branches: production,release/*
+          pre_release_branches: main
+          append_to_pre_release_tag: snapshot-${{steps.current_date.outputs.current_date}}
+          dry_run: "true"
+
+  build_and_release_project:
+    needs: prepare-a-release
+    runs-on: ubuntu-latest
+    if: ${{ inputs.pre_release == false }}
+    outputs:
+      new_version: ${{ needs.prepare-a-release.outputs.new_version }}
+      new_tag: ${{ needs.prepare-a-release.outputs.new_tag }}
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+        with:
+          platforms: linux/amd64,linux/arm64
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+      - name: Login to Docker Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ inputs.docker_registry }}
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v6
+        with:
+          platforms: linux/amd64,linux/arm64
+          cache-from: type=gha, scope=${{ inputs.docker_buildx_cache_from }}
+          cache-to: type=gha, scope=${{ inputs.docker_buildx_cache_to }}
+          context: ${{ inputs.docker_build_context }}
+          push: true
+          build-args: |
+            VERSION=${{ needs.prepare-a-release.outputs.new_version }}
+            TAG=${{ needs.prepare-a-release.outputs.new_tag }}
+            GITHUB_REPO=${{ inputs.github_repo }}
+          tags: >
+            ${{ inputs.docker_registry }}/data-viz/${{ inputs.project_name }}:latest
+            ${{ inputs.docker_registry }}/data-viz/${{ inputs.project_name }}:${{ needs.prepare-a-release.outputs.new_version }}
+
+      - name: Cache Maven packages
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.m2/repository
+            !~/.m2/repository/org/devgateway/tcdi
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
+
+      - name: Build the Maven project
+        run: |
+          mkdir /opt/viz \
+          && mvn -B compile package -DskipTests \
+          && mv ./target/*-0.0.1-SNAPSHOT.jar /opt/viz 
+
+      - name: Generate a changelog
+        uses: orhun/git-cliff-action@v4
+        id: changelog
+        with:
+          config: cliff.toml
+          args: --unreleased  --include-path "${{ inputs.project_name }}/**/*"
+        env:
+          OUTPUT: CHANGELOG-${{ inputs.project_name }}.md
+          GITHUB_REPO: ${{ inputs.github_repo }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create Release
+        id: create_release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ needs.prepare-a-release.outputs.new_tag }}
+          files: /opt/viz/*.jar
+          body_path: CHANGELOG-${{ inputs.project_name }}.md
+          draft: false
+          prerelease: "false"
+          make_latest: "true"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  build_and_pre_release_project:
+    needs: prepare-a-pre-release
+    runs-on: ubuntu-latest
+    if: ${{ inputs.pre_release == true }}
+    outputs:
+      new_version: ${{ needs.prepare-a-pre-release.outputs.new_version }}
+      new_tag: ${{ needs.prepare-a-pre-release.outputs.new_tag }}
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+        with:
+          platforms: linux/amd64,linux/arm64
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Login to Docker Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ inputs.docker_registry }}
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v6
+        with:
+          platforms: linux/amd64,linux/arm64
+          cache-from: type=gha, scope=${{ inputs.docker_buildx_cache_from }}
+          cache-to: type=gha, scope=${{ inputs.docker_buildx_cache_to }}
+          context: ${{ inputs.docker_build_context }}
+          push: true
+          build-args: |
+            VERSION=${{ needs.prepare-a-pre-release.outputs.new_version }}
+            TAG=${{ needs.prepare-a-pre-release.outputs.new_tag }}
+          tags: >
+            ${{ inputs.docker_registry }}/data-viz/${{ inputs.project_name }}:${{ needs.prepare-a-pre-release.outputs.new_version }}
+
+      - name: Create Release
+        id: create_release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ needs.prepare-a-pre-release.outputs.new_tag }}
+          repository: ${{ inputs.github_repo }}
+          draft: false
+          prerelease: "true"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
