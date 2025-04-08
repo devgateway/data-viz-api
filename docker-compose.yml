@@ -1,5 +1,3 @@
-name: Test The APIs using Docker Compose
-
 services:
   postgres:
     image: postgres:16.8
@@ -73,9 +71,18 @@ services:
       context: ./superset-proxy
       dockerfile: Dockerfile
     environment:
+      VIZ_SUPERSET_URL: "https://your-superset-instance.example.com/"
       SPRING_DATASOURCE_URL: "jdbc:postgresql://postgres:5432/viz"
       JAVA_OPTS: "-Xmx512m -Xms512m -XX:+UseG1GC -XX:InitialHeapSize=512m -XX:MaxHeapSize=512m -XX:+ParallelRefProcEnabled "
       SPRING_PROFILES_ACTIVE: "dev"
+      EUREKA_INSTANCE_METADATA-MAP_SUPERSET: "true"
+      EUREKA_INSTANCE_METADATA-MAP_TYPE: "data"
+      EUREKA_INSTANCE_METADATA-MAP_LABEL: "Superset Data"
+      SPRING_APPLICATION_NAME: "superset-proxy"
+      SPRING_DATA_REDIS_HOST: "cache"
+      SPRING_DATA_REDIS_PORT: "6379"
+      SPRING_DATA_REDIS_PASSWORD: "admin"
+      SPRING_DATA_CACHE_TYPE: "redis"
     ports:
       - "8090:8090"
     depends_on:
@@ -83,7 +90,7 @@ services:
       - cache
       - eureka
     networks:
-      - backend-api
+      backend-api:
 
   cache:
     image: redis:6.2-alpine
