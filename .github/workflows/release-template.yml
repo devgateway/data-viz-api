@@ -2,9 +2,6 @@ name: Build and Release a Project
 on:
   workflow_call:
     secrets:
-      GITHUB_TOKEN:
-        required: true
-        type: string
       DOCKER_USERNAME:
         required: true
         type: string
