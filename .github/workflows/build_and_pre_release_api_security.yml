@@ -15,7 +15,7 @@ permissions:
 
 jobs:
   build_and_release_api_security:
-    uses: ./.github/workflows/actions/release-template.yml
+    uses: ./.github/workflows/release-template.yml
     with:
       project_name: 'api-security'
       docker_buildx_cache_to: 'api-security'
