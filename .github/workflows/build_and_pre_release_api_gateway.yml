@@ -15,7 +15,7 @@ permissions:
 
 jobs:
   build_and_release_api_gateway:
-    uses: ./.github/workflows/actions/release-template.yml
+    uses: ./.github/workflows/release-template.yml
     with:
       project_name: 'api-gateway'
       docker_buildx_cache_to: 'api-gateway'
