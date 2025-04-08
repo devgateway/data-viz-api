@@ -16,7 +16,7 @@ permissions:
 
 jobs:
   build_and_release_superset_proxy:
-    uses: ./.github/workflows/actions/release-template.yml
+    uses: ./.github/workflows/release-template.yml
     with:
       project_name: 'superset-proxy'
       docker_buildx_cache_to: 'superset-proxy'
