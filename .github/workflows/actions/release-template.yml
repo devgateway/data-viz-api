@@ -210,7 +210,7 @@ jobs:
           id: create_release
           uses: softprops/action-gh-release@v2
           with:
-            tag_name: ${{ needs.build-and-push-docker-image.outputs.new_tag }}
+            tag_name: ${{ needs.build_and_push_docker_image.outputs.new_tag }}
             repository: ${{ inputs.github_repo }}
             files: /opt/viz/*.jar
             body_path: CHANGELOG.md
