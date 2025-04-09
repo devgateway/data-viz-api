@@ -27,5 +27,6 @@ RUN --mount=type=cache,target=/root/.m2 mkdir /opt/viz \
 FROM openjdk:21-jdk-slim AS api-security
 WORKDIR /opt/viz
 COPY --from=builder /opt/viz ./
+RUN apt-get update && apt-get install -y curl
 EXPOSE 8761
 CMD ["java","-jar","/opt/viz/registry-0.0.1-SNAPSHOT.jar"]
