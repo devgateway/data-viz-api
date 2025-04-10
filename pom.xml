@@ -11,11 +11,10 @@
     </parent>
 
     <packaging>pom</packaging>
-    <groupId>org.devgateway.viz</groupId>
-    <artifactId>api-commons</artifactId>
+    <groupId>org.devgateway.viz.api</groupId>
+    <artifactId>parent</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>Data Viz Root</name>
-
+    <name>Data Viz API Parent project</name>
     <description>Parent Services Project</description>
 
     <properties>
@@ -115,11 +114,11 @@
 
 
         <!--        <dependency>-->
-<!--            <groupId>javax.servlet</groupId>-->
-<!--            <artifactId>javax.servlet-api</artifactId>-->
-<!--            <version>4.0.1</version>-->
-<!--            <scope>provided</scope>-->
-<!--        </dependency>-->
+        <!--            <groupId>javax.servlet</groupId>-->
+        <!--            <artifactId>javax.servlet-api</artifactId>-->
+        <!--            <version>4.0.1</version>-->
+        <!--            <scope>provided</scope>-->
+        <!--        </dependency>-->
 
     </dependencies>
 
@@ -197,11 +196,11 @@
                                 <artifactId>jakarta.persistence-api</artifactId>
                                 <version>3.1.0</version>
                             </path>
-<!--                            <path>-->
-<!--                                <groupId>org.projectlombok</groupId>-->
-<!--                                <artifactId>lombok</artifactId>-->
-<!--                                <version>1.18.28</version>-->
-<!--                            </path>-->
+                            <!--                            <path>-->
+                            <!--                                <groupId>org.projectlombok</groupId>-->
+                            <!--                                <artifactId>lombok</artifactId>-->
+                            <!--                                <version>1.18.28</version>-->
+                            <!--                            </path>-->
                         </annotationProcessorPaths>
                     </configuration>
                 </plugin>
@@ -250,4 +249,16 @@
         </pluginManagement>
 
     </build>
+    <distributionManagement>
+        <repository>
+            <id>data-viz-release</id>
+            <name>Releases Repo</name>
+            <url>https://artifactory.dgdev.org/artifactory/data-viz-release-local</url>
+        </repository>
+        <snapshotRepository>
+            <id>data-viz-snapshot</id>
+            <name>Snapshots Repo</name>
+            <url>https://artifactory.dgdev.org/artifactory/data-viz-snapshot-local</url>
+        </snapshotRepository>
+    </distributionManagement>
 </project>
