@@ -41,6 +41,8 @@ jobs:
           </settings>
           EOF
 
+      - name: Build and Deploy Parent
+        run: mvn clean deploy --batch-mode
       - name: Build and Deploy
         working-directory: ./commons
         run: mvn clean deploy --batch-mode
