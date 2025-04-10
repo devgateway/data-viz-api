@@ -56,12 +56,12 @@
 
     <distributionManagement>
         <repository>
-            <id>dg-artifactory-release</id>
+            <id>data-viz-release</id>
             <name>Releases Repo</name>
             <url>https://artifactory.dgdev.org/artifactory/data-viz-release-local</url>
         </repository>
         <snapshotRepository>
-            <id>dg-artifactory-snapshot</id>
+            <id>data-viz-snapshot</id>
             <name>Snapshots Repo</name>
             <url>https://artifactory.dgdev.org/artifactory/data-viz-snapshot-local</url>
         </snapshotRepository>
