@@ -12,7 +12,7 @@
 
     <groupId>org.devgateway.viz.api</groupId>
     <artifactId>commons</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>0.0.1</version>
     <name>MicroServices Commons</name>
     <description>Common Micro Service Code</description>
     <dependencies>
@@ -52,4 +52,18 @@
                     <version>${netflix.eureka.version}</version>
                 </dependency>
     </dependencies>
+
+
+    <distributionManagement>
+        <repository>
+            <id>dg-artifactory-release</id>
+            <name>Releases Repo</name>
+            <url>https://artifactory.dgdev.org/artifactory/data-viz-release-local</url>
+        </repository>
+        <snapshotRepository>
+            <id>dg-artifactory-snapshot</id>
+            <name>Snapshots Repo</name>
+            <url>https://artifactory.dgdev.org/artifactory/data-viz-snapshot-local</url>
+        </snapshotRepository>
+    </distributionManagement>
 </project>
