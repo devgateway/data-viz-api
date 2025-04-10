@@ -1,4 +1,4 @@
-name: Maven Deploy to Artifactory
+name: Deploy to Artifactory
 on:
   push:
     paths:
