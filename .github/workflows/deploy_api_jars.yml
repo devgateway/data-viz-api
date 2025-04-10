@@ -1,5 +1,4 @@
 name: Maven Deploy to Artifactory
-working-directory: ./commons
 on:
   push:
     paths:
@@ -43,5 +42,6 @@ jobs:
           EOF
 
       - name: Build and Deploy
+        working-directory: ./commons
         run: mvn clean deploy --batch-mode
 
