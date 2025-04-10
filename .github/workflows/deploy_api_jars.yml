@@ -1,4 +1,5 @@
 name: Maven Deploy to Artifactory
+working-directory: ./commons
 on:
   push:
     paths:
