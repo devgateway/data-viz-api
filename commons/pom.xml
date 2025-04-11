@@ -70,4 +70,9 @@
             <url>https://artifactory.dgdev.org/artifactory/data-viz-snapshot-local</url>
         </snapshotRepository>
     </distributionManagement>
+
+    <scm>
+        <developerConnection>scm:git:https://github.com/devgateway/data-viz-api.git</developerConnection>
+        <tag>HEAD</tag>
+    </scm>
 </project>
