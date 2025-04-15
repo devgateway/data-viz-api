@@ -1,18 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <groupId>org.devgateway.viz</groupId>
-        <artifactId>api-commons</artifactId>
-        <relativePath>../pom.xml</relativePath>
-        <version>0.0.1-SNAPSHOT</version>
+        <groupId>org.devgateway.viz.api</groupId>
+        <artifactId>parent</artifactId>
+        <version>0.0.4-SNAPSHOT</version>
     </parent>
 
     <groupId>org.devgateway.viz.api</groupId>
     <artifactId>commons</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>0.0.4-SNAPSHOT</version>
     <name>MicroServices Commons</name>
     <description>Common Micro Service Code</description>
     <dependencies>
@@ -51,10 +49,29 @@
             <artifactId>commons-lang3</artifactId>
             <version>3.12.0</version>
         </dependency>
-                <dependency>
-                    <groupId>org.springframework.cloud</groupId>
-                    <artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
-                    <version>${netflix.eureka.version}</version>
-                </dependency>
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
+            <version>${netflix.eureka.version}</version>
+        </dependency>
     </dependencies>
+
+
+    <distributionManagement>
+        <repository>
+            <id>data-viz-release</id>
+            <name>Releases Repo</name>
+            <url>https://artifactory.dgdev.org/artifactory/data-viz-release-local</url>
+        </repository>
+        <snapshotRepository>
+            <id>data-viz-snapshot</id>
+            <name>Snapshots Repo</name>
+            <url>https://artifactory.dgdev.org/artifactory/data-viz-snapshot-local</url>
+        </snapshotRepository>
+    </distributionManagement>
+
+    <scm>
+        <developerConnection>scm:git:https://github.com/devgateway/data-viz-api.git</developerConnection>
+        <tag>HEAD</tag>
+    </scm>
 </project>
