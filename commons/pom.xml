@@ -15,8 +15,7 @@
     <description>Common Micro Service Code</description>
 
     <properties>
-        <maven.compiler.target>21</maven.compiler.target>
-        <maven.compiler.source>21</maven.compiler.source>
+        <java.version>20</java.version>
     </properties>
 
     <dependencies>
