@@ -16,6 +16,9 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Set up git user
+        uses: fregante/setup-git-user@v2
+
       - name: Set up JDK 21
         uses: actions/setup-java@v4
         with:
@@ -47,6 +50,7 @@ jobs:
       - name: Build and Deploy
         working-directory: ./commons
         run: mvn clean deploy --batch-mode
+
 
       - name: Prepare Maven Release
         run: mvn release:prepare --batch-mode
