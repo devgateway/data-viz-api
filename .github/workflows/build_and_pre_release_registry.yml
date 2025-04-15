@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
   push:
     paths:
-      - ./registry/**
+      - registry/**
     branches:
       - main
 

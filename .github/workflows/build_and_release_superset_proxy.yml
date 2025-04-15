@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
   push:
     paths:
-      - ./superset-proxy/**
+      - superset-proxy/**
     branches:
       - production
       - release/*
