@@ -1,21 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
         <groupId>org.springframework.boot</groupId>
-        <relativePath></relativePath>
+        <relativePath />
         <artifactId>spring-boot-starter-parent</artifactId>
         <version>3.2.10</version>
     </parent>
 
     <packaging>pom</packaging>
-    <groupId>org.devgateway.viz</groupId>
-    <artifactId>api-commons</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
-    <name>Data Viz Root</name>
-
+    <groupId>org.devgateway.viz.api</groupId>
+    <artifactId>parent</artifactId>
+    <version>0.0.4-SNAPSHOT</version>
+    <name>Data Viz API Parent project</name>
     <description>Parent Services Project</description>
 
     <properties>
@@ -115,11 +113,11 @@
 
 
         <!--        <dependency>-->
-<!--            <groupId>javax.servlet</groupId>-->
-<!--            <artifactId>javax.servlet-api</artifactId>-->
-<!--            <version>4.0.1</version>-->
-<!--            <scope>provided</scope>-->
-<!--        </dependency>-->
+        <!--            <groupId>javax.servlet</groupId>-->
+        <!--            <artifactId>javax.servlet-api</artifactId>-->
+        <!--            <version>4.0.1</version>-->
+        <!--            <scope>provided</scope>-->
+        <!--        </dependency>-->
 
     </dependencies>
 
@@ -250,4 +248,21 @@
         </pluginManagement>
 
     </build>
+    <distributionManagement>
+        <repository>
+            <id>data-viz-release</id>
+            <name>Releases Repo</name>
+            <url>https://artifactory.dgdev.org/artifactory/data-viz-release-local</url>
+        </repository>
+        <snapshotRepository>
+            <id>data-viz-snapshot</id>
+            <name>Snapshots Repo</name>
+            <url>https://artifactory.dgdev.org/artifactory/data-viz-snapshot-local</url>
+        </snapshotRepository>
+    </distributionManagement>
+
+    <scm>
+        <developerConnection>scm:git:https://github.com/devgateway/data-viz-api.git</developerConnection>
+        <tag>HEAD</tag>
+    </scm>
 </project>
