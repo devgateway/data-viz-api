@@ -74,6 +74,7 @@ jobs:
             -DpushChanges=true \
             -DlocalCheckout=true \
             -DpreparationGoals="clean verify -Dcheckstyle.skip" \
+            -Dgoals=deploy \
             -DskipTests
           
           echo "version=$VERSION" >> $GITHUB_OUTPUT
