@@ -1,5 +1,6 @@
-name: Deploy to Artifactory
+name: Deploy Commons to Artifactory
 on:
+  workflow_dispatch:
   push:
     paths:
       - commons/**
