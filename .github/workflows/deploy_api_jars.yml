@@ -15,11 +15,11 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up JDK 17
+      - name: Set up JDK 21
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
-          java-version: '17'
+          java-version: '21'
 
       - name: Configure Maven settings.xml for Artifactory
         run: |
@@ -47,3 +47,29 @@ jobs:
         working-directory: ./commons
         run: mvn clean deploy --batch-mode
 
+      - name: Prepare Maven Release
+        run: mvn release:prepare --batch-mode
+
+      - name: Perform Maven Release
+        run: |
+          # Get current version from pom.xml
+          CURRENT_VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
+          echo "Current version: $CURRENT_VERSION"
+          
+          # Remove -SNAPSHOT and calculate next version
+          VERSION=${CURRENT_VERSION%-SNAPSHOT}
+          IFS='.' read -r major minor patch <<< "$VERSION"
+          NEXT_VERSION="$major.$minor.$((patch + 1))-SNAPSHOT"
+          
+          # Perform release
+          mvn -B release:prepare release:perform \
+            -DreleaseVersion=$VERSION \
+            -DdevelopmentVersion=$NEXT_VERSION \
+            -DtagNameFormat=v@{project.version} \
+            -DpushChanges=true \
+            -DlocalCheckout=true \
+            -DpreparationGoals="clean verify -Dcheckstyle.skip" \
+            -DskipTests
+          
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Released version $VERSION"
