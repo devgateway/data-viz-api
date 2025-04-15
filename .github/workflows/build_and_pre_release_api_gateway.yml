@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
   push:
     paths:
-      - ./api-gateway/**
+      - api-gateway/**
     branches:
       - main
 
