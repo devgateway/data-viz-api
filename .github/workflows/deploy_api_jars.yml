@@ -1,4 +1,4 @@
-name: Deploy Commons to Artifactory
+name: Pre Release and Deploy API Jars to Artifactory
 on:
   workflow_dispatch:
   push:
