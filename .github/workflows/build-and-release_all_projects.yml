@@ -1,0 +1,155 @@
+name: Build and release All Projects
+on:
+  workflow_dispatch:
+    inputs:
+      package_bump:
+        description: Package Bump
+        required: true
+        type: choice
+        default: patch
+        options:
+          - patch
+          - minor
+          - major
+
+permissions:
+  contents: write
+  pull-requests: write
+  packages: write
+
+jobs:
+  build-and-release-api-gateway:
+    name: Build And Release API Gateway
+    uses: ./.github/workflows/release-template.yml
+    with:
+      project_name: 'api-gateway'
+      docker_buildx_cache_to: 'api-gateway'
+      docker_registry: ${{ vars.DOCKER_REGISTRY }}
+      dockerfile: 'Dockerfile'
+      docker_build_context: './api-gateway'
+      docker_buildx_cache_from: 'api-gateway'
+      pre_release: 'false'
+      package_bump: ${{ github.event.inputs.package_bump }}
+    secrets:
+      DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+      DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+
+  build-and-release-api-security:
+    name: Build And Release API Security
+    uses: ./.github/workflows/release-template.yml
+    with:
+      project_name: 'api-security'
+      docker_buildx_cache_to: 'api-security'
+      docker_registry: ${{ vars.DOCKER_REGISTRY }}
+      dockerfile: 'Dockerfile'
+      docker_build_context: './api-security'
+      docker_buildx_cache_from: 'api-security'
+      pre_release: 'false'
+      package_bump: ${{ github.event.inputs.package_bump }}
+    secrets:
+      DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+      DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+
+  build-and-release-api-registry:
+    name: Build And Release API Registry
+    uses: ./.github/workflows/release-template.yml
+    with:
+      project_name: 'registry'
+      docker_buildx_cache_to: 'registry'
+      docker_registry: ${{ vars.DOCKER_REGISTRY }}
+      dockerfile: 'Dockerfile'
+      docker_build_context: './registry'
+      docker_buildx_cache_from: 'registry'
+      pre_release: 'false'
+      package_bump: ${{ github.event.inputs.package_bump }}
+    secrets:
+      DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+      DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+
+  build-and-release-superset-proxy:
+    name: Build And Release Superset Proxy
+    uses: ./.github/workflows/release-template.yml
+    with:
+      project_name: 'superset-proxy'
+      docker_buildx_cache_to: 'superset-proxy'
+      docker_registry: ${{ vars.DOCKER_REGISTRY }}
+      dockerfile: 'Dockerfile'
+      docker_build_context: './superset-proxy'
+      docker_buildx_cache_from: 'superset-proxy'
+      pre_release: 'false'
+      package_bump: ${{ github.event.inputs.package_bump }}
+    secrets:
+      DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+      DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+
+  build-and-release-commons-library:
+    name: Build And Release Commons Library
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up git user
+        uses: fregante/setup-git-user@v2
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'corretto'
+          java-version: '21'
+
+      - name: Configure Maven settings.xml for Artifactory
+        run: |
+          mkdir -p ~/.m2
+          cat <<EOF > ~/.m2/settings.xml
+          <settings>
+            <servers>
+              <server>
+                <id>data-viz-release</id>
+                <username>${{ secrets.ARTIFACTORY_USERNAME }}</username>
+                <password>${{ secrets.ARTIFACTORY_PASSWORD }}</password>
+              </server>
+              <server>
+                <id>data-viz-snapshot</id>
+                <username>${{ secrets.ARTIFACTORY_USERNAME }}</username>
+                <password>${{ secrets.ARTIFACTORY_PASSWORD }}</password>
+              </server>
+            </servers>
+          </settings>
+          EOF
+
+      - name: Build and Deploy Parent
+        run: mvn clean deploy --batch-mode
+      - name: Build and Deploy
+        working-directory: ./commons
+        run: mvn clean deploy --batch-mode
+
+
+      - name: Prepare Maven Release
+        run: mvn release:prepare --batch-mode
+
+      - name: Perform Maven Release
+        run: |
+          ***REMOVED*** Get current version from pom.xml
+          CURRENT_VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
+          echo "Current version: $CURRENT_VERSION"
+
+          ***REMOVED*** Remove -SNAPSHOT and calculate next version
+          VERSION=${CURRENT_VERSION%-SNAPSHOT}
+          IFS='.' read -r major minor patch <<< "$VERSION"
+          NEXT_VERSION="$major.$minor.$((patch + 1))-SNAPSHOT"
+
+          ***REMOVED*** Perform release
+          mvn -B release:prepare release:perform \
+            -DreleaseVersion=$VERSION \
+            -DdevelopmentVersion=$NEXT_VERSION \
+            -DtagNameFormat=v@{project.version} \
+            -DpushChanges=true \
+            -DlocalCheckout=true \
+            -DpreparationGoals="clean verify -Dcheckstyle.skip" \
+            -Dgoals=deploy \
+            -DskipTests
+
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Released version $VERSION"
