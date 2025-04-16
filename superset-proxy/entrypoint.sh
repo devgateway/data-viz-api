@@ -19,7 +19,18 @@
     done < <(env -0)
 
 
-    echo  'eureka.client.serviceUrl.defaultZone=http://eureka:8761/eureka/' >> $PROP_FILE
+    echo  'server.compression.enabled=true' >> $PROP_FILE
+    echo  '# ========================================
+           # GZIP Compression Settings for Spring Boot
+           # ========================================
+           server.compression.enabled=true
+           server.compression.mime-types=application/json,application/xml,text/html,text/xml,text/plain
+           server.compression.min-response-size=1024
+           server.compression.enabled-methods=GET,POST
+           management.endpoints.web.exposure.include=health,actuator,info
+
+           ' >> $PROP_FILE
+
 
 
     echo "................. Properties ................."
