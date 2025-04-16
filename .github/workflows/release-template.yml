@@ -34,6 +34,10 @@ on:
         required: false
         type: string
         default: "false"
+      package_bump:
+        required: false
+        type: string
+        default: "patch"
 
 jobs:
   prepare-a-release:
@@ -54,6 +58,7 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           release_branches: production,release/*
           pre_release_branches: main
+          default_bump: ${{ inputs.package_bump }}
           tag_prefix: v-${{ inputs.project_name }}-
           dry_run: "true"
 
