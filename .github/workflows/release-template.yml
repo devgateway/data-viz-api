@@ -140,10 +140,9 @@ jobs:
             ${{ runner.os }}-maven-
 
       - name: Build the Maven project
+        working-directory: ${{ inputs.docker_build_context }}
         run: |
-          mkdir /opt/viz \
-          && mvn -B compile package -DskipTests \
-          && mv ./target/*-0.0.1-SNAPSHOT.jar /opt/viz 
+          mvn -B compile package -DskipTests 
 
       - name: Generate a changelog
         uses: orhun/git-cliff-action@v4
@@ -161,7 +160,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ needs.prepare-a-release.outputs.new_tag }}
-          files: /opt/viz/*.jar
+          files: ${{ inputs. docker_build_context }}/target/*.jar
           body_path: CHANGELOG-${{ inputs.project_name }}.md
           draft: false
           prerelease: "false"
