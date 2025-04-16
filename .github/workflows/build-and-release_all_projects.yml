@@ -2,14 +2,15 @@ name: Build and release All Projects
 on:
   workflow_dispatch:
     inputs:
-     package_bump:
-         description: 'Package Bump'
-         required: true
-         default: 'patch'
-         options:
-           - patch
-           - minor
-           - major
+      package_bump:
+        description: Package Bump
+        required: true
+        type: choice
+        default: patch
+        options:
+          - patch
+          - minor
+          - major
   push:
     branches:
       - release/*
