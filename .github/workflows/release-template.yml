@@ -57,9 +57,8 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           release_branches: production,release/*
-          pre_release_branches: main
           default_bump: ${{ inputs.package_bump }}
-          tag_prefix: v-${{ inputs.project_name }}-
+          tag_prefix: ${{ inputs.project_name }}-
           dry_run: "true"
 
   prepare-a-pre-release:
@@ -126,7 +125,7 @@ jobs:
             VERSION=${{ needs.prepare-a-release.outputs.new_version }}
             TAG=${{ needs.prepare-a-release.outputs.new_tag }}
             GITHUB_REPO=${{ inputs.github_repo }}
-          tags: >
+          tags: |
             ${{ inputs.docker_registry }}/data-viz/${{ inputs.project_name }}:latest
             ${{ inputs.docker_registry }}/data-viz/${{ inputs.project_name }}:${{ needs.prepare-a-release.outputs.new_version }}
 
