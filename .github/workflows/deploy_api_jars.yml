@@ -6,8 +6,6 @@ on:
       - commons/**
     branches:
       - main  ***REMOVED*** or master or release branches
-      - release/*
-      - hotfix/*
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
