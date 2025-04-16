@@ -1,8 +1,13 @@
 package org.devgateway.viz.gateway.services;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.classic.HttpClients;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
@@ -19,7 +24,16 @@ public class SupersetApiClient {
     Logger logger = Logger.getLogger(SupersetApiClient.class.getName());
 
     public SupersetApiClient() {
-        this.restTemplate = new RestTemplate();
+        CloseableHttpClient httpClient = HttpClients.custom()
+                .build();
+
+        this.restTemplate = new RestTemplate(new HttpComponentsClientHttpRequestFactory(httpClient));
+
+        restTemplate.getInterceptors().add((request, body, execution) -> {
+            request.getHeaders().add(HttpHeaders.ACCEPT_ENCODING, "gzip");
+            request.getHeaders().add(HttpHeaders.ACCEPT, "application/json");
+            return execution.execute(request, body);
+        });
     }
 
 
@@ -35,6 +49,7 @@ public class SupersetApiClient {
     /**
      * Fetch list of all datasets
      */
+    @Cacheable(value = "datasets")
     public JsonNode fetchDatasets() {
         String url = supersetUrlFromProperties + "/api/v1/dataset/?force=true";
         ResponseEntity<JsonNode> response = restTemplate.getForEntity(url, JsonNode.class);
@@ -44,8 +59,14 @@ public class SupersetApiClient {
     /**
      * Fetch a single dataset by ID
      */
+    @Cacheable(value = "dataset", key = "#datasetId")
     public JsonNode fetchDataset(String datasetId) {
-        String url = supersetUrlFromProperties + "/api/v1/dataset/" + datasetId + "?force=true";
+        logger.info("Fetching Datasets");
+        if (datasetId == null || datasetId.equalsIgnoreCase("null") || datasetId.isEmpty()) {
+            //return emtpy json
+            return null;
+        }
+        String url = supersetUrlFromProperties + "/api/v1/dataset/" + datasetId + "";
         ResponseEntity<JsonNode> response = restTemplate.getForEntity(url, JsonNode.class);
         return response.getBody();
     }
@@ -58,6 +79,7 @@ public class SupersetApiClient {
         long startTime = System.currentTimeMillis();
 
         String url = supersetUrlFromProperties + "/api/v1/chart/data";
+
         ResponseEntity<JsonNode> response = restTemplate.postForEntity(url, requestBody, JsonNode.class);
 
         long endTime = System.currentTimeMillis();
