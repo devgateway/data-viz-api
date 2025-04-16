@@ -49,6 +49,7 @@ public class SupersetProxyService {
     @Cacheable(cacheNames = "dimensions", key = "#datasetId")
     public List<Map<String, Object>> fetchDimensions(String datasetId) {
         JsonNode root = supersetApiClient.fetchDataset(datasetId);
+
         if (root == null || !root.has("result")) {
             return Collections.emptyList();
         }
@@ -103,8 +104,10 @@ public class SupersetProxyService {
             return Collections.emptyList();
         }
 
+        //get dataset metdata
         JsonNode result = supersetApiClient.fetchDataset(datasetId).get("result");
-        List<Map<String, Object>> dimensions = extractDimensions(result);
+
+         List<Map<String, Object>> dimensions = extractDimensions(result);
         List<String> measures = extractUniqueMeasures(result);
         List<Map<String, Object>> categories = new ArrayList<>();
 
@@ -113,6 +116,7 @@ public class SupersetProxyService {
             Map<String, Object> category = new HashMap<>();
             category.put("type", field);
             List<Map<String, Object>> items = new ArrayList<>();
+
             for (String value : fetchDistinctDimensionValues(field, datasetId)) {
                 items.add(createItem(field, value,
                         Constants.COLORS.get(items.size() % Constants.COLORS.size())));
@@ -124,11 +128,16 @@ public class SupersetProxyService {
     }
 
     private Set<String> fetchDistinctDimensionValues(String field, String datasetId) {
+
+        logger.info("Fetching distinct values for field: " + field + " from dataset: " + datasetId);
+
         Set<String> uniqueValues = new HashSet<>();
 
         Map<String, Object> datasource = createDatasource(datasetId);
         Map<String, Object> query1 = createQuery(field);
+
         JsonNode requestNode = objectMapper.valueToTree(createSupersetRequest(datasource, Collections.singletonList(query1)));
+
         JsonNode supersetResp = supersetApiClient.postChartData(requestNode);
 
         if (supersetResp != null && supersetResp.has("result") && supersetResp.get("result").isArray()) {
@@ -170,14 +179,14 @@ public class SupersetProxyService {
         return measures;
     }
 
-    private String [] getGroupsArray(String groupsPath) {
-        return groupsPath != null  &&  !groupsPath.trim().isEmpty() ?
-                groupsPath.split("/") : new String[] {};
+    private String[] getGroupsArray(String groupsPath) {
+        return groupsPath != null && !groupsPath.trim().isEmpty() ?
+                groupsPath.split("/") : new String[]{};
     }
 
     @Cacheable("stats")
     public Object getStats(String datasetId, Map<String, String> queryParams, String groupsPath) throws Exception {
-        if (datasetId == null) {
+        if (datasetId == null || datasetId.equalsIgnoreCase("null") || datasetId.isEmpty()) {
             return Collections.emptyList();
         }
 
@@ -206,7 +215,7 @@ public class SupersetProxyService {
         String[] groupsArray = getGroupsArray(groupsPath);
 
         if (groupsArray.length > 0) {
-            Map<String, Object> queryForDimension1 = createQuery(new String[] {groupsArray[0]}, measuresArr, queryParams);
+            Map<String, Object> queryForDimension1 = createQuery(new String[]{groupsArray[0]}, measuresArr, queryParams);
             queries.add(queryForDimension1);
         }
 
@@ -274,7 +283,7 @@ public class SupersetProxyService {
                 String secondDim = dimensionsArray[1];
                 for (JsonNode row : resultsForSecondDimension.get("data")) {
                     if (row.has(secondDim)) {
-                       typesList.stream()
+                        typesList.stream()
                                 .filter(t -> t.get("dimension").equals(secondDim))
                                 .findFirst()
                                 .ifPresent(type -> ((Set<Map<String, Object>>) type.computeIfAbsent("items", k -> new HashSet<>()))

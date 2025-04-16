@@ -13,6 +13,11 @@
     <version>0.0.9-SNAPSHOT</version>
     <name>MicroServices Commons</name>
     <description>Common Micro Service Code</description>
+
+    <properties>
+        <java.version>21</java.version>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>com.opencsv</groupId>
@@ -67,6 +72,6 @@
 
     <scm>
         <developerConnection>scm:git:https://github.com/devgateway/data-viz-api.git</developerConnection>
-        <tag>HEAD</tag>
+        <tag>parent-0.0.6</tag>
     </scm>
 </project>
