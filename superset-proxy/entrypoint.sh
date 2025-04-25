@@ -2,14 +2,51 @@
 
  		PROP_FILE="/etc/$1.properties"
 	  truncate -s 0 $PROP_FILE
-  	echo "..................... Writing to $PROP_FILE: ............... "
+  	echo "..................... NEW Writing to $PROP_FILE: ............... "
+
+
+to_camel_case() {
+  local input="$1"
+  local output=""
+  IFS='/' read -ra parts <<< "$input"
+  output="${parts[0]}"
+  for ((i=1; i<${***REMOVED***parts[@]}; i++)); do
+    part="${parts[i]}"
+    output+="${part^}"
+  done
+  echo "$output"
+}
+
+    ***REMOVED***EUREKA_CLIENT_SERVICE/URL_DEFAULT/ZONE
+    ***REMOVED***eureka.client.serviceUrl.defaultZone
 
     while IFS='=' read -r -d '' n v; do
-        if [[ $n == SPRING*  ||   $n == EUREKA* ]]; then
-				  VAR_NAME="$(echo "$n" | tr '[:upper:]' '[:lower:]' | tr '_' '.' |  sed 's/--/_/g' )"
-				  echo "$VAR_NAME=$v" >> $PROP_FILE
-			  fi
+      if [[ $n == SPRING_* || $n == EUREKA_* ]]; then
+
+        if [[ "$n" == *"/"* ]]; then
+
+              new_parts=()
+              VAR_NAME="$(echo "$n" | tr '[:upper:]_' '[:lower:].')"
+              IFS='.' read -ra PARTS <<< "$VAR_NAME"
+            for part in "${PARTS[@]}"; do
+              IFS='/' read -ra text <<< "$part"
+               if [[ "$part" == *"/"* ]]; then
+
+                new_parts+=("$(to_camel_case "$part")")
+                else
+                   new_parts+=("$part")
+                fi
+
+            done
+            final_var_name=$(IFS='.'; echo "${new_parts[*]}")
+           echo "$final_var_name=$v" >> "$PROP_FILE"
+        else
+          VAR_NAME="$(echo "$n" | tr '[:upper:]_' '[:lower:].')"
+          echo "$VAR_NAME=$v" >> "$PROP_FILE"
+        fi
+    fi
     done < <(env -0)
+
 
     while IFS='=' read -r -d '' n v; do
         if [[ $n == VIZ_* ]]; then
