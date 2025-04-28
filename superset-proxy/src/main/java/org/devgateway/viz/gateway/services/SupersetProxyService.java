@@ -412,7 +412,7 @@ public class SupersetProxyService {
 
         for (JsonNode metric : metricsNode) {
             String metricName = metric.asText();
-            dataItem.put(metricName, row.has(metricName) ? row.get(metricName).asDouble() : 0.0);
+            dataItem.put(metricName, row.hasNonNull(metricName) ? row.get(metricName).asDouble() : null);
         }
 
         return dataItem;
