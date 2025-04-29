@@ -2,6 +2,9 @@
 
  		PROP_FILE="/etc/$1.properties"
 	  truncate -s 0 $PROP_FILE
+	  if [[ ! -z "${DEFAULT_PROP_FILE_NAME}" ]]; then
+	    cat $DEFAULT_PROP_FILE_NAME > $PROP_FILE
+    fi
   	echo "..................... NEW Writing to $PROP_FILE: ............... "
 
 
