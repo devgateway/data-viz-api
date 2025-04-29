@@ -77,13 +77,12 @@ to_camel_case() {
     MODULE="$1"
 		shift
 		JAR="superset-proxy-0.0.1-SNAPSHOT.jar"
-		JAVA_OPTS="$JAVA_OPTS --spring.config.location=file://$PROP_FILE"
 
 		echo "--- JAVA_OPTS ---"
 		echo "$JAVA_OPTS"
 		echo "--- JAVA_OPTS ---"
 
-		exec su -s /bin/sh -c "java $JAVA_OPTS -jar '$JAR' $@" nobody
+		exec su -s /bin/sh -c "java $JAVA_OPTS -jar '$JAR' --spring.config.location=file://$PROP_FILE $@" nobody
 		;;
 	*)
 		exec $@
