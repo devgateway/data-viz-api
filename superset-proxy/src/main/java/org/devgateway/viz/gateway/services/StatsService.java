@@ -7,7 +7,6 @@ import org.devgateway.viz.gateway.services.rest.SuperSetClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -15,7 +14,7 @@ import java.util.*;
 import static org.devgateway.viz.gateway.services.Utils.*;
 
 @Service
-//@Cacheable("superset")
+
 public class StatsService {
     private final Logger logger = LoggerFactory.getLogger(StatsService.class);
 
@@ -28,8 +27,10 @@ public class StatsService {
         this.objectMapper = new ObjectMapper();
     }
 
-    //@Cacheable("stats")
     public Object getStats(String datasetId, Map<String, String> queryParams, String groupsPath) throws Exception {
+
+        logger.info("Getting stats for datasetId: " + datasetId);
+
         if (datasetId == null || datasetId.equalsIgnoreCase("null") || datasetId.isEmpty()) {
             return Collections.emptyList();
         }
@@ -43,7 +44,9 @@ public class StatsService {
         logger.info("Time taken to fetch data from Superset: " + (endTime - startTime) / 1_000_000 + " ms");
 
         JsonNode resultArray = supersetResponse.get("result");
+
         if (resultArray == null || !resultArray.isArray() || resultArray.isEmpty()) {
+            logger.warn("Superset response is empty or not an array");
             return Collections.emptyList();
         }
 
@@ -52,6 +55,7 @@ public class StatsService {
             return transformData(resultArray, queriesNode.get(0).get("groupby"), queriesNode.get(0).get("metrics"),
                     getGroupsArray(groupsPath));
         }
+        logger.warn("Returning an Empty list");
         return Collections.emptyList();
     }
 
