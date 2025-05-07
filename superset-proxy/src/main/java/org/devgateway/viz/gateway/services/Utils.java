@@ -37,12 +37,19 @@ public class Utils {
 
         List<Map<String, Object>> filters = new ArrayList<>();
         for (Map.Entry<String, String> entry : queryParams.entrySet()) {
-            if (!Constants.SPECIAL_PARAMS.contains(entry.getKey())) {
-                Map<String, Object> filter = new HashMap<>();
-                filter.put("col", entry.getKey());
-                filter.put("op", "in");
-                filter.put("val", Arrays.asList(entry.getValue().split(",")));
-                filters.add(filter);
+            //remove entry value if it is equals to -9007199254740991
+            List values = Arrays.asList(entry.getValue().split(",")).stream().filter(
+                    value -> !value.equals("-9007199254740991")).toList();
+            if (!values.isEmpty()) {
+
+
+                if (!Constants.SPECIAL_PARAMS.contains(entry.getKey())) {
+                    Map<String, Object> filter = new HashMap<>();
+                    filter.put("col", entry.getKey());
+                    filter.put("op", "in");
+                    filter.put("val", Arrays.asList(entry.getValue().split(",")));
+                    filters.add(filter);
+                }
             }
         }
         query.put("filters", filters);
