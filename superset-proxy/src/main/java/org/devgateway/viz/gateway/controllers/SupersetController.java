@@ -1,17 +1,15 @@
 package org.devgateway.viz.gateway.controllers;
 
-import org.devgateway.viz.gateway.services.SupersetProxyService;
-import org.springframework.beans.factory.annotation.Value;
+import jakarta.servlet.http.HttpServletRequest;
+import org.devgateway.viz.gateway.services.SuperSetProxyService;
 import org.springframework.cache.CacheManager;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-
-import org.springframework.http.ResponseEntity;
-import jakarta.servlet.http.HttpServletRequest;
 
 
 @RestController
@@ -19,12 +17,12 @@ import jakarta.servlet.http.HttpServletRequest;
 @CrossOrigin(origins = "*") // Allow all origins
 public class SupersetController {
 
-    private final SupersetProxyService supersetService;
+    private final SuperSetProxyService supersetProxyService;
 
     CacheManager cacheManager;
 
-    public SupersetController(SupersetProxyService supersetService, CacheManager cacheManager) {
-        this.supersetService = supersetService;
+    public SupersetController(SuperSetProxyService supersetProxyService, CacheManager cacheManager) {
+        this.supersetProxyService = supersetProxyService;
         this.cacheManager = cacheManager;
     }
 
@@ -36,12 +34,12 @@ public class SupersetController {
 
     @GetMapping("/charts")
     public Object getCharts() {
-        return supersetService.fetchCharts();
+        return supersetProxyService.getCharts();
     }
 
     @GetMapping("/datasets")
     public Object getDatasets() {
-        return supersetService.fetchDatasets();
+        return supersetProxyService.getDatasets();
     }
 
     @GetMapping("/dimensions")
@@ -50,7 +48,7 @@ public class SupersetController {
             return List.of();
         }
 
-        return supersetService.fetchDimensions(dvzProxyDatasetId);
+        return supersetProxyService.getDimensions(dvzProxyDatasetId);
     }
 
     @GetMapping("/measures")
@@ -59,7 +57,7 @@ public class SupersetController {
             return List.of();
         }
 
-        return supersetService.fetchMeasures(dvzProxyDatasetId);
+        return supersetProxyService.getMeasures(dvzProxyDatasetId);
     }
 
     @GetMapping("/filters")
@@ -68,7 +66,7 @@ public class SupersetController {
             return List.of();
         }
 
-        return supersetService.fetchFilters(dvzProxyDatasetId);
+        return supersetProxyService.getFilters(dvzProxyDatasetId);
     }
 
     @GetMapping(value = {"/categories", "/categories/"})
@@ -77,7 +75,7 @@ public class SupersetController {
             return List.of();
         }
 
-        return supersetService.fetchCategories(dvzProxyDatasetId);
+        return supersetProxyService.getCategories(dvzProxyDatasetId);
     }
 
     @GetMapping("/stats")
@@ -92,7 +90,7 @@ public class SupersetController {
                 return List.of();
             }
             String dimensions = req.getRequestURI().substring(req.getRequestURI().indexOf("stats") + 6);
-            return supersetService.getStats(dvzProxyDatasetId, allParams, dimensions);
+            return supersetProxyService.getStats(dvzProxyDatasetId, allParams, dimensions);
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.internalServerError().body("Failed to fetch stats");
