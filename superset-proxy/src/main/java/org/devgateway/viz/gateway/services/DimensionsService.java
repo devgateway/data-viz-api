@@ -28,7 +28,7 @@ public class DimensionsService {
         this.objectMapper = objectMapper;
     }
 
-    //@Cacheable(cacheNames = "dimensions", key = "#datasetId")
+
     public List<Map<String, Object>> getDimensions(String datasetId) {
         JsonNode root = superSetClient.fetchDataset(datasetId);
 
@@ -41,18 +41,12 @@ public class DimensionsService {
 
     @Cacheable(value = "distinctDimensionValues", key = "#field + #datasetId")
     public Set<String> fetchDistinctDimensionValues(String field, String datasetId) {
-
         logger.info("Fetching distinct values for field: " + field + " from dataset: " + datasetId);
-
         Set<String> uniqueValues = new HashSet<>();
-
         Map<String, Object> datasource = createDatasource(datasetId);
         Map<String, Object> query1 = createQuery(field);
-
         JsonNode requestNode = objectMapper.valueToTree(createSupersetRequest(datasource, Collections.singletonList(query1)));
-
         JsonNode supersetResp = superSetClient.postChartData(requestNode);
-
         if (supersetResp != null && supersetResp.has("result") && supersetResp.get("result").isArray()) {
             for (JsonNode row : supersetResp.get("result").get(0).get("data")) {
                 if (row.has(field) && !row.get(field).isNull()) {
