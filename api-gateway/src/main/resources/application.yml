@@ -8,14 +8,25 @@ spring:
     name: api-gateway
   cloud:
     gateway:
-      discovery.locator:
-        enabled: true
-        lowerCaseServiceId: true
+      discovery:
+        locator:
+          enabled: true
+          lowerCaseServiceId: true
+      default-filters:
+        - AddResponseHeader=X-Gateway, true
 
-    default-filters:
-      - AddResponseHeader=X-Gateway, true
 
 server:
   port: 8080
   compression:
     enabled: true
+
+
+logging:
+  level:
+    org.springframework.cloud.gateway: DEBUG
+    org.springframework.web.reactive: DEBUG
+    reactor.netty: DEBUG
+    org.springframework.boot.autoconfigure.web: DEBUG
+    org.springframework.http.server.reactive: DEBUG
+    org.springframework.web.server.adapter.HttpWebHandlerAdapter: TRACE
