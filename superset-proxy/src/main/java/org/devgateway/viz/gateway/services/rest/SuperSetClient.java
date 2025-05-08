@@ -6,6 +6,7 @@ import org.apache.hc.client5.http.impl.classic.HttpClients;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.stereotype.Component;
@@ -30,12 +31,10 @@ public class SuperSetClient {
         this.restTemplate = new RestTemplate(new HttpComponentsClientHttpRequestFactory(httpClient));
 
         restTemplate.getInterceptors().add((request, body, execution) -> {
-
             HttpHeaders headers = request.getHeaders();
             headers.add(HttpHeaders.ACCEPT_ENCODING, "gzip");
             headers.add(HttpHeaders.ACCEPT, "application/json");
             headers.add(HttpHeaders.CACHE_CONTROL, "max-age=0");
-
             return execution.execute(request, body);
         });
     }
@@ -79,7 +78,8 @@ public class SuperSetClient {
     /**
      * Post a query to Superset /api/v1/chart/data
      */
-    public JsonNode postChartData(JsonNode requestBody) {
+ /*
+  public JsonNode postChartData(JsonNode requestBody) {
         logger.info("Calling Superset API to fetch data");
         long startTime = System.currentTimeMillis();
 
@@ -94,4 +94,62 @@ public class SuperSetClient {
 
         return response.getBody();
     }
+*/
+    public JsonNode postChartData(JsonNode requestBody) {
+        logger.info("Calling Superset API to fetch data (async-aware)");
+        long startTime = System.currentTimeMillis();
+
+        String submitUrl = supersetUrlFromProperties + "/api/v1/chart/data";
+
+        logger.info("Request body: " + requestBody.toString());
+        ResponseEntity<JsonNode> submitResponse = restTemplate.postForEntity(submitUrl, requestBody, JsonNode.class);
+
+        if (submitResponse.getStatusCode() != HttpStatus.OK && submitResponse.getStatusCode() != HttpStatus.ACCEPTED) {
+            throw new RuntimeException("Failed to submit query: " + submitResponse.getStatusCode());
+        }
+
+        JsonNode submitBody = submitResponse.getBody();
+
+        // CASE 1: Superset returned result immediately (from cache or fast query)
+        if (submitBody.has("result")) {
+            logger.info("Received result immediately (likely from cache).");
+            return submitBody;
+        }
+
+        // CASE 2: Async job was created, need to poll
+        String jobId = submitBody.path("job_id").asText();
+        if (jobId == null || jobId.isEmpty()) {
+            throw new RuntimeException("No job_id received and no result present.");
+        }
+
+        String resultUrl = supersetUrlFromProperties + "/api/v1/chart/data/" + jobId + "/result";
+
+        int maxRetries = 10;
+        int delayMs = 1000;
+
+        for (int attempt = 1; attempt <= maxRetries; attempt++) {
+            logger.info("Polling for result (attempt " + attempt + ")");
+
+            ResponseEntity<JsonNode> resultResponse = restTemplate.getForEntity(resultUrl, JsonNode.class);
+
+            if (resultResponse.getStatusCode() == HttpStatus.OK) {
+                JsonNode resultBody = resultResponse.getBody();
+                if (resultBody != null && resultBody.has("result")) {
+                    logger.info("Async result is ready.");
+                    return resultBody;
+                }
+            }
+
+            try {
+                Thread.sleep(delayMs);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                throw new RuntimeException("Polling interrupted", e);
+            }
+        }
+
+        throw new RuntimeException("Timed out waiting for async result from Superset.");
+    }
+
+
 }
