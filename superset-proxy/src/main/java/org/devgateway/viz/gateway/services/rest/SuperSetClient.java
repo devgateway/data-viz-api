@@ -125,7 +125,7 @@ public class SuperSetClient {
         String events = supersetUrlFromProperties + "/api/v1/async_event/";
 
         int maxRetries = 100;
-        int delayMs = 100;
+        int delayMs = 500;
         for (int attempt = 1; attempt <= maxRetries; attempt++) {
 
             JsonNode results = restTemplate.getForEntity(events, JsonNode.class).getBody();
