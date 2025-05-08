@@ -1,6 +1,7 @@
 package org.devgateway.viz.gateway.services.rest;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
 import org.springframework.beans.factory.annotation.Value;
@@ -21,6 +22,7 @@ public class SuperSetClient {
 
     @Value("${viz.superset.url}")
     private String supersetUrlFromProperties;
+
 
     Logger logger = Logger.getLogger(SuperSetClient.class.getName());
 
@@ -110,36 +112,49 @@ public class SuperSetClient {
 
         JsonNode submitBody = submitResponse.getBody();
 
+
         // CASE 1: Superset returned result immediately (from cache or fast query)
         if (submitBody.has("result")) {
             logger.info("Received result immediately (likely from cache).");
             return submitBody;
         }
+        // CASE 2: Superset returned async query ID
+        String channelId = submitBody.get("channel_id").asText();
+        String job_id = submitBody.get("job_id").asText();
 
-        // CASE 2: Async job was created, need to poll
-        String jobId = submitBody.path("job_id").asText();
-        if (jobId == null || jobId.isEmpty()) {
-            throw new RuntimeException("No job_id received and no result present.");
-        }
+        String events = supersetUrlFromProperties + "/api/v1/async_event/";
 
-        String resultUrl = supersetUrlFromProperties + "/api/v1/chart/data/" + jobId + "/result";
-
-        int maxRetries = 10;
+        int maxRetries = 60;
         int delayMs = 1000;
-
         for (int attempt = 1; attempt <= maxRetries; attempt++) {
-            logger.info("Polling for result (attempt " + attempt + ")");
 
-            ResponseEntity<JsonNode> resultResponse = restTemplate.getForEntity(resultUrl, JsonNode.class);
+            JsonNode results = restTemplate.getForEntity(events, JsonNode.class).getBody();
 
-            if (resultResponse.getStatusCode() == HttpStatus.OK) {
-                JsonNode resultBody = resultResponse.getBody();
-                if (resultBody != null && resultBody.has("result")) {
-                    logger.info("Async result is ready.");
-                    return resultBody;
+            ArrayNode rs = (ArrayNode) results.get("result");
+            final JsonNode[] cachedResults = new JsonNode[1];
+            if (rs.size() > 0) {
+                rs.elements().forEachRemaining(e -> {
+                    if (e.get("job_id").asText().equals(job_id)) {
+                        logger.info("Received async event response: " + e);
+                        if (e.get("status").asText().equals("done")) {
+
+                            logger.info("Async query completed successfully. Result: " + e.get("result"));
+                            String finalResultURL = e.get("result_url").asText();
+                             cachedResults[0] = restTemplate.getForEntity(supersetUrlFromProperties + finalResultURL, JsonNode.class)
+                                    .getBody();
+
+                        } else if (e.get("status").asText().equals("failed")) {
+                            throw new RuntimeException("Async query failed: " + e);
+                        }
+                    }
+                });
+                if (cachedResults[0] != null) {
+                    logger.info("Returning Cached Results");
+                    return cachedResults[0];
                 }
             }
 
+            logger.info("Attempt " + attempt + ": Received async event response: " + results);
             try {
                 Thread.sleep(delayMs);
             } catch (InterruptedException e) {
@@ -148,7 +163,13 @@ public class SuperSetClient {
             }
         }
 
-        throw new RuntimeException("Timed out waiting for async result from Superset.");
+        // wait for results
+        // This is a blocking call. You may want to implement a timeout or a non-blocking approach.
+
+        logger.info("Waiting for async result from Superset. Channel ID: " + channelId);
+
+        return null;
+
     }
 
 
