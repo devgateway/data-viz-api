@@ -125,7 +125,7 @@ public class SuperSetClient {
         String events = supersetUrlFromProperties + "/api/v1/async_event/";
 
         int maxRetries = 30;
-        int baseDelayMs = 200;
+        int baseDelayMs = 100;
         for (int attempt = 1; attempt <= maxRetries; attempt++) {
 
             JsonNode results = restTemplate.getForEntity(events, JsonNode.class).getBody();
@@ -155,7 +155,7 @@ public class SuperSetClient {
             }
 
             //
-            int delayMs = Math.min(600, baseDelayMs + (attempt * 200));
+            int delayMs = Math.min(800, baseDelayMs + (attempt * 200));
 
             logger.info("Waiting for " + delayMs + " ms before next attempt.");
             try {
