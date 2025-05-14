@@ -124,8 +124,8 @@ public class SuperSetClient {
 
         String events = supersetUrlFromProperties + "/api/v1/async_event/";
 
-        int maxRetries = 100;
-        int baseDelayMs = 100;
+        int maxRetries = 30;
+        int baseDelayMs = 200;
         for (int attempt = 1; attempt <= maxRetries; attempt++) {
 
             JsonNode results = restTemplate.getForEntity(events, JsonNode.class).getBody();
@@ -154,8 +154,9 @@ public class SuperSetClient {
                 }
             }
 
+            //
+            int delayMs = Math.min(600, baseDelayMs + (attempt * 200));
 
-            int delayMs = baseDelayMs * (int)Math.pow(2, attempt - 1);
             logger.info("Waiting for " + delayMs + " ms before next attempt.");
             try {
                 Thread.sleep(delayMs);
@@ -170,7 +171,7 @@ public class SuperSetClient {
 
         logger.info("Waiting for async result from Superset. Channel ID: " + channelId);
 
-        return null;
+        throw new RuntimeException("Timeout while waiting for async result. job_id: " + job_id);
 
     }
 
