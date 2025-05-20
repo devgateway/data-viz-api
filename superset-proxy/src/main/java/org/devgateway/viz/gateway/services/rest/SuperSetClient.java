@@ -118,14 +118,18 @@ public class SuperSetClient {
             logger.info("Received result immediately (likely from cache).");
             return submitBody;
         }
+
         // CASE 2: Superset returned async query ID
         String channelId = submitBody.get("channel_id").asText();
+        logger.info("Waiting for async result from Superset. Channel ID: " + channelId);
+
         String job_id = submitBody.get("job_id").asText();
 
         String events = supersetUrlFromProperties + "/api/v1/async_event/";
 
         int maxRetries = 50;
-        int baseDelayMs = 100;
+        int baseDelayMs = 300;
+
         for (int attempt = 1; attempt <= maxRetries; attempt++) {
 
             JsonNode results = restTemplate.getForEntity(events, JsonNode.class).getBody();
@@ -155,7 +159,7 @@ public class SuperSetClient {
             }
 
             //
-            int delayMs = Math.min(1000, baseDelayMs + (attempt * 200));
+            int delayMs = Math.min(1000, baseDelayMs + (attempt * 100));
 
             logger.info("Waiting for " + delayMs + " ms before next attempt.");
             try {
