@@ -127,7 +127,7 @@ public class SuperSetClient {
 
         String events = supersetUrlFromProperties + "/api/v1/async_event/";
 
-        int maxRetries = 50;
+        int maxRetries = 10;
         int baseDelayMs = 300;
 
         for (int attempt = 1; attempt <= maxRetries; attempt++) {
