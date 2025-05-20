@@ -98,7 +98,7 @@ public class SuperSetClient {
     }
 */
     public JsonNode postChartData(JsonNode requestBody) {
-        logger.info("Calling Superset API to fetch data (async-aware)");
+        logger.info("Calling Superset API to fetch data (async-aware) Updated May 20");
         long startTime = System.currentTimeMillis();
 
         String submitUrl = supersetUrlFromProperties + "/api/v1/chart/data";
