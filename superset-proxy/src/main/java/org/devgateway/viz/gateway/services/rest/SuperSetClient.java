@@ -117,66 +117,66 @@ public class SuperSetClient {
         if (submitBody.has("result")) {
             logger.info("Received result immediately (likely from cache).");
             return submitBody;
-        }
+        } else {
 
-        // CASE 2: Superset returned async query ID
-        String channelId = submitBody.get("channel_id").asText();
-        logger.info("Waiting for async result from Superset. Channel ID: " + channelId);
+            // CASE 2: Superset returned async query ID
+            String channelId = submitBody.get("channel_id").asText();
+            logger.info("Waiting for async result from Superset. Channel ID: " + channelId);
 
-        String job_id = submitBody.get("job_id").asText();
+            String job_id = submitBody.get("job_id").asText();
 
-        String events = supersetUrlFromProperties + "/api/v1/async_event/";
+            String events = supersetUrlFromProperties + "/api/v1/async_event/";
 
-        int maxRetries = 50;
-        int baseDelayMs = 200;
+            int maxRetries = 50;
+            int baseDelayMs = 300;
 
-        for (int attempt = 1; attempt <= maxRetries; attempt++) {
+            for (int attempt = 1; attempt <= maxRetries; attempt++) {
+                logger.info("attempt #" + attempt + " " + job_id);
+                JsonNode results = restTemplate.getForEntity(events, JsonNode.class).getBody();
 
-            JsonNode results = restTemplate.getForEntity(events, JsonNode.class).getBody();
+                logger.info("Received async event response: " + results);
+                ArrayNode rs = (ArrayNode) results.get("result");
 
-            ArrayNode rs = (ArrayNode) results.get("result");
-            final JsonNode[] cachedResults = new JsonNode[1];
-            if (rs.size() > 0) {
-                rs.elements().forEachRemaining(e -> {
-                    if (e.get("job_id").asText().equals(job_id)) {
-                        logger.info("Received async event response: " + e);
-                        if (e.get("status").asText().equals("done")) {
+                final JsonNode[] cachedResults = new JsonNode[1];
+                if (rs.size() > 0) {
+                    rs.elements().forEachRemaining(e -> {
+                        if (e.get("job_id").asText().equals(job_id)) {
+                            logger.info("Received async event response: " + e);
+                            if (e.get("status").asText().equals("done")) {
 
-                            logger.info("Async query completed successfully. Result: " + e.get("result"));
-                            String finalResultURL = e.get("result_url").asText();
-                             cachedResults[0] = restTemplate.getForEntity(supersetUrlFromProperties + finalResultURL, JsonNode.class)
-                                    .getBody();
+                                logger.info("Async query completed successfully. Result: " + e.get("result"));
+                                String finalResultURL = e.get("result_url").asText();
+                                cachedResults[0] = restTemplate.getForEntity(supersetUrlFromProperties + finalResultURL, JsonNode.class)
+                                        .getBody();
 
-                        } else if (e.get("status").asText().equals("failed")) {
-                            throw new RuntimeException("Async query failed: " + e);
+                            } else if (e.get("status").asText().equals("failed")) {
+                                throw new RuntimeException("Async query failed: " + e);
+                            }
                         }
+                    });
+                    if (cachedResults[0] != null) {
+                        logger.info("Returning Cached Results");
+                        return cachedResults[0];
                     }
-                });
-                if (cachedResults[0] != null) {
-                    logger.info("Returning Cached Results");
-                    return cachedResults[0];
+                }
+
+                //
+                int delayMs = baseDelayMs + (attempt * 100);
+
+                logger.info("Waiting for " + delayMs + " ms before next attempt. " + channelId);
+                try {
+
+                    Thread.sleep(delayMs);
+
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    throw new RuntimeException("Polling interrupted", e);
                 }
             }
+            throw new RuntimeException("Timeout while waiting for async result. job_id: " + job_id);
 
-            //
-            int delayMs = Math.min(1000, baseDelayMs + (attempt * 100));
-
-            logger.info("Waiting for " + delayMs + " ms before next attempt.");
-            try {
-                Thread.sleep(delayMs);
-
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-                throw new RuntimeException("Polling interrupted", e);
-            }
         }
 
-        // wait for results
-        // This is a blocking call. You may want to implement a timeout or a non-blocking approach.
-
-
-
-        throw new RuntimeException("Timeout while waiting for async result. job_id: " + job_id);
 
     }
 
