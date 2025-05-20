@@ -127,8 +127,8 @@ public class SuperSetClient {
 
         String events = supersetUrlFromProperties + "/api/v1/async_event/";
 
-        int maxRetries = 10;
-        int baseDelayMs = 300;
+        int maxRetries = 50;
+        int baseDelayMs = 200;
 
         for (int attempt = 1; attempt <= maxRetries; attempt++) {
 
@@ -164,6 +164,7 @@ public class SuperSetClient {
             logger.info("Waiting for " + delayMs + " ms before next attempt.");
             try {
                 Thread.sleep(delayMs);
+
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
                 throw new RuntimeException("Polling interrupted", e);
@@ -173,7 +174,7 @@ public class SuperSetClient {
         // wait for results
         // This is a blocking call. You may want to implement a timeout or a non-blocking approach.
 
-        logger.info("Waiting for async result from Superset. Channel ID: " + channelId);
+
 
         throw new RuntimeException("Timeout while waiting for async result. job_id: " + job_id);
 
