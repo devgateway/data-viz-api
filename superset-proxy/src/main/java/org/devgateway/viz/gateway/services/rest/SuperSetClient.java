@@ -2,44 +2,108 @@ package org.devgateway.viz.gateway.services.rest;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
-import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.Cacheable;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.logging.Logger;
 
 @Component
 public class SuperSetClient {
 
-    private final RestTemplate restTemplate;
+    // private final RestTemplate restTemplate;
 
     @Value("${viz.superset.url}")
     private String supersetUrlFromProperties;
 
+    private final HttpComponentsClientHttpRequestFactory httpClient;
 
-    Logger logger = Logger.getLogger(SuperSetClient.class.getName());
+    private String lastId = "0";
+    private String csrfToken;
+    private String cookies;
 
+    //TODO: add constructor initiating restTemplate and httpClient
     public SuperSetClient() {
-        CloseableHttpClient httpClient = HttpClients.custom()
-                .build();
+        this.httpClient = new HttpComponentsClientHttpRequestFactory(HttpClients.custom().build());
 
-        this.restTemplate = new RestTemplate(new HttpComponentsClientHttpRequestFactory(httpClient));
+    }
+
+    private void addHeaders(RestTemplate restTemplate) {
+        if (csrfToken == null || cookies == null) {
+            login();
+        }
 
         restTemplate.getInterceptors().add((request, body, execution) -> {
             HttpHeaders headers = request.getHeaders();
+            headers.add("X-CSRFToken", csrfToken);
+            headers.add(HttpHeaders.COOKIE, cookies);
+            headers.setAccept(List.of(MediaType.APPLICATION_JSON));
             headers.add(HttpHeaders.ACCEPT_ENCODING, "gzip");
-            headers.add(HttpHeaders.ACCEPT, "application/json");
             headers.add(HttpHeaders.CACHE_CONTROL, "max-age=0");
+
             return execution.execute(request, body);
         });
+
+
     }
+
+    public HashMap<String, String> login() {
+        try {
+
+
+            // 1. Prepare headers
+            HttpHeaders headers = new HttpHeaders();
+            headers.setAccept(List.of(MediaType.APPLICATION_JSON));
+            HttpEntity<Void> request = new HttpEntity<>(headers);
+
+            RestTemplate restTemplate = new RestTemplate(httpClient);
+            // 2. Create RestTemplate with custom request factory
+            // 2. Send GET request to CSRF endpoint
+            ResponseEntity<Map> response = restTemplate.exchange(
+                    supersetUrlFromProperties + "/api/v1/security/csrf_token/",
+                    HttpMethod.GET,
+                    request,
+                    Map.class
+            );
+
+
+            // 3. Extract CSRF token from JSON body
+            if (response.getStatusCode() == HttpStatus.OK) {
+                Map<String, Object> responseBody = response.getBody();
+                if (responseBody != null && responseBody.containsKey("result")) {
+                    String csrfToken = (String) responseBody.get("result");
+                    this.csrfToken = csrfToken;
+                    System.out.println("CSRF Token: " + csrfToken);
+                }
+
+                // 4. Extract cookies from headers
+                List<String> setCookie = response.getHeaders().get(HttpHeaders.SET_COOKIE);
+                if (setCookie != null) {
+                    String cookies = String.join("; ", setCookie);
+                    this.cookies = cookies;
+                    System.out.println("Cookies: " + cookies);
+                }
+
+
+            } else {
+                System.out.println("Failed to get CSRF token: " + response.getStatusCode());
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    Logger logger = Logger.getLogger(SuperSetClient.class.getName());
+
 
     /**
      * Fetch list of all charts
@@ -47,7 +111,10 @@ public class SuperSetClient {
     public JsonNode fetchCharts() {
         logger.info("Fetching Charts");
         String url = supersetUrlFromProperties + "/api/v1/chart/";
+
+        RestTemplate restTemplate = new RestTemplate(httpClient);
         ResponseEntity<JsonNode> response = restTemplate.getForEntity(url, JsonNode.class);
+
         return response.getBody();
     }
 
@@ -58,15 +125,27 @@ public class SuperSetClient {
     public JsonNode fetchDatasets() {
         logger.info("Fetching Datasets");
         String url = supersetUrlFromProperties + "/api/v1/dataset/?force=true";
+
+        HashMap<String, String> loginResult = login();
+        RestTemplate restTemplate = new RestTemplate(httpClient);
+        addHeaders(restTemplate);
+
+
         ResponseEntity<JsonNode> response = restTemplate.getForEntity(url, JsonNode.class);
         return response.getBody();
     }
+
 
     /**
      * Fetch a single dataset by ID
      */
     @Cacheable(value = "dataset", key = "#datasetId")
     public JsonNode fetchDataset(String datasetId) {
+
+        RestTemplate restTemplate = new RestTemplate(httpClient);
+        addHeaders(restTemplate);
+
+
         logger.info("Fetching Datasets");
         if (datasetId == null || datasetId.equalsIgnoreCase("null") || datasetId.isEmpty()) {
             //return emtpy json
@@ -99,6 +178,12 @@ public class SuperSetClient {
 */
     public JsonNode postChartData(JsonNode requestBody) {
 
+        HashMap<String, String> loginResult = login();
+
+        RestTemplate restTemplate = new RestTemplate(httpClient);
+        addHeaders(restTemplate);
+
+
         String datasourceId = requestBody.get("datasource").get("id").asText();
         logger.info("Calling Superset API to fetch data (async-aware) DS ID:" + datasourceId);
 
@@ -114,12 +199,9 @@ public class SuperSetClient {
         }
 
         JsonNode submitBody = submitResponse.getBody();
-
-
         // CASE 1: Superset returned result immediately (from cache or fast query)
         if (submitBody.has("result")) {
             logger.info("Received result immediately (likely from cache).");
-
             return submitBody;
 
         } else {
@@ -130,7 +212,7 @@ public class SuperSetClient {
 
             String job_id = submitBody.get("job_id").asText();
 
-            String events = supersetUrlFromProperties + "/api/v1/async_event/";
+            String events = supersetUrlFromProperties + "/api/v1/async_event?last_id=" + lastId;
 
             int maxRetries = 50;
             int baseDelayMs = 300;
@@ -138,6 +220,8 @@ public class SuperSetClient {
             for (int attempt = 1; attempt <= maxRetries; attempt++) {
 
                 logger.info("attempt #" + attempt + "DS ID: " + datasourceId + ", Job ID:" + job_id);
+                logger.info("Last ID" + lastId);
+
                 JsonNode results = restTemplate.getForEntity(events, JsonNode.class).getBody();
 
 
@@ -151,6 +235,8 @@ public class SuperSetClient {
                     logger.info("No async event responses received yet. Waiting for " + baseDelayMs + " ms");
 
                 } else if (rs.size() > 0) {
+                    logger.info("Result size: " + rs.size());
+
                     logger.info("Received async event responses: " + rs.size());
                     logger.info("looking for job id" + job_id);
 
@@ -160,6 +246,8 @@ public class SuperSetClient {
                             if (e.get("status").asText().equalsIgnoreCase("done")) {
                                 logger.info("Async query completed successfully." + "DS ID: " + datasourceId + ", Job ID:" + job_id);
                                 String finalResultURL = e.get("result_url").asText();
+                                lastId = e.get("id").asText();
+
                                 cachedResults[0] = restTemplate.getForEntity(supersetUrlFromProperties + finalResultURL, JsonNode.class).getBody();
 
                             } else if (e.get("status").asText().equals("failed")) {
@@ -186,7 +274,10 @@ public class SuperSetClient {
                     throw new RuntimeException("Polling interrupted", e);
                 }
             }
-            throw new RuntimeException("Timeout while waiting for async result. DS ID:" + datasourceId + " Job ID:" + job_id);
+            logger.info("Timeout while waiting for async result. DS ID:" + datasourceId + " Job ID:" + job_id);
+            //TODO create json node with empty results
+            return null;
+            // throw new RuntimeException("Timeout while waiting for async result. DS ID:" + datasourceId + " Job ID:" + job_id);
 
         }
 
