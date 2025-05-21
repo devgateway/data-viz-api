@@ -98,7 +98,9 @@ public class SuperSetClient {
     }
 */
     public JsonNode postChartData(JsonNode requestBody) {
-        logger.info("Calling Superset API to fetch data (async-aware) Updated May 20 ");
+
+        String datasourceId = requestBody.get("datasource").get("id").asText();
+        logger.info("Calling Superset API to fetch data (async-aware) DS ID:" + datasourceId);
 
         String submitUrl = supersetUrlFromProperties + "/api/v1/chart/data";
 
@@ -135,7 +137,7 @@ public class SuperSetClient {
 
             for (int attempt = 1; attempt <= maxRetries; attempt++) {
 
-                logger.info("attempt #" + attempt + " Job ID:" + job_id);
+                logger.info("attempt #" + attempt + "DS ID: " + datasourceId + ", Job ID:" + job_id);
                 JsonNode results = restTemplate.getForEntity(events, JsonNode.class).getBody();
 
 
@@ -156,10 +158,8 @@ public class SuperSetClient {
                         if (e.get("job_id").asText().equals(job_id)) {
 
                             if (e.get("status").asText().equalsIgnoreCase("done")) {
-                                logger.info("Async query completed successfully. Result: for job id " + job_id);
-
+                                logger.info("Async query completed successfully." + "DS ID: " + datasourceId + ", Job ID:" + job_id);
                                 String finalResultURL = e.get("result_url").asText();
-
                                 cachedResults[0] = restTemplate.getForEntity(supersetUrlFromProperties + finalResultURL, JsonNode.class).getBody();
 
                             } else if (e.get("status").asText().equals("failed")) {
@@ -175,12 +175,10 @@ public class SuperSetClient {
                     }
                 }
 
-
                 int delayMs = baseDelayMs + (attempt * 100);
 
-                logger.info("Waiting for " + delayMs + " ms before next attempt. " + channelId);
                 try {
-
+                    logger.info("Waiting for " + delayMs + " ms before next attempt. " + channelId);
                     Thread.sleep(delayMs);
 
                 } catch (InterruptedException e) {
@@ -188,7 +186,7 @@ public class SuperSetClient {
                     throw new RuntimeException("Polling interrupted", e);
                 }
             }
-            throw new RuntimeException("Timeout while waiting for async result. job_id: " + job_id);
+            throw new RuntimeException("Timeout while waiting for async result. DS ID:" + datasourceId + " Job ID:" + job_id);
 
         }
 
