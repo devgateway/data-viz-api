@@ -99,14 +99,15 @@ public class SuperSetClient {
 */
     public JsonNode postChartData(JsonNode requestBody) {
         logger.info("Calling Superset API to fetch data (async-aware) Updated May 20 ");
-        long startTime = System.currentTimeMillis();
 
         String submitUrl = supersetUrlFromProperties + "/api/v1/chart/data";
 
-        logger.info("Request body: " + requestBody.toString());
+        //logger.info("Request body: " + requestBody.toString());
+
         ResponseEntity<JsonNode> submitResponse = restTemplate.postForEntity(submitUrl, requestBody, JsonNode.class);
 
         if (submitResponse.getStatusCode() != HttpStatus.OK && submitResponse.getStatusCode() != HttpStatus.ACCEPTED) {
+
             throw new RuntimeException("Failed to submit query: " + submitResponse.getStatusCode());
         }
 
@@ -116,7 +117,9 @@ public class SuperSetClient {
         // CASE 1: Superset returned result immediately (from cache or fast query)
         if (submitBody.has("result")) {
             logger.info("Received result immediately (likely from cache).");
+
             return submitBody;
+
         } else {
 
             // CASE 2: Superset returned async query ID
@@ -131,36 +134,48 @@ public class SuperSetClient {
             int baseDelayMs = 300;
 
             for (int attempt = 1; attempt <= maxRetries; attempt++) {
-                logger.info("attempt ***REMOVED***" + attempt + " " + job_id);
+
+                logger.info("attempt ***REMOVED***" + attempt + " Job ID:" + job_id);
                 JsonNode results = restTemplate.getForEntity(events, JsonNode.class).getBody();
 
-                logger.info("Received async event response: " + results);
-                ArrayNode rs = (ArrayNode) results.get("result");
 
+                logger.info("Received async event responses  ");
+
+
+                ArrayNode rs = (ArrayNode) results.get("result");
                 final JsonNode[] cachedResults = new JsonNode[1];
-                if (rs.size() > 0) {
+
+                if (rs.size() == 0) {
+                    logger.info("No async event responses received yet. Waiting for " + baseDelayMs + " ms");
+
+                } else if (rs.size() > 0) {
+                    logger.info("Received async event responses: " + rs.size());
+                    logger.info("looking for job id" + job_id);
+
                     rs.elements().forEachRemaining(e -> {
                         if (e.get("job_id").asText().equals(job_id)) {
-                            logger.info("Received async event response: " + e);
-                            if (e.get("status").asText().equals("done")) {
 
-                                logger.info("Async query completed successfully. Result: " + e.get("result"));
+                            if (e.get("status").asText().equalsIgnoreCase("done")) {
+                                logger.info("Async query completed successfully. Result: for job id " + job_id);
+
                                 String finalResultURL = e.get("result_url").asText();
-                                cachedResults[0] = restTemplate.getForEntity(supersetUrlFromProperties + finalResultURL, JsonNode.class)
-                                        .getBody();
+
+                                cachedResults[0] = restTemplate.getForEntity(supersetUrlFromProperties + finalResultURL, JsonNode.class).getBody();
 
                             } else if (e.get("status").asText().equals("failed")) {
                                 throw new RuntimeException("Async query failed: " + e);
                             }
                         }
                     });
+
+
                     if (cachedResults[0] != null) {
                         logger.info("Returning Cached Results");
                         return cachedResults[0];
                     }
                 }
 
-                //
+
                 int delayMs = baseDelayMs + (attempt * 100);
 
                 logger.info("Waiting for " + delayMs + " ms before next attempt. " + channelId);
@@ -176,7 +191,6 @@ public class SuperSetClient {
             throw new RuntimeException("Timeout while waiting for async result. job_id: " + job_id);
 
         }
-
 
     }
 
