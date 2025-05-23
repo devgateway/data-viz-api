@@ -42,11 +42,11 @@ public class SuperSetClient {
 
         restTemplate.getInterceptors().add((request, body, execution) -> {
             HttpHeaders headers = request.getHeaders();
-            headers.add("X-CSRFToken", csrfToken);
-            headers.add(HttpHeaders.COOKIE, cookies);
+            headers.set("X-CSRFToken", csrfToken);
+            headers.set(HttpHeaders.COOKIE, cookies);
             headers.setAccept(List.of(MediaType.APPLICATION_JSON));
-            headers.add(HttpHeaders.ACCEPT_ENCODING, "gzip");
-            headers.add(HttpHeaders.CACHE_CONTROL, "max-age=0");
+            headers.set(HttpHeaders.ACCEPT_ENCODING, "gzip");
+            headers.set(HttpHeaders.CACHE_CONTROL, "max-age=0");
 
             return execution.execute(request, body);
         });
