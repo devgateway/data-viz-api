@@ -13,6 +13,7 @@ import org.springframework.web.client.RestTemplate;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Logger;
 
 @Component
@@ -25,9 +26,12 @@ public class SuperSetClient {
 
     private final HttpComponentsClientHttpRequestFactory httpClient;
     private final RestTemplate restTemplate;
-    private String lastId = "0";
-    private String csrfToken;
-    private String cookies;
+
+
+    private final AtomicReference<String> lastId = new AtomicReference<>("0");
+    private volatile String csrfToken;
+
+    private volatile String cookies;
 
     //TODO: add constructor initiating restTemplate and httpClient
     public SuperSetClient() {
@@ -207,11 +211,7 @@ public class SuperSetClient {
             logger.info("Waiting for async result from Superset. Channel ID: " + channelId);
 
             String job_id = submitBody.get("job_id").asText();
-            String events;
-
-            synchronized (this) {
-                events = supersetUrlFromProperties + "/api/v1/async_event?last_id=" + lastId;
-            }
+            String events = supersetUrlFromProperties + "/api/v1/async_event?last_id=" + lastId.get();
 
 
             int maxRetries = 50;
@@ -220,7 +220,7 @@ public class SuperSetClient {
             for (int attempt = 1; attempt <= maxRetries; attempt++) {
 
                 logger.info("attempt ***REMOVED***" + attempt + "DS ID: " + datasourceId + ", Job ID:" + job_id);
-                logger.info("Last ID" + lastId);
+                logger.info("Last ID" + lastId.get());
 
                 JsonNode results = restTemplate.getForEntity(events, JsonNode.class).getBody();
 
@@ -247,9 +247,8 @@ public class SuperSetClient {
                                 logger.info("Async query completed successfully." + "DS ID: " + datasourceId + ", Job ID:" + job_id);
                                 String finalResultURL = e.get("result_url").asText();
 
-                                synchronized (this) {
-                                    lastId = e.get("id").asText();
-                                }
+                                lastId.set(e.get("id").asText());
+                                //lastId = e.get("id").asText();
 
                                 cachedResults[0] = restTemplate.getForEntity(supersetUrlFromProperties + finalResultURL, JsonNode.class).getBody();
 
