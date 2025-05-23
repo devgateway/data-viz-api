@@ -24,7 +24,7 @@ public class SuperSetClient {
     private String supersetUrlFromProperties;
 
     private final HttpComponentsClientHttpRequestFactory httpClient;
-
+    private final RestTemplate restTemplate;
     private String lastId = "0";
     private String csrfToken;
     private String cookies;
@@ -32,7 +32,7 @@ public class SuperSetClient {
     //TODO: add constructor initiating restTemplate and httpClient
     public SuperSetClient() {
         this.httpClient = new HttpComponentsClientHttpRequestFactory(HttpClients.custom().build());
-
+        this.restTemplate = new RestTemplate(httpClient);
     }
 
     private void addHeaders(RestTemplate restTemplate) {
@@ -63,7 +63,7 @@ public class SuperSetClient {
             headers.setAccept(List.of(MediaType.APPLICATION_JSON));
             HttpEntity<Void> request = new HttpEntity<>(headers);
 
-            RestTemplate restTemplate = new RestTemplate(httpClient);
+
             // 2. Create RestTemplate with custom request factory
             // 2. Send GET request to CSRF endpoint
             ResponseEntity<Map> response = restTemplate.exchange(
@@ -112,7 +112,7 @@ public class SuperSetClient {
         logger.info("Fetching Charts");
         String url = supersetUrlFromProperties + "/api/v1/chart/";
 
-        RestTemplate restTemplate = new RestTemplate(httpClient);
+
         ResponseEntity<JsonNode> response = restTemplate.getForEntity(url, JsonNode.class);
 
         return response.getBody();
@@ -126,8 +126,6 @@ public class SuperSetClient {
         logger.info("Fetching Datasets");
         String url = supersetUrlFromProperties + "/api/v1/dataset/?force=true";
 
-        HashMap<String, String> loginResult = login();
-        RestTemplate restTemplate = new RestTemplate(httpClient);
         addHeaders(restTemplate);
 
 
@@ -142,7 +140,7 @@ public class SuperSetClient {
     @Cacheable(value = "dataset", key = "***REMOVED***datasetId")
     public JsonNode fetchDataset(String datasetId) {
 
-        RestTemplate restTemplate = new RestTemplate(httpClient);
+
         addHeaders(restTemplate);
 
 
@@ -178,9 +176,7 @@ public class SuperSetClient {
 */
     public JsonNode postChartData(JsonNode requestBody) {
 
-        HashMap<String, String> loginResult = login();
 
-        RestTemplate restTemplate = new RestTemplate(httpClient);
         addHeaders(restTemplate);
 
 
@@ -211,8 +207,12 @@ public class SuperSetClient {
             logger.info("Waiting for async result from Superset. Channel ID: " + channelId);
 
             String job_id = submitBody.get("job_id").asText();
+            String events;
 
-            String events = supersetUrlFromProperties + "/api/v1/async_event?last_id=" + lastId;
+            synchronized (this) {
+                events = supersetUrlFromProperties + "/api/v1/async_event?last_id=" + lastId;
+            }
+
 
             int maxRetries = 50;
             int baseDelayMs = 300;
@@ -246,7 +246,10 @@ public class SuperSetClient {
                             if (e.get("status").asText().equalsIgnoreCase("done")) {
                                 logger.info("Async query completed successfully." + "DS ID: " + datasourceId + ", Job ID:" + job_id);
                                 String finalResultURL = e.get("result_url").asText();
-                                lastId = e.get("id").asText();
+
+                                synchronized (this) {
+                                    lastId = e.get("id").asText();
+                                }
 
                                 cachedResults[0] = restTemplate.getForEntity(supersetUrlFromProperties + finalResultURL, JsonNode.class).getBody();
 
