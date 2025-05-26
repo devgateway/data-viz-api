@@ -198,7 +198,7 @@ public class SuperSetClient {
 
 
             int maxRetries = 50;
-            int baseDelayMs = 300;
+            int baseDelayMs = 200;
 
             for (int attempt = 1; attempt <= maxRetries; attempt++) {
 
@@ -243,7 +243,7 @@ public class SuperSetClient {
                     }
                 }
 
-                int delayMs = baseDelayMs + (attempt * 100);
+                int delayMs = baseDelayMs + (attempt * 50);
 
                 try {
                     logger.info("Waiting for " + delayMs + " ms before next attempt. " + channelId);
