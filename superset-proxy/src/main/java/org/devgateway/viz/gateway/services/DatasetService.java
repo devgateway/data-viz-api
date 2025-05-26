@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.devgateway.viz.gateway.services.rest.SuperSetClient;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -20,6 +21,7 @@ public class DatasetService {
     }
 
 
+    @Cacheable(value = "datasets", key = "'all'")
     public List<Map<String, Object>> fetchDatasets() {
         JsonNode root = superSetClient.fetchDatasets();
         if (root == null || !root.has("result")) {
