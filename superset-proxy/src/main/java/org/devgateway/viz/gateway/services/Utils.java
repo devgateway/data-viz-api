@@ -60,6 +60,8 @@ public class Utils {
         Map<String, Object> supersetRequest = new HashMap<>();
         supersetRequest.put("datasource", datasource);
         supersetRequest.put("queries", queries);
+        supersetRequest.put("result_type", "results");
+
       //  supersetRequest.put("force", true);
         return supersetRequest;
     }
