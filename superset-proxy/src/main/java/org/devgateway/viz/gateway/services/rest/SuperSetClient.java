@@ -20,39 +20,30 @@ public class SuperSetClient {
     // private final RestTemplate restTemplate;
 
     @Value("${viz.superset.url}")
-    private String supersetUrlFromProperties;
+    private final String supersetUrlFromProperties;
 
     private final HttpComponentsClientHttpRequestFactory httpClient;
-
-    private String csrfToken;
-    private String cookies;
+    private final RestTemplate restTemplate;
 
     //TODO: add constructor initiating restTemplate and httpClient
-    public SuperSetClient() {
+    public SuperSetClient(@Value("${viz.superset.url}") String supersetUrlFromProperties) {
         this.httpClient = new HttpComponentsClientHttpRequestFactory(HttpClients.custom().build());
-
-    }
-
-    private void addHeaders(RestTemplate restTemplate) {
-        if (csrfToken == null || cookies == null) {
-            login();
-        }
-
+        this.restTemplate = new RestTemplate(httpClient);
+        this.supersetUrlFromProperties = supersetUrlFromProperties;
         restTemplate.getInterceptors().add((request, body, execution) -> {
             HttpHeaders headers = request.getHeaders();
-            headers.add("X-CSRFToken", csrfToken);
-            headers.add(HttpHeaders.COOKIE, cookies);
+
             headers.setAccept(List.of(MediaType.APPLICATION_JSON));
-            headers.add(HttpHeaders.ACCEPT_ENCODING, "gzip");
-            headers.add(HttpHeaders.CACHE_CONTROL, "max-age=0");
+            headers.set(HttpHeaders.ACCEPT_ENCODING, "gzip");
+            headers.set(HttpHeaders.CACHE_CONTROL, "max-age=0");
 
             return execution.execute(request, body);
         });
-
-
+        this.login();
     }
 
-    public HashMap<String, String> login() {
+
+    private HashMap<String, String> login() {
         try {
 
 
@@ -61,7 +52,7 @@ public class SuperSetClient {
             headers.setAccept(List.of(MediaType.APPLICATION_JSON));
             HttpEntity<Void> request = new HttpEntity<>(headers);
 
-            RestTemplate restTemplate = new RestTemplate(httpClient);
+
             // 2. Create RestTemplate with custom request factory
             // 2. Send GET request to CSRF endpoint
             ResponseEntity<Map> response = restTemplate.exchange(
@@ -71,24 +62,34 @@ public class SuperSetClient {
                     Map.class
             );
 
-
             // 3. Extract CSRF token from JSON body
             if (response.getStatusCode() == HttpStatus.OK) {
+                final String csrfToken;
+                final String cookies;
                 Map<String, Object> responseBody = response.getBody();
                 if (responseBody != null && responseBody.containsKey("result")) {
-                    String csrfToken = (String) responseBody.get("result");
-                    this.csrfToken = csrfToken;
-                    System.out.println("CSRF Token: " + csrfToken);
+                    csrfToken = (String) responseBody.get("result");
+
+                } else {
+                    csrfToken = null;
                 }
 
                 // 4. Extract cookies from headers
                 List<String> setCookie = response.getHeaders().get(HttpHeaders.SET_COOKIE);
                 if (setCookie != null) {
-                    String cookies = String.join("; ", setCookie);
-                    this.cookies = cookies;
-                    System.out.println("Cookies: " + cookies);
+                    cookies = String.join("; ", setCookie);
+
+
+                } else {
+                    cookies = null;
                 }
 
+                restTemplate.getInterceptors().add((pRequest, body, execution) -> {
+                    HttpHeaders postHeaders = pRequest.getHeaders();
+                    postHeaders.set("X-CSRFToken", csrfToken);
+                    postHeaders.set(HttpHeaders.COOKIE, cookies);
+                    return execution.execute(pRequest, body);
+                });
 
             } else {
                 System.out.println("Failed to get CSRF token: " + response.getStatusCode());
@@ -109,8 +110,6 @@ public class SuperSetClient {
     public JsonNode fetchCharts() {
         logger.info("Fetching Charts");
         String url = supersetUrlFromProperties + "/api/v1/chart/";
-
-        RestTemplate restTemplate = new RestTemplate(httpClient);
         ResponseEntity<JsonNode> response = restTemplate.getForEntity(url, JsonNode.class);
 
         return response.getBody();
@@ -123,12 +122,6 @@ public class SuperSetClient {
     public JsonNode fetchDatasets() {
         logger.info("Fetching Datasets");
         String url = supersetUrlFromProperties + "/api/v1/dataset/?force=true";
-
-        HashMap<String, String> loginResult = login();
-        RestTemplate restTemplate = new RestTemplate(httpClient);
-        addHeaders(restTemplate);
-
-
         ResponseEntity<JsonNode> response = restTemplate.getForEntity(url, JsonNode.class);
         return response.getBody();
     }
@@ -139,11 +132,6 @@ public class SuperSetClient {
      */
     @Cacheable(value = "dataset", key = "***REMOVED***datasetId")
     public JsonNode fetchDataset(String datasetId) {
-
-        RestTemplate restTemplate = new RestTemplate(httpClient);
-        addHeaders(restTemplate);
-
-
         logger.info("Fetching Datasets");
         if (datasetId == null || datasetId.equalsIgnoreCase("null") || datasetId.isEmpty()) {
             //return emtpy json
@@ -154,31 +142,7 @@ public class SuperSetClient {
         return response.getBody();
     }
 
-    /**
-     * Post a query to Superset /api/v1/chart/data
-     */
- /*
-  public JsonNode postChartData(JsonNode requestBody) {
-        logger.info("Calling Superset API to fetch data");
-        long startTime = System.currentTimeMillis();
-
-        String url = supersetUrlFromProperties + "/api/v1/chart/data";
-
-        logger.info("requestBody: " + requestBody.toString());
-        ResponseEntity<JsonNode> response = restTemplate.postForEntity(url, requestBody, JsonNode.class);
-
-        long endTime = System.currentTimeMillis();
-        long duration = endTime - startTime;
-        logger.info("Time taken to fetch data: " + duration + " ms");
-
-        return response.getBody();
-    }
-*/
     public JsonNode postChartData(JsonNode requestBody) {
-        RestTemplate restTemplate = new RestTemplate(httpClient);
-        addHeaders(restTemplate);
-
-
         String datasourceId = requestBody.get("datasource").get("id").asText();
         logger.info("Calling Superset API to fetch data for datasource ID:" + datasourceId);
 
