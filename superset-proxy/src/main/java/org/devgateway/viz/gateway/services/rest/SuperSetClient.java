@@ -1,7 +1,6 @@
 package org.devgateway.viz.gateway.services.rest;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ArrayNode;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.Cacheable;
@@ -25,7 +24,6 @@ public class SuperSetClient {
 
     private final HttpComponentsClientHttpRequestFactory httpClient;
 
-    private String lastId = "0";
     private String csrfToken;
     private String cookies;
 
@@ -177,111 +175,26 @@ public class SuperSetClient {
     }
 */
     public JsonNode postChartData(JsonNode requestBody) {
-
-        HashMap<String, String> loginResult = login();
-
         RestTemplate restTemplate = new RestTemplate(httpClient);
         addHeaders(restTemplate);
 
 
         String datasourceId = requestBody.get("datasource").get("id").asText();
-        logger.info("Calling Superset API to fetch data (async-aware) DS ID:" + datasourceId);
+        logger.info("Calling Superset API to fetch data for datasource ID:" + datasourceId);
 
         String submitUrl = supersetUrlFromProperties + "/api/v1/chart/data";
-
-        //logger.info("Request body: " + requestBody.toString());
 
         ResponseEntity<JsonNode> submitResponse = restTemplate.postForEntity(submitUrl, requestBody, JsonNode.class);
 
         if (submitResponse.getStatusCode() != HttpStatus.OK && submitResponse.getStatusCode() != HttpStatus.ACCEPTED) {
-
             throw new RuntimeException("Failed to submit query: " + submitResponse.getStatusCode());
         }
 
-        JsonNode submitBody = submitResponse.getBody();
-        // CASE 1: Superset returned result immediately (from cache or fast query)
-        if (submitBody.has("result")) {
-            logger.info("Received result immediately (likely from cache).");
-            return submitBody;
-
+        JsonNode responseBody = submitResponse.getBody();
+        if (responseBody.has("result")) {
+            return responseBody;
         } else {
-
-            // CASE 2: Superset returned async query ID
-            String channelId = submitBody.get("channel_id").asText();
-            logger.info("Waiting for async result from Superset. Channel ID: " + channelId);
-
-            String job_id = submitBody.get("job_id").asText();
-
-            String events = supersetUrlFromProperties + "/api/v1/async_event?last_id=" + lastId;
-
-            int maxRetries = 50;
-            int baseDelayMs = 300;
-
-            for (int attempt = 1; attempt <= maxRetries; attempt++) {
-
-                logger.info("attempt #" + attempt + "DS ID: " + datasourceId + ", Job ID:" + job_id);
-                logger.info("Last ID" + lastId);
-
-                JsonNode results = restTemplate.getForEntity(events, JsonNode.class).getBody();
-
-
-                logger.info("Received async event responses  ");
-
-
-                ArrayNode rs = (ArrayNode) results.get("result");
-                final JsonNode[] cachedResults = new JsonNode[1];
-
-                if (rs.size() == 0) {
-                    logger.info("No async event responses received yet. Waiting for " + baseDelayMs + " ms");
-
-                } else if (rs.size() > 0) {
-                    logger.info("Result size: " + rs.size());
-
-                    logger.info("Received async event responses: " + rs.size());
-                    logger.info("looking for job id" + job_id);
-
-                    rs.elements().forEachRemaining(e -> {
-                        if (e.get("job_id").asText().equals(job_id)) {
-
-                            if (e.get("status").asText().equalsIgnoreCase("done")) {
-                                logger.info("Async query completed successfully." + "DS ID: " + datasourceId + ", Job ID:" + job_id);
-                                String finalResultURL = e.get("result_url").asText();
-                                lastId = e.get("id").asText();
-
-                                cachedResults[0] = restTemplate.getForEntity(supersetUrlFromProperties + finalResultURL, JsonNode.class).getBody();
-
-                            } else if (e.get("status").asText().equals("failed")) {
-                                throw new RuntimeException("Async query failed: " + e);
-                            }
-                        }
-                    });
-
-
-                    if (cachedResults[0] != null) {
-                        logger.info("Returning Cached Results");
-                        return cachedResults[0];
-                    }
-                }
-
-                int delayMs = baseDelayMs + (attempt * 100);
-
-                try {
-                    logger.info("Waiting for " + delayMs + " ms before next attempt. " + channelId);
-                    Thread.sleep(delayMs);
-
-                } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
-                    throw new RuntimeException("Polling interrupted", e);
-                }
-            }
-            logger.info("Timeout while waiting for async result. DS ID:" + datasourceId + " Job ID:" + job_id);
-            //TODO create json node with empty results
-            return null;
-            // throw new RuntimeException("Timeout while waiting for async result. DS ID:" + datasourceId + " Job ID:" + job_id);
-
+            throw new RuntimeException("Async fetching from Superset not supported.");
         }
-
     }
-
-
 }
