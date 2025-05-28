@@ -1,7 +1,9 @@
 package org.devgateway.viz.gateway.services.rest;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
+import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.*;
@@ -27,7 +29,15 @@ public class SuperSetClient {
 
     //TODO: add constructor initiating restTemplate and httpClient
     public SuperSetClient(@Value("${viz.superset.url}") String supersetUrlFromProperties) {
-        this.httpClient = new HttpComponentsClientHttpRequestFactory(HttpClients.custom().build());
+        PoolingHttpClientConnectionManager cm = new PoolingHttpClientConnectionManager();
+        cm.setMaxTotal(100);
+        cm.setDefaultMaxPerRoute(20);
+
+        CloseableHttpClient client = HttpClients.custom()
+                .setConnectionManager(cm)
+                .build();
+
+        this.httpClient = new HttpComponentsClientHttpRequestFactory(client);
         this.restTemplate = new RestTemplate(httpClient);
         this.supersetUrlFromProperties = supersetUrlFromProperties;
         restTemplate.getInterceptors().add((request, body, execution) -> {
