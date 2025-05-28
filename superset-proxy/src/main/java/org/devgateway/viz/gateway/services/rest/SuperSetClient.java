@@ -31,7 +31,7 @@ public class SuperSetClient {
     public SuperSetClient(@Value("${viz.superset.url}") String supersetUrlFromProperties) {
         PoolingHttpClientConnectionManager cm = new PoolingHttpClientConnectionManager();
         cm.setMaxTotal(100);
-        cm.setDefaultMaxPerRoute(20);
+        cm.setDefaultMaxPerRoute(50);
 
         CloseableHttpClient client = HttpClients.custom()
                 .setConnectionManager(cm)
@@ -140,7 +140,7 @@ public class SuperSetClient {
     /**
      * Fetch a single dataset by ID
      */
-    @Cacheable(value = "dataset", key = "#datasetId")
+    //@Cacheable(value = "dataset", key = "#datasetId")
     public JsonNode fetchDataset(String datasetId) {
         logger.info("Fetching Datasets");
         if (datasetId == null || datasetId.equalsIgnoreCase("null") || datasetId.isEmpty()) {
