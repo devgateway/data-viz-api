@@ -11,7 +11,7 @@ spring:
   main:
     lazy-initialization: true
   application:
-    name: superset-local
+    name: superset-proxy
   cache:
     type: redis
   data:
