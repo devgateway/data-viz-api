@@ -135,7 +135,9 @@ public class SuperSetClient {
      */
     @Cacheable(value = "dataset", key = "***REMOVED***datasetId")
     public JsonNode fetchDataset(String datasetId) {
+
         logger.info("Fetching Datasets");
+
         if (datasetId == null || datasetId.equalsIgnoreCase("null") || datasetId.isEmpty()) {
             //return emtpy json
             return null;
@@ -164,6 +166,8 @@ public class SuperSetClient {
 
         return response.getBody();
     }*/
+
+
     public JsonNode postChartData(JsonNode requestBody) {
 
 
@@ -172,7 +176,7 @@ public class SuperSetClient {
 
         String submitUrl = supersetUrlFromProperties + "/api/v1/chart/data";
 
-        //logger.info("Request body: " + requestBody.toString());
+        logger.info("Request body: " + requestBody.toString());
 
         ResponseEntity<JsonNode> submitResponse = restTemplate.postForEntity(submitUrl, requestBody, JsonNode.class);
 
