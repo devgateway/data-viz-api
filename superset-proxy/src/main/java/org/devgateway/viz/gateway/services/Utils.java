@@ -29,7 +29,6 @@ public class Utils {
     public static Map<String, Object> createQuery(String[] groupArray, List<String> measuresArr, Map<String, String> queryParams) {
         Map<String, Object> query = new HashMap<>();
         if (groupArray.length > 0) {
-            query.put("groupby", Arrays.asList(groupArray));
             query.put("columns", Arrays.asList(groupArray));
         }
         query.put("metrics", measuresArr);
