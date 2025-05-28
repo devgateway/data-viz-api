@@ -2,6 +2,7 @@ package org.devgateway.viz.gateway.services;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import org.devgateway.viz.gateway.common.Constants;
+import org.springframework.cache.annotation.Cacheable;
 
 import java.util.*;
 
@@ -148,6 +149,7 @@ public class Utils {
         return groupsPath != null && !groupsPath.trim().isEmpty() ?
                 groupsPath.split("/") : new String[]{};
     }
+
 
 
     public static List<String> extractUniqueMeasures(JsonNode result) {
