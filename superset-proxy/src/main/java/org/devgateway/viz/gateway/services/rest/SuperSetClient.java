@@ -140,7 +140,7 @@ public class SuperSetClient {
     /**
      * Fetch a single dataset by ID
      */
-    //@Cacheable(value = "dataset", key = "***REMOVED***datasetId")
+    @Cacheable(value = "dataset", key = "***REMOVED***datasetId")
     public JsonNode fetchDataset(String datasetId) {
         logger.info("Fetching Datasets");
         if (datasetId == null || datasetId.equalsIgnoreCase("null") || datasetId.isEmpty()) {
