@@ -119,8 +119,9 @@ public class StatsService {
                 transformed.put(metric.asText(), overallData.get("data").get(0).get(metric.asText()).asDouble());
             }
 
+            JsonNode dim1Data = data.get(0);
 
-            transformed.put("itemsSize", overallData.get("rowcount").asInt());
+            transformed.put("itemsSize", dim1Data.get("rowcount").asInt());
         }
 
         if (dimList.isEmpty()) {
