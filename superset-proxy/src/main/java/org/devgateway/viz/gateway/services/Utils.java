@@ -30,7 +30,6 @@ public class Utils {
     public static Map<String, Object> createQuery(String[] groupArray, List<String> measuresArr, Map<String, String> queryParams) {
         Map<String, Object> query = new HashMap<>();
         if (groupArray.length > 0) {
-            query.put("groupby", Arrays.asList(groupArray));
             query.put("columns", Arrays.asList(groupArray));
         }
         query.put("metrics", measuresArr);
@@ -61,6 +60,8 @@ public class Utils {
         Map<String, Object> supersetRequest = new HashMap<>();
         supersetRequest.put("datasource", datasource);
         supersetRequest.put("queries", queries);
+        supersetRequest.put("result_type", "results");
+
       //  supersetRequest.put("force", true);
         return supersetRequest;
     }
