@@ -7,7 +7,6 @@ import org.devgateway.viz.gateway.services.rest.SuperSetClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -31,7 +30,6 @@ public class MeasuresService {
         this.objectMapper = objectMapper;
     }
 
-    @Cacheable(value = "measures", key = "#datasetId")
     public List<Map<String, Object>> getMeasures(String datasetId) {
         if (datasetId == null) {
             return Collections.emptyList();

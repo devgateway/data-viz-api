@@ -1,10 +1,8 @@
 package org.devgateway.viz.gateway.services;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.devgateway.viz.gateway.services.rest.SuperSetClient;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -13,15 +11,11 @@ import java.util.*;
 public class DatasetService {
 
     private final SuperSetClient superSetClient;
-    private final ObjectMapper objectMapper;
 
-    public DatasetService(@Autowired SuperSetClient superSetClient, ObjectMapper objectMapper) {
+    public DatasetService(@Autowired SuperSetClient superSetClient) {
         this.superSetClient = superSetClient;
-        this.objectMapper = objectMapper;
     }
 
-
-    @Cacheable(value = "datasets", key = "'all'")
     public List<Map<String, Object>> fetchDatasets() {
         JsonNode root = superSetClient.fetchDatasets();
         if (root == null || !root.has("result")) {
@@ -38,6 +32,4 @@ public class DatasetService {
         }
         return datasets;
     }
-
-
 }

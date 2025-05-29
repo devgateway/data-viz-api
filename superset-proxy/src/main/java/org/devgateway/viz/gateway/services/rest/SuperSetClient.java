@@ -11,20 +11,17 @@ import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.logging.Logger;
 
 @Component
 public class SuperSetClient {
 
-    // private final RestTemplate restTemplate;
+    private final Logger logger = Logger.getLogger(SuperSetClient.class.getName());
 
     @Value("${viz.superset.url}")
     private final String supersetUrlFromProperties;
 
-    private final HttpComponentsClientHttpRequestFactory httpClient;
     private final RestTemplate restTemplate;
 
     //TODO: add constructor initiating restTemplate and httpClient
@@ -37,7 +34,7 @@ public class SuperSetClient {
                 .setConnectionManager(cm)
                 .build();
 
-        this.httpClient = new HttpComponentsClientHttpRequestFactory(client);
+        HttpComponentsClientHttpRequestFactory httpClient = new HttpComponentsClientHttpRequestFactory(client);
         this.restTemplate = new RestTemplate(httpClient);
         this.supersetUrlFromProperties = supersetUrlFromProperties;
         restTemplate.getInterceptors().add((request, body, execution) -> {
@@ -49,70 +46,7 @@ public class SuperSetClient {
 
             return execution.execute(request, body);
         });
-        this.login();
     }
-
-
-    private HashMap<String, String> login() {
-        try {
-
-
-            // 1. Prepare headers
-            HttpHeaders headers = new HttpHeaders();
-            headers.setAccept(List.of(MediaType.APPLICATION_JSON));
-            HttpEntity<Void> request = new HttpEntity<>(headers);
-
-
-            // 2. Create RestTemplate with custom request factory
-            // 2. Send GET request to CSRF endpoint
-            ResponseEntity<Map> response = restTemplate.exchange(
-                    supersetUrlFromProperties + "/api/v1/security/csrf_token/",
-                    HttpMethod.GET,
-                    request,
-                    Map.class
-            );
-
-            // 3. Extract CSRF token from JSON body
-            if (response.getStatusCode() == HttpStatus.OK) {
-                final String csrfToken;
-                final String cookies;
-                Map<String, Object> responseBody = response.getBody();
-                if (responseBody != null && responseBody.containsKey("result")) {
-                    csrfToken = (String) responseBody.get("result");
-
-                } else {
-                    csrfToken = null;
-                }
-
-                // 4. Extract cookies from headers
-                List<String> setCookie = response.getHeaders().get(HttpHeaders.SET_COOKIE);
-                if (setCookie != null) {
-                    cookies = String.join("; ", setCookie);
-
-
-                } else {
-                    cookies = null;
-                }
-
-                restTemplate.getInterceptors().add((pRequest, body, execution) -> {
-                    HttpHeaders postHeaders = pRequest.getHeaders();
-                    postHeaders.set("X-CSRFToken", csrfToken);
-                    postHeaders.set(HttpHeaders.COOKIE, cookies);
-                    return execution.execute(pRequest, body);
-                });
-
-            } else {
-                System.out.println("Failed to get CSRF token: " + response.getStatusCode());
-            }
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return null;
-    }
-
-    Logger logger = Logger.getLogger(SuperSetClient.class.getName());
-
 
     /**
      * Fetch list of all charts
@@ -128,7 +62,7 @@ public class SuperSetClient {
     /**
      * Fetch list of all datasets
      */
-
+    @Cacheable("superset-datasets")
     public JsonNode fetchDatasets() {
         logger.info("Fetching Datasets");
         String url = supersetUrlFromProperties + "/api/v1/dataset/?force=true";
@@ -136,11 +70,10 @@ public class SuperSetClient {
         return response.getBody();
     }
 
-
     /**
      * Fetch a single dataset by ID
      */
-    @Cacheable(value = "dataset", key = "#datasetId")
+    @Cacheable("superset-dataset")
     public JsonNode fetchDataset(String datasetId) {
         logger.info("Fetching Datasets");
         if (datasetId == null || datasetId.equalsIgnoreCase("null") || datasetId.isEmpty()) {
@@ -152,6 +85,7 @@ public class SuperSetClient {
         return response.getBody();
     }
 
+    @Cacheable("superset-chart-data")
     public JsonNode postChartData(JsonNode requestBody) {
         logger.info("Posting chart data to Superset API");
         String datasourceId = requestBody.get("datasource").get("id").asText();
