@@ -2,7 +2,6 @@ package org.devgateway.viz.gateway.services;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import org.devgateway.viz.gateway.common.Constants;
-import org.springframework.cache.annotation.Cacheable;
 
 import java.util.*;
 
@@ -27,8 +26,9 @@ public class Utils {
         return query;
     }
 
-    public static Map<String, Object> createQuery(String[] groupArray, List<String> measuresArr, Map<String, String> queryParams) {
-        Map<String, Object> query = new HashMap<>();
+    public static Map<String, Object> createQuery(String[] groupArray, List<String> measuresArr,
+            Set<String> filterableColumns, Map<String, String> queryParams) {
+        SortedMap<String, Object> query = new TreeMap<>(); // must be sorted to ensure consistent order for caching purposes
         if (groupArray.length > 0) {
             query.put("columns", Arrays.asList(groupArray));
         }
@@ -37,15 +37,14 @@ public class Utils {
 
         List<Map<String, Object>> filters = new ArrayList<>();
         for (Map.Entry<String, String> entry : queryParams.entrySet()) {
-            //remove entry value if it is equals to -9007199254740991
-            List values = Arrays.asList(entry.getValue().split(",")).stream().filter(
-                    value -> !value.equals("-9007199254740991")).toList();
-            if (!values.isEmpty()) {
-
-
-                if (!Constants.SPECIAL_PARAMS.contains(entry.getKey())) {
+            String columnName = entry.getKey();
+            if (!Constants.SPECIAL_PARAMS.contains(columnName) && filterableColumns.contains(columnName)) {
+                //remove entry value if it is equals to -9007199254740991
+                List values = Arrays.asList(entry.getValue().split(",")).stream().filter(
+                        value -> !value.equals("-9007199254740991")).toList();
+                if (!values.isEmpty()) {
                     Map<String, Object> filter = new HashMap<>();
-                    filter.put("col", entry.getKey());
+                    filter.put("col", columnName);
                     filter.put("op", "in");
                     filter.put("val", Arrays.asList(entry.getValue().split(",")));
                     filters.add(filter);
@@ -163,6 +162,17 @@ public class Utils {
             }
         }
         return measures;
+    }
+
+    public static Set<String> extractFilterableColumns(JsonNode result) {
+        Set<String> columnNames = new LinkedHashSet<>();
+        for (JsonNode column : result.get("columns")) {
+            if (column.path("filterable").asBoolean(true)) {
+                String name = column.path("column_name").asText();
+                columnNames.add(name);
+            }
+        }
+        return columnNames;
     }
 
     public static List<Map<String, Object>> extractDimensions(JsonNode result) {
