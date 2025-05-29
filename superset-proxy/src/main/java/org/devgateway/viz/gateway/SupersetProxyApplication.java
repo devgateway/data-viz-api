@@ -6,18 +6,18 @@ import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.cache.interceptor.KeyGenerator;
 import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 import org.springframework.context.annotation.Bean;
+import org.springframework.data.redis.cache.RedisCacheConfiguration;
 import org.springframework.data.redis.cache.RedisCacheManager;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 
 import java.lang.reflect.Method;
+import java.time.Duration;
 import java.util.Arrays;
 import java.util.stream.Collectors;
 
 @SpringBootApplication
 @EnableDiscoveryClient(autoRegister = true)
-
 @EnableCaching
-
 public class SupersetProxyApplication {
     //TODO:add logger
 
@@ -27,10 +27,14 @@ public class SupersetProxyApplication {
 
     @Bean
     public RedisCacheManager cacheManager(RedisConnectionFactory redisConnectionFactory) {
-
-        // return new NoOpCacheManager();
-
-        return RedisCacheManager.builder(redisConnectionFactory).build();
+        return RedisCacheManager.builder(redisConnectionFactory)
+                .withCacheConfiguration("superset-datasets",
+                        RedisCacheConfiguration.defaultCacheConfig().entryTtl(Duration.ofMinutes(5)))
+                .withCacheConfiguration("superset-dataset",
+                        RedisCacheConfiguration.defaultCacheConfig().entryTtl(Duration.ofMinutes(5)))
+                .withCacheConfiguration("superset-chart-data",
+                        RedisCacheConfiguration.defaultCacheConfig().entryTtl(Duration.ofDays(1)))
+                .build();
     }
 
     @Bean
@@ -43,7 +47,5 @@ public class SupersetProxyApplication {
                         + Arrays.stream(params).map(Object::toString).collect(Collectors.joining("_"));
             }
         };
-
     }
-
 }
