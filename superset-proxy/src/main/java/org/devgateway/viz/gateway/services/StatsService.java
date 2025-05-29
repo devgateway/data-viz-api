@@ -14,7 +14,6 @@ import java.util.*;
 import static org.devgateway.viz.gateway.services.Utils.*;
 
 @Service
-
 public class StatsService {
     private final Logger logger = LoggerFactory.getLogger(StatsService.class);
 
@@ -37,6 +36,8 @@ public class StatsService {
 
         JsonNode requestBody = buildSupersetDataRequest(datasetId, queryParams, groupsPath);
 
+        //logger.info("Superset request body: " + requestBody.toPrettyString());
+
         JsonNode supersetResponse = superSetClient.postChartData(requestBody);
 
         JsonNode resultArray = supersetResponse.get("result");
@@ -57,7 +58,9 @@ public class StatsService {
 
     private JsonNode buildSupersetDataRequest(String datasetId, Map<String, String> queryParams, String groupsPath) {
 
-        List<String> measuresArr = extractUniqueMeasures(superSetClient.fetchDataset(datasetId).get("result"));
+        JsonNode result = superSetClient.fetchDataset(datasetId).get("result");
+        List<String> measuresArr = extractUniqueMeasures(result);
+        Set<String> filterableColumns = extractFilterableColumns(result);
 
         Map<String, Object> datasource = createDatasource(datasetId);
 
@@ -66,17 +69,17 @@ public class StatsService {
         String[] groupsArray = getGroupsArray(groupsPath);
 
         if (groupsArray.length > 0) {
-            Map<String, Object> queryForDimension1 = createQuery(new String[]{groupsArray[0]}, measuresArr, queryParams);
+            Map<String, Object> queryForDimension1 = createQuery(new String[]{groupsArray[0]}, measuresArr, filterableColumns, queryParams);
             queries.add(queryForDimension1);
         }
 
         if (groupsArray.length > 1) {
-            Map<String, Object> queryForDimension2 = createQuery(groupsArray, measuresArr, queryParams);
+            Map<String, Object> queryForDimension2 = createQuery(groupsArray, measuresArr, filterableColumns, queryParams);
             queries.add(queryForDimension2);
         }
 
         //add query for overall data
-        Map<String, Object> queryForOverall = createQuery(new String[]{}, measuresArr, queryParams);
+        Map<String, Object> queryForOverall = createQuery(new String[]{}, measuresArr, filterableColumns, queryParams);
         queries.add(queryForOverall);
 
         return objectMapper.valueToTree(createSupersetRequest(datasource, queries));
