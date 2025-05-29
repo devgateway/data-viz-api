@@ -1,13 +1,11 @@
 package org.devgateway.viz.gateway.services;
 
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.devgateway.viz.gateway.services.rest.SuperSetClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -39,7 +37,6 @@ public class DimensionsService {
     }
 
 
-    @Cacheable(value = "distinctDimensionValues", key = "***REMOVED***field + ***REMOVED***datasetId")
     public Set<String> fetchDistinctDimensionValues(String field, String datasetId) {
         logger.info("Fetching distinct values for field: " + field + " from dataset: " + datasetId);
         Set<String> uniqueValues = new HashSet<>();
