@@ -87,9 +87,8 @@ public class SuperSetClient {
 
     @Cacheable("superset-chart-data")
     public JsonNode postChartData(JsonNode requestBody) {
-        logger.info("Posting chart data to Superset API");
         String datasourceId = requestBody.get("datasource").get("id").asText();
-        logger.info("Calling Superset API to fetch data for datasource ID:" + datasourceId);
+        logger.info("Calling Superset API to fetch data for datasource ID: " + datasourceId + " with request body: " + requestBody.toPrettyString());
 
         String submitUrl = supersetUrlFromProperties + "/api/v1/chart/data";
 
