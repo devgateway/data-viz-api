@@ -27,7 +27,7 @@ public class StatsService {
         this.objectMapper = new ObjectMapper();
     }
 
-    public Object getStats(String datasetId, Map<String, String> queryParams, String groupsPath) throws Exception {
+    public Object getStats(String datasetId, Map<String, String> queryParams, String groupsPath) {
 
         logger.info("Getting stats for datasetId: " + datasetId);
 
@@ -37,15 +37,7 @@ public class StatsService {
 
         JsonNode requestBody = buildSupersetDataRequest(datasetId, queryParams, groupsPath);
 
-
-        //TODO log the time taken by the next line
-        long startTime = System.nanoTime();
-
         JsonNode supersetResponse = superSetClient.postChartData(requestBody);
-
-        long endTime = System.nanoTime();
-
-        logger.info("Time taken to fetch data from Superset: " + (endTime - startTime) / 1_000_000 + " ms");
 
         JsonNode resultArray = supersetResponse.get("result");
 

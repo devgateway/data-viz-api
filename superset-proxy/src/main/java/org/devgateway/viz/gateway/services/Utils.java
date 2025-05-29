@@ -60,9 +60,11 @@ public class Utils {
         Map<String, Object> supersetRequest = new HashMap<>();
         supersetRequest.put("datasource", datasource);
         supersetRequest.put("queries", queries);
+
+        // default is 'full' but will return data in asynchronous mode.
+        // using 'results' will return data immediately.
         supersetRequest.put("result_type", "results");
 
-      //  supersetRequest.put("force", true);
         return supersetRequest;
     }
 
