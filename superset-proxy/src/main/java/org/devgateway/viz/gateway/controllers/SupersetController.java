@@ -2,6 +2,7 @@ package org.devgateway.viz.gateway.controllers;
 
 import jakarta.servlet.http.HttpServletRequest;
 import org.devgateway.viz.gateway.services.SuperSetProxyService;
+import org.devgateway.viz.gateway.services.WarmUpService;
 import org.springframework.cache.CacheManager;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -19,10 +20,13 @@ public class SupersetController {
 
     private final SuperSetProxyService supersetProxyService;
 
-    CacheManager cacheManager;
+    private final WarmUpService warmUpService;
 
-    public SupersetController(SuperSetProxyService supersetProxyService, CacheManager cacheManager) {
+    private final CacheManager cacheManager;
+
+    public SupersetController(SuperSetProxyService supersetProxyService, WarmUpService warmUpService, CacheManager cacheManager) {
         this.supersetProxyService = supersetProxyService;
+        this.warmUpService = warmUpService;
         this.cacheManager = cacheManager;
     }
 
@@ -35,6 +39,12 @@ public class SupersetController {
     @GetMapping("/charts")
     public Object getCharts() {
         return supersetProxyService.getCharts();
+    }
+
+    @GetMapping("/warmUp")
+    public Object warmUp() {
+        warmUpService.warmUp();
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 
     @GetMapping("/datasets")
