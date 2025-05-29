@@ -57,7 +57,7 @@ public class SuperSetProxyService {
     }
 
     //getStats
-    public Object getStats(String datasetId, Map<String, String> queryParams, String groupsPath) throws Exception {
+    public Object getStats(String datasetId, Map<String, String> queryParams, String groupsPath) {
         return statsService.getStats(datasetId, queryParams, groupsPath);
     }
 
