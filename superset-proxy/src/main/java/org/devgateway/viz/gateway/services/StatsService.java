@@ -2,6 +2,7 @@ package org.devgateway.viz.gateway.services;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.devgateway.viz.gateway.common.Constants;
 import org.devgateway.viz.gateway.services.rest.SuperSetClient;
 import org.slf4j.Logger;
@@ -36,10 +37,14 @@ public class StatsService {
 
         JsonNode requestBody = buildSupersetDataRequest(datasetId, queryParams, groupsPath);
 
+        boolean force = "true".equals(queryParams.get("force"));
+
         //logger.info("Superset request body: " + requestBody.toPrettyString());
 
-        JsonNode supersetResponse = superSetClient.postChartData(requestBody);
+        ObjectNode supersetResponse = superSetClient.postChartData(requestBody, force);
 
+        boolean isCached = supersetResponse.get("isCached").asBoolean();
+        String cachedAt = supersetResponse.get("cachedAt").asText();
         JsonNode resultArray = supersetResponse.get("result");
 
         if (resultArray == null || !resultArray.isArray() || resultArray.isEmpty()) {
@@ -49,8 +54,12 @@ public class StatsService {
 
         JsonNode queriesNode = requestBody.get("queries");
         if (queriesNode.isArray() && !queriesNode.isEmpty()) {
-            return transformData(resultArray, queriesNode.get(0).get("groupby"), queriesNode.get(0).get("metrics"),
-                    getGroupsArray(groupsPath));
+            return transformData(resultArray,
+                    queriesNode.get(0).get("groupby"),
+                    queriesNode.get(0).get("metrics"),
+                    getGroupsArray(groupsPath),
+                    isCached,
+                    cachedAt);
         }
         logger.warn("Returning an Empty list");
         return Collections.emptyList();
@@ -85,12 +94,14 @@ public class StatsService {
         return objectMapper.valueToTree(createSupersetRequest(datasource, queries));
     }
 
-    private Object transformData(JsonNode data, JsonNode dimensionsNode, JsonNode metricsNode, String[] dimensionsArray) {
+    private Object transformData(JsonNode data, JsonNode dimensionsNode, JsonNode metricsNode, String[] dimensionsArray, boolean isCached, String cachedAt) {
         Map<String, Object> transformed = createTransformedData();
         List<Map<String, Object>> measuresList = new ArrayList<>();
         List<Map<String, Object>> typesList = new ArrayList<>();
         transformed.put("metadata", createMetadata(measuresList, typesList));
         transformed.put("children", new ArrayList<>());
+        transformed.put("isCached", isCached);
+        transformed.put("cachedAt", cachedAt);
 
         JsonNode resultsForFirstDimension = data.get(0);
         if (resultsForFirstDimension == null || !resultsForFirstDimension.has("data")) {
