@@ -47,6 +47,8 @@ public class WarmUpService {
 
         getStats("66");
         getStats("66", fullFilterColumns);
+        getStats("66", Map.of("sex", "Female"));
+        getStats("66", Map.of("sex", "Male"));
         getStats("66", Map.of("sex", "Female"), fullFilterColumns);
         getStats("66", Map.of("sex", "Male"), fullFilterColumns);
         getStats("66", "birth_year/primary_breed_name", fullFilterColumns);
