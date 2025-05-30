@@ -36,7 +36,8 @@ public class Utils {
         query.put("row_limit", Constants.ROW_LIMIT);
 
         List<Map<String, Object>> filters = new ArrayList<>();
-        for (Map.Entry<String, String> entry : queryParams.entrySet()) {
+        SortedMap<String, String> sortedQueryParams = new TreeMap<>(queryParams); // for consistent order, needed for caching
+        for (Map.Entry<String, String> entry : sortedQueryParams.entrySet()) {
             String columnName = entry.getKey();
             if (!Constants.SPECIAL_PARAMS.contains(columnName) && filterableColumns.contains(columnName)) {
                 //remove entry value if it is equals to -9007199254740991
