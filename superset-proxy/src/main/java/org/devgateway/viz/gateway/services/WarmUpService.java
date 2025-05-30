@@ -84,10 +84,10 @@ public class WarmUpService {
     }
 
     private void warmUpAnimalsReg() {
-        logger.info("Dataset 60: Public - ET-LITS & AADGG - All Animals Registered and Tagged");
+        logger.info("Dataset 70: Public - ET-LITS & AADGG - All Animals Registered and Tagged");
 
-        getCategories("60");
-        getStats("60", "ownerZoneCode/species");
+        getCategories("70");
+        getStats("70", "owner_zone_code");
     }
 
     private void warmUpETLITSPopulation() {
