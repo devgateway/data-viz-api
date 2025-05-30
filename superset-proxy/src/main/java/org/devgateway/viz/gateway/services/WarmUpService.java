@@ -108,6 +108,7 @@ public class WarmUpService {
         getCategories("43");
 
         getStats("43", fullFilterColumns);
+        getStats("43", Map.of("species", "Cattle"));
         getStats("43", "birth_year/primary_breed_name", fullFilterColumns);
         getStats("43", "birth_year/species", fullFilterColumns);
         getStats("43", "owner_region_code", fullFilterColumns);
