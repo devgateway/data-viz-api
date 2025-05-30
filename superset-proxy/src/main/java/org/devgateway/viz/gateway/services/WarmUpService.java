@@ -41,19 +41,19 @@ public class WarmUpService {
     private void warmUpAADGGBirthReg() {
         logger.info("Dataset 66: PG - AADGG - Animal Registration Data (10 years)");
 
+        Set<String> fullFilterColumns = Set.of("birth_year", "primary_breed_name", "owner_region");
+
         getCategories("66");
 
         getStats("66");
-        getStats("66", Set.of("birth_year", "primary_breed_name", "owner_region"));
-        getStats("66", Map.of("sex", "Female"));
-        getStats("66", Map.of("sex", "Female"), Set.of("birth_year", "primary_breed_name", "owner_region"));
-        getStats("66", Map.of("sex", "Male"));
-        getStats("66", Map.of("sex", "Male"), Set.of("birth_year", "primary_breed_name", "owner_region"));
-        getStats("66", "birth_year/primary_breed_name", Set.of("birth_year", "primary_breed_name", "owner_region"));
-        getStats("66", "birth_year/sex", Set.of("birth_year", "primary_breed_name", "owner_region"));
-        getStats("66", "owner_region_code");
-        getStats("66", "owner_zone_code");
-        getStats("66", "sex/primary_breed_name", Set.of("birth_year", "primary_breed_name", "owner_region"));
+        getStats("66", fullFilterColumns);
+        getStats("66", Map.of("sex", "Female"), fullFilterColumns);
+        getStats("66", Map.of("sex", "Male"), fullFilterColumns);
+        getStats("66", "birth_year/primary_breed_name", fullFilterColumns);
+        getStats("66", "birth_year/sex", fullFilterColumns);
+        getStats("66", "owner_region_code", fullFilterColumns);
+        getStats("66", "owner_zone_code", fullFilterColumns);
+        getStats("66", "sex/primary_breed_name", fullFilterColumns);
     }
 
     private void warmUpESSTrends() {
@@ -97,21 +97,21 @@ public class WarmUpService {
         getStats("50", Map.of("species", "Sheep"));
         getStats("50", Map.of("species", "Goat"));
         getStats("50", Map.of("species", "Camel"));
+        getStats("50", Set.of("species"));
     }
 
     private void warmUpETLITSBirthReg() {
         logger.info("Dataset 43: PG-ETLITS-Birth Registration Data 10 years");
 
+        Set<String> fullFilterColumns = Set.of("species", "birth_year", "sex", "birth_region");
+
         getCategories("43");
 
-        getStats("43", Map.of("species", "Cattle"));
-        getStats("43", "birth_region_code");
-        getStats("43", "birth_region_code", Map.of("species", "Cattle"));
-        getStats("43", "birth_year/primary_breed_name", Map.of("species", "Cattle"));
-        getStats("43", "birth_year/primary_breed_name", Map.of("species", "Cattle"), Set.of("birth_year", "sex", "birth_region"));
-        getStats("43", "birth_year/species");
-        getStats("43", "birth_year/species", Set.of("birth_year", "sex", "birth_region"));
-        getStats("43", "primary_breed_name", Set.of("birth_year", "sex", "birth_region"));
+        getStats("43", fullFilterColumns);
+        getStats("43", "birth_year/primary_breed_name", fullFilterColumns);
+        getStats("43", "birth_year/species", fullFilterColumns);
+        getStats("43", "owner_region_code", fullFilterColumns);
+        getStats("43", "primary_breed_name", fullFilterColumns);
     }
 
     private void getStats(String datasetId) {
