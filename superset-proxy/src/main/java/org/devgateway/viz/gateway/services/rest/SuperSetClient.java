@@ -1,16 +1,20 @@
 package org.devgateway.viz.gateway.services.rest;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.Cache;
+import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.*;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.logging.Logger;
 
@@ -24,8 +28,12 @@ public class SuperSetClient {
 
     private final RestTemplate restTemplate;
 
+    private final Cache supersetChartDataCache;
+
     //TODO: add constructor initiating restTemplate and httpClient
-    public SuperSetClient(@Value("${viz.superset.url}") String supersetUrlFromProperties) {
+    public SuperSetClient(@Value("${viz.superset.url}") String supersetUrlFromProperties, CacheManager cacheManager) {
+        supersetChartDataCache = cacheManager.getCache("superset-chart-data");
+
         PoolingHttpClientConnectionManager cm = new PoolingHttpClientConnectionManager();
         cm.setMaxTotal(100);
         cm.setDefaultMaxPerRoute(50);
@@ -85,10 +93,28 @@ public class SuperSetClient {
         return response.getBody();
     }
 
-    @Cacheable("superset-chart-data")
-    public JsonNode postChartData(JsonNode requestBody) {
+    public ObjectNode postChartData(JsonNode requestBody) {
+        return postChartData(requestBody, false);
+    }
+
+    public ObjectNode postChartData(JsonNode requestBody, boolean force) {
+        ObjectNode chartData;
+        chartData = force ? null : supersetChartDataCache.get(requestBody, ObjectNode.class);
+        if (chartData != null) {
+            chartData.put("isCached", true);
+        } else {
+            chartData = postChartDataDirect(requestBody);
+            chartData.put("cachedAt", Instant.now().toString());
+            supersetChartDataCache.put(requestBody, chartData);
+            chartData.put("isCached", false);
+        }
+        return chartData;
+    }
+
+    private ObjectNode postChartDataDirect(JsonNode requestBody) {
         String datasourceId = requestBody.get("datasource").get("id").asText();
-        logger.info("Calling Superset API to fetch data for datasource ID: " + datasourceId + " with request body: " + requestBody.toPrettyString());
+        logger.info("Calling Superset API to fetch data for datasource ID: " + datasourceId
+                + " with request body: " + requestBody.toPrettyString());
 
         String submitUrl = supersetUrlFromProperties + "/api/v1/chart/data";
 
@@ -98,7 +124,7 @@ public class SuperSetClient {
             throw new RuntimeException("Failed to submit query: " + submitResponse.getStatusCode());
         }
 
-        JsonNode responseBody = submitResponse.getBody();
+        ObjectNode responseBody = (ObjectNode) submitResponse.getBody();
         if (responseBody.has("result")) {
             return responseBody;
         } else {
