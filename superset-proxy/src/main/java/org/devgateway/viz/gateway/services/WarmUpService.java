@@ -166,6 +166,6 @@ public class WarmUpService {
 
     private void getCategories(String datasetId) {
         logger.info("Fetching categories for dataset: " + datasetId);
-        supersetProxyService.getCategories("66");
+        supersetProxyService.getCategories(datasetId);
     }
 }
