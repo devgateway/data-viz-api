@@ -54,7 +54,6 @@ jobs:
         run: mvn release:prepare --batch-mode
 
       - name: Perform Maven Release
-        working-directory: ./commons
         run: |
           # Get current version from pom.xml
           CURRENT_VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
