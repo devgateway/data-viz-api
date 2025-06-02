@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-<!--    TODO: This pom.xml needs to be deleted once all the projects migrate -->
 
     <parent>
         <groupId>org.springframework.boot</groupId>
@@ -14,7 +13,7 @@
     <groupId>org.devgateway.viz.api</groupId>
     <artifactId>parent</artifactId>
     <version>0.0.11-SNAPSHOT</version>
-    <name>Data Viz API Parent pr  oject</name>
+    <name>Data Viz API Parent project</name>
     <description>Parent Services Project</description>
     <modules>
         <module>commons</module>
