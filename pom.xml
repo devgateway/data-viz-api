@@ -13,7 +13,7 @@
     <packaging>pom</packaging>
     <groupId>org.devgateway.viz.api</groupId>
     <artifactId>parent</artifactId>
-    <version>0.0.11</version>
+    <version>0.0.12-SNAPSHOT</version>
     <name>Data Viz API Parent pr  oject</name>
     <description>Parent Services Project</description>
     <modules>
@@ -263,6 +263,6 @@
 
     <scm>
         <developerConnection>scm:git:https://github.com/devgateway/data-viz-api.git</developerConnection>
-        <tag>parent-0.0.11</tag>
+        <tag>parent-0.0.6</tag>
     </scm>
 </project>
