@@ -41,15 +41,15 @@ public class Utils {
             String columnName = entry.getKey();
             if (!Constants.SPECIAL_PARAMS.contains(columnName) && filterableColumns.contains(columnName)) {
                 //remove entry value if it is equals to -9007199254740991
+
                 List values = Arrays.asList(entry.getValue().split(",")).stream().filter(
                         value -> !value.equals("-9007199254740991")).toList();
-                if (!values.isEmpty()) {
-                    Map<String, Object> filter = new HashMap<>();
+                Map<String, Object> filter = new HashMap<>();
                     filter.put("col", columnName);
                     filter.put("op", "in");
                     filter.put("val", Arrays.asList(entry.getValue().split(",")));
                     filters.add(filter);
-                }
+
             }
         }
         query.put("filters", filters);
