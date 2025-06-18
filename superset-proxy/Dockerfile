@@ -14,23 +14,18 @@ FROM base AS installer
 WORKDIR /tmp/build
 COPY pom.xml ./
 RUN --mount=type=cache,target=/root/.m2 mvn -B -f pom.xml dependency:go-offline
-
 FROM installer AS compiler
-
 COPY ./ ./
-
 RUN --mount=type=cache,target=/root/.m2 mkdir /opt/viz \
   && mvn -B compile package -DskipTests \
   && mv ./target/*-0.0.1-SNAPSHOT.jar /opt/viz \
   && rm -rf *
 
-
-FROM openjdk:21-jdk-slim AS runtime
+FROM eclipse-temurin:21-jre-alpine
+RUN apk add --no-cache bash
 WORKDIR /opt/viz
 COPY --from=compiler /opt/viz ./
-
 COPY entrypoint.sh /opt/viz/
-
+RUN chmod +x /opt/viz/entrypoint.sh
 EXPOSE 8090
-
 ENTRYPOINT ["/opt/viz/entrypoint.sh"]
