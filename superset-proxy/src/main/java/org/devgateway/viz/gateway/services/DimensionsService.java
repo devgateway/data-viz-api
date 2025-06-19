@@ -37,11 +37,13 @@ public class DimensionsService {
     }
 
 
-    public Set<String> fetchDistinctDimensionValues(String field, String datasetId) {
+    public Set<String> fetchDistinctDimensionValues(String field, String datasetId, Set<String> filterableColumns, Map<String, String> queryParams) {
         logger.info("Fetching distinct values for field: " + field + " from dataset: " + datasetId);
         Set<String> uniqueValues = new HashSet<>();
         Map<String, Object> datasource = createDatasource(datasetId);
-        Map<String, Object> query1 = createQuery(field);
+        Map<String, Object> query1 = createQuery(field, filterableColumns, queryParams);
+
+
         JsonNode requestNode = objectMapper.valueToTree(createSupersetRequest(datasource, Collections.singletonList(query1)));
         JsonNode supersetResp = superSetClient.postChartData(requestNode);
         if (supersetResp != null && supersetResp.has("result") && supersetResp.get("result").isArray()) {
