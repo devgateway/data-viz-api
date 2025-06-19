@@ -80,12 +80,15 @@ public class SupersetController {
     }
 
     @GetMapping(value = {"/categories", "/categories/"})
-    public Object getCategories(@RequestParam(required = false) String dvzProxyDatasetId) {
+
+    public Object getCategories(@RequestParam(required = false) String dvzProxyDatasetId, @RequestParam Map<String, String> allParams) {
+
+
         if (dvzProxyDatasetId == null || dvzProxyDatasetId.isEmpty()) {
             return List.of();
         }
 
-        return supersetProxyService.getCategories(dvzProxyDatasetId);
+        return supersetProxyService.getCategories(dvzProxyDatasetId,allParams);
     }
 
     @GetMapping("/stats")
