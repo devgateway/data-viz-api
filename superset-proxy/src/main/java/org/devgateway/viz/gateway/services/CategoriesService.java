@@ -32,25 +32,28 @@ public class CategoriesService {
     }
 
 
-    public List<Map<String, Object>> getCategories(String datasetId) {
+    public List<Map<String, Object>> getCategories(String datasetId, Map<String, String> allParams) {
         if (datasetId == null) {
             return Collections.emptyList();
         }
 
         //get dataset metdata
+
+        // JsonNode requestBody = buildSupersetDataRequest(datasetId, queryParams, groupsPath)
+
         JsonNode result = superSetClient.fetchDataset(datasetId).get("result");
 
         List<Map<String, Object>> dimensions = extractDimensions(result);
         List<String> measures = extractUniqueMeasures(result);
         List<Map<String, Object>> categories = new ArrayList<>();
-
+        Set<String> filterableColumns = extractFilterableColumns(result);
         for (Map<String, Object> dim : dimensions) {
             String field = (String) dim.get("field");
             Map<String, Object> category = new HashMap<>();
             category.put("type", field);
             List<Map<String, Object>> items = new ArrayList<>();
 
-            for (String value : dimensionsService.fetchDistinctDimensionValues(field, datasetId)) {
+            for (String value : dimensionsService.fetchDistinctDimensionValues(field, datasetId, filterableColumns, allParams)) {
                 items.add(createItem(field, value,
                         Constants.COLORS.get(items.size() % Constants.COLORS.size())));
             }

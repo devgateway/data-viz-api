@@ -15,7 +15,7 @@ public class Utils {
     }
 
 
-    public static Map<String, Object> createQuery(String field) {
+    public static Map<String, Object> createQuery(String field, Set<String> filterableColumns, Map<String, String> queryParams) {
         Map<String, Object> query = new HashMap<>();
         if (field != null && !field.isEmpty()) {
             query.put("groupby", Collections.singletonList(field));
@@ -23,6 +23,26 @@ public class Utils {
         }
 
         query.put("metrics", Collections.emptyList());
+
+
+        List<Map<String, Object>> filters = new ArrayList<>();
+        SortedMap<String, String> sortedQueryParams = new TreeMap<>(queryParams); // for consistent order, needed for caching
+        for (Map.Entry<String, String> entry : sortedQueryParams.entrySet()) {
+            String columnName = entry.getKey();
+            if (!Constants.SPECIAL_PARAMS.contains(columnName) && filterableColumns.contains(columnName)) {
+                //remove entry value if it is equals to -9007199254740991
+
+                List values = Arrays.asList(entry.getValue().split(",")).stream().filter(
+                        value -> !value.equals("-9007199254740991")).toList();
+                Map<String, Object> filter = new HashMap<>();
+                filter.put("col", columnName);
+                filter.put("op", "in");
+                filter.put("val", Arrays.asList(entry.getValue().split(",")));
+                filters.add(filter);
+
+            }
+        }
+        query.put("filters", filters);
         return query;
     }
 
