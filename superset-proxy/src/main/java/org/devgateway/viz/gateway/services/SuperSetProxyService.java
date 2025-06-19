@@ -46,8 +46,8 @@ public class SuperSetProxyService {
     }
 
     //fetchCategories
-    public List<Map<String, Object>> getCategories(String datasetId) {
-        return categoriesService.getCategories(datasetId);
+    public List<Map<String, Object>> getCategories(String datasetId, Map<String, String> allParams ) {
+        return categoriesService.getCategories(datasetId,allParams);
     }
 
 
