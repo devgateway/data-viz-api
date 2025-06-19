@@ -6,10 +6,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.time.Year;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeSet;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -68,7 +65,7 @@ public class WarmUpService {
         getStats("61", "year/sex", Map.of("species", "Goat"));
         getStats("61", "year/sex", Map.of("species", "Camel"));
 
-        String lastYear = dimensionsService.fetchDistinctDimensionValues("year", "61").stream()
+        String lastYear = dimensionsService.fetchDistinctDimensionValues("year", "61", null, null).stream()
                 .max(String::compareTo)
                 .orElse(Year.now().toString());
 
@@ -162,13 +159,13 @@ public class WarmUpService {
     private Map<String, String> fullFilters(String datasetId, Set<String> fields) {
         Map<String, String> fullParams = new LinkedHashMap<>();
         for (String field : fields) {
-            fullParams.put(field, String.join(",", new TreeSet<>(dimensionsService.fetchDistinctDimensionValues(field, datasetId))));
+            fullParams.put(field, String.join(",", new TreeSet<>(dimensionsService.fetchDistinctDimensionValues(field, datasetId,new TreeSet<>(), new HashMap<>()))));
         }
         return fullParams;
     }
 
     private void getCategories(String datasetId) {
         logger.info("Fetching categories for dataset: " + datasetId);
-        supersetProxyService.getCategories(datasetId);
+        supersetProxyService.getCategories(datasetId, null);
     }
 }
