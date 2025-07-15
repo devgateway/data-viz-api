@@ -6,7 +6,7 @@ eureka:
       superset: true
   client:
     serviceUrl:
-      defaultZone: http://localhost:8761/eureka
+      defaultZone: http://eureka:8761/eureka
 spring:
   main:
     lazy-initialization: true
@@ -16,7 +16,7 @@ spring:
     type: redis
   data:
     redis:
-      host: localhost
+      host: cache
       port: 6379
       password: admin
 
@@ -24,7 +24,7 @@ viz:
   superset:
     url: https://superset.alive.dgstg.org
 server:
-  port: 8080
+  port: 8090
   compression:
     enabled: true
     mime-types: application/json,application/xml,text/html,text/xml,text/plain
