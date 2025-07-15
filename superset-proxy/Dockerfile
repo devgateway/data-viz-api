@@ -33,4 +33,4 @@ COPY entrypoint.sh /opt/viz/
 
 EXPOSE 8090
 
-ENTRYPOINT ["/opt/viz/entrypoint.sh"]
+CMD ["java","-jar","/opt/viz/superset-proxy-0.0.1-SNAPSHOT.jar"]
