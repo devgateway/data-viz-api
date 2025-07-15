@@ -13,6 +13,5 @@ public class StatusController {
     public Map<String, String> status() {
         return Map.of("status", "UP");
     }
-
 }
 
