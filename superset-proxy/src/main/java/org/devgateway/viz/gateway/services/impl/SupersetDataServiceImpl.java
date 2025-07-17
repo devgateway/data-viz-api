@@ -56,8 +56,7 @@ public class SupersetDataServiceImpl implements SupersetDataService {
             String createViewSql = "CREATE OR REPLACE VIEW " + schemaName + "." + viewName + " AS SELECT * FROM " + tempTableName;
             jdbcTemplate.execute(createViewSql);
 
-            // Drop the temporary table
-            jdbcTemplate.execute("DROP TABLE " + tempTableName);
+            //we dont drop the temp table because the view depends on it
 
             logger.info("Successfully created view: " + viewName);
             return true;
