@@ -42,21 +42,16 @@ public class SupersetDataServiceImpl implements SupersetDataService {
             }
 
             // Create a temporary table to hold the data
-            String tempTableName = "temp_" + viewName + "_" + System.currentTimeMillis();
-            String createTableSql = generateCreateTableSql(tempTableName, dataList);
+            String tableName =  viewName + "_" + System.currentTimeMillis();
+            String createTableSql = generateCreateTableSql(tableName, dataList);
 
             // Execute SQL to create the temporary table
             jdbcTemplate.execute(createTableSql);
 
             // Insert data into the temporary table
-            String insertDataSql = generateInsertDataSql(tempTableName, dataList);
+            String insertDataSql = generateInsertDataSql(tableName, dataList);
             jdbcTemplate.execute(insertDataSql);
 
-            // Create or replace the view using the temporary table
-            String createViewSql = "CREATE OR REPLACE VIEW " + schemaName + "." + viewName + " AS SELECT * FROM " + tempTableName;
-            jdbcTemplate.execute(createViewSql);
-
-            //we dont drop the temp table because the view depends on it
 
             logger.info("Successfully created view: " + viewName);
             return true;
