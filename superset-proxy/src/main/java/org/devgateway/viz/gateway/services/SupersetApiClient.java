@@ -18,8 +18,10 @@ import org.springframework.web.client.RestTemplate;
 
 import java.time.Instant;
 import java.util.Collections;
+import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.springframework.web.client.HttpClientErrorException;
 
 @Component
 public class SupersetApiClient {
@@ -37,7 +39,7 @@ public class SupersetApiClient {
     private String supersetPassword;
 
     private String accessToken;
-    private Instant tokenExpiration;
+    private static Instant tokenExpiration;
 
     Logger logger = Logger.getLogger(SupersetApiClient.class.getName());
 
@@ -47,16 +49,10 @@ public class SupersetApiClient {
 
         this.restTemplate = new RestTemplate(new HttpComponentsClientHttpRequestFactory(httpClient));
         this.objectMapper = new ObjectMapper();
-        ensureValidToken();
 
         restTemplate.getInterceptors().add((request, body, execution) -> {
             request.getHeaders().add(HttpHeaders.ACCEPT_ENCODING, "gzip");
             request.getHeaders().add(HttpHeaders.ACCEPT, "application/json");
-
-            // Add authorization header if token is available
-            if (accessToken != null) {
-                request.getHeaders().setBearerAuth(accessToken);
-            }
 
             return execution.execute(request, body);
         });
@@ -97,6 +93,14 @@ public class SupersetApiClient {
                 accessToken = responseBody.get("access_token").asText();
                 // Set token expiration to 1 hour from now (typical default)
                 tokenExpiration = Instant.now().plusSeconds(3600);
+
+                restTemplate.getInterceptors().add((request, body, execution) -> {
+                    if (accessToken != null) {
+                        request.getHeaders().setBearerAuth(accessToken);
+                    }
+
+                    return execution.execute(request, body);
+                });
                 logger.info("Successfully obtained Superset access token");
             } else {
                 logger.warning("Failed to obtain Superset access token");
@@ -122,10 +126,11 @@ public class SupersetApiClient {
      * Fetch list of all charts
      */
     public JsonNode fetchCharts() {
-        ensureValidToken();
-        String url = supersetUrlFromProperties + "/chart/";
-        ResponseEntity<JsonNode> response = restTemplate.getForEntity(url, JsonNode.class);
-        return response.getBody();
+        return executeWithRetry(() -> {
+            String url = supersetUrlFromProperties + "/chart/";
+            ResponseEntity<JsonNode> response = restTemplate.getForEntity(url, JsonNode.class);
+            return response.getBody();
+        });
     }
 
     /**
@@ -133,10 +138,11 @@ public class SupersetApiClient {
      */
     @Cacheable(value = "datasets")
     public JsonNode fetchDatasets() {
-        ensureValidToken();
-        String url = supersetUrlFromProperties + "/dataset/?force=true";
-        ResponseEntity<JsonNode> response = restTemplate.getForEntity(url, JsonNode.class);
-        return response.getBody();
+        return executeWithRetry(() -> {
+            String url = supersetUrlFromProperties + "/dataset/?force=true";
+            ResponseEntity<JsonNode> response = restTemplate.getForEntity(url, JsonNode.class);
+            return response.getBody();
+        });
     }
 
     /**
@@ -149,10 +155,12 @@ public class SupersetApiClient {
             //return emtpy json
             return null;
         }
-        ensureValidToken();
-        String url = supersetUrlFromProperties + "/dataset/" + datasetId;
-        ResponseEntity<JsonNode> response = restTemplate.getForEntity(url, JsonNode.class);
-        return response.getBody();
+
+        return executeWithRetry(() -> {
+            String url = supersetUrlFromProperties + "/dataset/" + datasetId;
+            ResponseEntity<JsonNode> response = restTemplate.getForEntity(url, JsonNode.class);
+            return response.getBody();
+        });
     }
 
     /**
@@ -162,16 +170,16 @@ public class SupersetApiClient {
         logger.info("Calling Superset API to fetch data");
         long startTime = System.currentTimeMillis();
 
-        ensureValidToken();
-        String url = supersetUrlFromProperties + "/chart/data";
+        return executeWithRetry(() -> {
+            String url = supersetUrlFromProperties + "/chart/data";
+            ResponseEntity<JsonNode> response = restTemplate.postForEntity(url, requestBody, JsonNode.class);
 
-        ResponseEntity<JsonNode> response = restTemplate.postForEntity(url, requestBody, JsonNode.class);
+            long endTime = System.currentTimeMillis();
+            long duration = endTime - startTime;
+            logger.info("Time taken to fetch data: " + duration + " ms");
 
-        long endTime = System.currentTimeMillis();
-        long duration = endTime - startTime;
-        logger.info("Time taken to fetch data: " + duration + " ms");
-
-        return response.getBody();
+            return response.getBody();
+        });
     }
 
     /**
@@ -191,5 +199,30 @@ public class SupersetApiClient {
         return accessToken != null &&
                tokenExpiration != null &&
                Instant.now().isBefore(tokenExpiration);
+    }
+
+    /**
+     * Execute an operation with retry logic for token expiration
+     * @param operation The operation to execute
+     * @param <T> The return type of the operation
+     * @return The result of the operation
+     */
+    private <T> T executeWithRetry(Supplier<T> operation) {
+        ensureValidToken();
+        try {
+            return operation.get();
+        } catch (HttpClientErrorException e) {
+            if (e.getStatusCode().value() == 401 && e.getMessage().toLowerCase().contains("token has expired")) {
+                logger.info("Token expired during API call, refreshing token and retrying");
+                // Force token refresh
+                accessToken = null;
+                tokenExpiration = null;
+                ensureValidToken();
+                // Retry the operation
+                return operation.get();
+            }
+            // Rethrow other exceptions
+            throw e;
+        }
     }
 }

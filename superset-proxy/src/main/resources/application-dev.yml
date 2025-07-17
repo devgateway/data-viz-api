@@ -27,9 +27,7 @@ spring:
 
 viz:
   superset:
-    url: http://superset:8088/api/v1
-    username: admin
-    password: admin
+    url: http://superset:8088
     database: amp
     schema: public
 server:
