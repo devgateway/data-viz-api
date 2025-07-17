@@ -12,6 +12,11 @@ spring:
     lazy-initialization: true
   application:
     name: superset-proxy
+  datasource:
+    url: jdbc:postgresql://postgres:5432/amp
+    username: postgres
+    password: admin
+    driver-class-name: org.postgresql.Driver
   cache:
     type: redis
   data:
@@ -22,7 +27,9 @@ spring:
 
 viz:
   superset:
-    url: https://superset.alive.dgstg.org
+    url: http://superset:8088
+    database: amp
+    schema: public
 server:
   port: 8090
   compression:
