@@ -9,6 +9,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 @Service
@@ -180,8 +183,15 @@ public class SupersetProxyService {
     }
 
     private String[] getGroupsArray(String groupsPath) {
-        return groupsPath != null && !groupsPath.trim().isEmpty() ?
-                groupsPath.split("/") : new String[]{};
+        if (groupsPath == null || groupsPath.trim().isEmpty()) {
+            return new String[]{};
+        }
+
+        String[] groups = groupsPath.split("/");
+        for (int i = 0; i < groups.length; i++) {
+            groups[i] = URLDecoder.decode(groups[i], StandardCharsets.UTF_8);
+        }
+        return groups;
     }
 
     @Cacheable("stats")
