@@ -19,11 +19,7 @@ spring:
     driver-class-name: org.postgresql.Driver
   cache:
     type: redis
-  data:
-    redis:
-      host: cache
-      port: 6379
-      password: admin
+
 
 viz:
   superset:
