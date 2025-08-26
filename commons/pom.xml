@@ -5,12 +5,12 @@
     <parent>
         <groupId>org.devgateway.viz.api</groupId>
         <artifactId>parent</artifactId>
-        <version>0.0.13</version>
+        <version>0.0.14-SNAPSHOT</version>
     </parent>
 
     <groupId>org.devgateway.viz.api</groupId>
     <artifactId>commons</artifactId>
-    <version>0.0.14</version>
+    <version>0.0.15-SNAPSHOT</version>
     <name>MicroServices Commons</name>
     <description>Common Micro Service Code</description>
 
@@ -77,6 +77,6 @@
 
     <scm>
         <developerConnection>scm:git:https://github.com/devgateway/data-viz-api.git</developerConnection>
-        <tag>parent-0.0.13</tag>
+        <tag>parent-0.0.6</tag>
     </scm>
 </project>
