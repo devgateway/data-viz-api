@@ -63,7 +63,11 @@ public class CategoryService {
         this.localeTextRepository = localeTextRepository;
     }
 
-
+    /**
+     *
+     * @param tClass
+     * @return
+     */
     private Category createNewCategory(final Class<Category> tClass) {
         try {
             Category t = tClass.getConstructor(null).newInstance();
