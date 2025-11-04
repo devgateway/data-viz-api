@@ -32,7 +32,26 @@
 		echo "$JAVA_OPTS"
 		echo "--- JAVA_OPTS ---"
 
-		exec su -s /bin/sh -c "java -jar '$JAR' $JAVA_OPTS $@" nobody
+		# Find Java executable - eclipse-temurin typically installs at /opt/java/openjdk
+		if [ -z "$JAVA_HOME" ]; then
+			if [ -d "/opt/java/openjdk" ]; then
+				export JAVA_HOME="/opt/java/openjdk"
+			elif [ -f "/usr/lib/jvm/java-21-openjdk-amd64/bin/java" ]; then
+				export JAVA_HOME="/usr/lib/jvm/java-21-openjdk-amd64"
+			else
+				export JAVA_HOME=$(dirname $(dirname $(readlink -f $(which java))))
+			fi
+		fi
+		export PATH="${JAVA_HOME}/bin:${PATH}"
+		JAVA_CMD="${JAVA_HOME}/bin/java"
+		
+		# Ensure java is executable
+		if [ ! -x "$JAVA_CMD" ]; then
+			echo "Error: Java not found at $JAVA_CMD"
+			exit 1
+		fi
+		
+		exec su -s /bin/sh -c "export JAVA_HOME='$JAVA_HOME' && export PATH='${JAVA_HOME}/bin:${PATH}' && '$JAVA_CMD' -jar '$JAR' $JAVA_OPTS $@" nobody
 		;;
 	*)
 		exec $@
