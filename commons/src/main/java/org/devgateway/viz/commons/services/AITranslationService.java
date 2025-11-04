@@ -25,6 +25,12 @@ public class AITranslationService {
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
+    /**
+     *
+     * @param source
+     * @param locale
+     * @return
+     */
     public String translate(String source, String locale) {
         try {
 
