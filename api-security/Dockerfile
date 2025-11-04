@@ -26,6 +26,8 @@ RUN --mount=type=cache,target=/root/.m2 mkdir /opt/viz \
 
 FROM eclipse-temurin:21-jdk-jammy AS api-security
 WORKDIR /opt/viz
+ENV JAVA_HOME=/opt/java/openjdk
+ENV PATH="${JAVA_HOME}/bin:${PATH}"
 COPY --from=builder /opt/viz ./
 EXPOSE 8763
 CMD ["java","-jar","/opt/viz/api-security-0.0.1-SNAPSHOT.jar"]
