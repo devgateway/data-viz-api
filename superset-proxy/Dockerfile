@@ -15,7 +15,7 @@ WORKDIR /tmp/build
 COPY pom.xml ./
 RUN --mount=type=cache,target=/root/.m2 mvn -B -f pom.xml dependency:go-offline
 
-FROM installer AS compiler
+FROM installer AS builder
 
 COPY ./ ./
 
