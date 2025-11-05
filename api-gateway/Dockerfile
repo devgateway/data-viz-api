@@ -1,4 +1,4 @@
-FROM maven:3-amazoncorretto-21 AS base
+FROM maven:3-eclipse-temurin-21 AS base
 
 ARG PROJECT_NAME=api-gateway
 ARG VERSION
@@ -24,7 +24,8 @@ RUN --mount=type=cache,target=/root/.m2 mkdir /opt/viz \
   && mv ./target/*-0.0.1-SNAPSHOT.jar /opt/viz \
   && rm -rf *
 
-FROM openjdk:21-jdk-slim
+FROM eclipse-temurin:21-jre-alpine AS api-gateway
+RUN apk add --no-cache bash curl
 WORKDIR /opt/viz
 COPY --from=builder /opt/viz ./
 EXPOSE 8762
