@@ -24,9 +24,9 @@ RUN --mount=type=cache,target=/root/.m2 mkdir /opt/viz \
   && mv ./target/*-0.0.1-SNAPSHOT.jar /opt/viz \
   && rm -rf *
 
-FROM openjdk:21-jdk-slim AS registry
+FROM eclipse-temurin:21-jre-alpine AS registry
+RUN apk add --no-cache curl bash
 WORKDIR /opt/viz
 COPY --from=builder /opt/viz ./
-RUN apt-get update && apt-get install -y curl
 EXPOSE 8761
 CMD ["java","-jar","/opt/viz/registry-0.0.1-SNAPSHOT.jar"]
