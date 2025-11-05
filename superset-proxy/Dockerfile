@@ -25,14 +25,13 @@ RUN --mount=type=cache,target=/root/.m2 mkdir /opt/viz \
   && rm -rf *
 
 
-FROM eclipse-temurin:21-jdk-jammy AS runtime
+FROM eclipse-temurin:21-jdk-jammy AS registry
 WORKDIR /opt/viz
 ENV JAVA_HOME=/opt/java/openjdk
 ENV PATH="${JAVA_HOME}/bin:${PATH}"
-COPY --from=compiler /opt/viz ./
-
-COPY entrypoint.sh /opt/viz/
+COPY --from=builder /opt/viz ./
+RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
 
 EXPOSE 8090
 
-ENTRYPOINT ["/opt/viz/entrypoint.sh"]
+CMD ["java","-jar","/opt/viz/superset-proxy-0.0.1-SNAPSHOT.jar"]
