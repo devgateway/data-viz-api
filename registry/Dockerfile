@@ -1,4 +1,4 @@
-FROM maven:3-amazoncorretto-21 AS base
+FROM maven:3-eclipse-temurin-21 AS base
 
 ARG PROJECT_NAME=api-gateway
 ARG VERSION
