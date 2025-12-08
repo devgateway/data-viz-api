@@ -1,4 +1,4 @@
-FROM maven:3-eclipse-temurin-21 AS compiler
+FROM maven:3-eclipse-temurin-11 AS compiler
 WORKDIR /tmp/build
 COPY ./pom.xml ./
 RUN mvn -B -f pom.xml dependency:go-offline
@@ -10,7 +10,7 @@ RUN mkdir /opt/tcdi \
   && mv ./target/*-0.0.1-SNAPSHOT.jar /opt/tcdi \
   && rm -rf *
 
-FROM eclipse-temurin:21-jdk-alpine
+FROM eclipse-temurin:11-jdk-alpine
 WORKDIR /opt/tcdi
 COPY --from=compiler /opt/tcdi ./
 EXPOSE 8761
