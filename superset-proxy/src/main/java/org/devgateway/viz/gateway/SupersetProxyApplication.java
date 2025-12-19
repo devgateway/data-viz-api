@@ -19,7 +19,6 @@ import java.util.stream.Collectors;
 @EnableDiscoveryClient(autoRegister = true)
 @EnableCaching
 public class SupersetProxyApplication {
-    //TODO:add logger
 
     public static void main(String[] args) {
         SpringApplication.run(SupersetProxyApplication.class, args);
