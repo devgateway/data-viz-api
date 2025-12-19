@@ -13,7 +13,9 @@ import org.springframework.http.*;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriComponentsBuilder;
 
+import java.net.URI;
 import java.time.Instant;
 import java.util.List;
 import java.util.logging.Logger;
@@ -73,8 +75,16 @@ public class SuperSetClient {
     @Cacheable("superset-datasets")
     public JsonNode fetchDatasets() {
         logger.info("Fetching Datasets");
-        String url = supersetUrlFromProperties + "/api/v1/dataset/?force=true";
-        ResponseEntity<JsonNode> response = restTemplate.getForEntity(url, JsonNode.class);
+        String qParam = "(page:0,page_size:200)";
+        URI uri = UriComponentsBuilder
+                .fromHttpUrl(supersetUrlFromProperties + "/api/v1/dataset/")
+                .queryParam("q", qParam)
+                .queryParam("force", true)
+                .build()
+                .encode()
+                .toUri();
+
+        ResponseEntity<JsonNode> response = restTemplate.getForEntity(uri, JsonNode.class);
         return response.getBody();
     }
 
