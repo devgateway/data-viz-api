@@ -17,10 +17,15 @@ permissions:
   pull-requests: write
   packages: write
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build-and-release-services:
     name: Build And Release ${{ matrix.project_name }}
     strategy:
+      fail-fast: true
       matrix:
         include:
           - project_name: 'api-gateway'
