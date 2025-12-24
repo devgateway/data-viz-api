@@ -117,11 +117,12 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           platforms: linux/amd64,linux/arm64
-          cache-from: type=gha, scope=${{ inputs.docker_buildx_cache_from }}
-          cache-to: type=gha, scope=${{ inputs.docker_buildx_cache_to }}
+          cache-from: type=gha, scope=${{ inputs.docker_buildx_cache_from }},ref=${{ inputs.docker_registry }}/data-viz/${{ inputs.project_name }}:buildcache
+          cache-to: type=gha, scope=${{ inputs.docker_buildx_cache_to }},type=inline, mode=max
           context: ${{ inputs.docker_build_context }}
           push: true
           build-args: |
+            BUILDKIT_INLINE_CACHE=1
             VERSION=${{ needs.prepare-a-release.outputs.new_version }}
             TAG=${{ needs.prepare-a-release.outputs.new_tag }}
             GITHUB_REPO=${{ inputs.github_repo }}
@@ -191,11 +192,12 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           platforms: linux/amd64,linux/arm64
-          cache-from: type=gha, scope=${{ inputs.docker_buildx_cache_from }}
-          cache-to: type=gha, scope=${{ inputs.docker_buildx_cache_to }}
+          cache-from: type=gha, scope=${{ inputs.docker_buildx_cache_from }},ref=${{ inputs.docker_registry }}/data-viz/${{ inputs.project_name }}:buildcache
+          cache-to: type=gha, scope=${{ inputs.docker_buildx_cache_to }},type=inline, mode=max
           context: ${{ inputs.docker_build_context }}
           push: true
           build-args: |
+            BUILDKIT_INLINE_CACHE=1
             VERSION=${{ needs.prepare-a-pre-release.outputs.new_version }}
             TAG=${{ needs.prepare-a-pre-release.outputs.new_tag }}
           tags: >
