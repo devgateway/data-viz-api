@@ -115,6 +115,7 @@ jobs:
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v6
+        timeout-minutes: 45
         with:
           platforms: linux/amd64,linux/arm64
           cache-from: type=gha, scope=${{ inputs.docker_buildx_cache_from }},ref=${{ inputs.docker_registry }}/data-viz/${{ inputs.project_name }}:buildcache
@@ -139,7 +140,7 @@ jobs:
       - name: Build the Maven project
         working-directory: ${{ inputs.docker_build_context }}
         run: |
-          mvn -B compile package -DskipTests 
+          mvn -B compile package -DskipTests
 
       - name: Generate a changelog
         uses: orhun/git-cliff-action@v4
@@ -155,6 +156,7 @@ jobs:
       - name: Create Release
         id: create_release
         uses: softprops/action-gh-release@v2
+        timeout-minutes: 10
         with:
           tag_name: ${{ needs.prepare-a-release.outputs.new_tag }}
           files: ${{ inputs. docker_build_context }}/target/*.jar
@@ -190,6 +192,7 @@ jobs:
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v6
+        timeout-minutes: 45
         with:
           platforms: linux/amd64,linux/arm64
           cache-from: type=gha, scope=${{ inputs.docker_buildx_cache_from }},ref=${{ inputs.docker_registry }}/data-viz/${{ inputs.project_name }}:buildcache
@@ -206,6 +209,7 @@ jobs:
       - name: Create Release
         id: create_release
         uses: softprops/action-gh-release@v2
+        timeout-minutes: 10
         with:
           tag_name: ${{ needs.prepare-a-pre-release.outputs.new_tag }}
           repository: ${{ inputs.github_repo }}
