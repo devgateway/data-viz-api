@@ -49,11 +49,24 @@ jobs:
         working-directory: ./commons
         run: mvn clean deploy --batch-mode
 
+      - name: Check for SNAPSHOT versions
+        id: check_snapshot
+        run: |
+          if mvn help:evaluate -Dexpression=project.version -q -DforceStdout | grep -q "SNAPSHOT"; then
+            echo "has_snapshot=true" >> $GITHUB_OUTPUT
+            echo "Found SNAPSHOT version, will proceed with release"
+          else
+            echo "has_snapshot=false" >> $GITHUB_OUTPUT
+            echo "No SNAPSHOT version found, skipping release"
+          fi
+
 
       - name: Prepare Maven Release
+        if: steps.check_snapshot.outputs.has_snapshot == 'true'
         run: mvn release:prepare --batch-mode
 
       - name: Perform Maven Release
+        if: steps.check_snapshot.outputs.has_snapshot == 'true'
         run: |
           ***REMOVED*** Get current version from pom.xml
           CURRENT_VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
