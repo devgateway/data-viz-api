@@ -18,64 +18,27 @@ permissions:
   packages: write
 
 jobs:
-  build-and-release-api-gateway:
-    name: Build And Release API Gateway
+  build-and-release-services:
+    name: Build And Release ${{ matrix.project_name }}
+    strategy:
+      matrix:
+        include:
+          - project_name: 'api-gateway'
+            docker_build_context: './api-gateway'
+          - project_name: 'api-security'
+            docker_build_context: './api-security'
+          - project_name: 'registry'
+            docker_build_context: './registry'
+          - project_name: 'superset-proxy'
+            docker_build_context: './superset-proxy'
     uses: ./.github/workflows/release-template.yml
     with:
-      project_name: 'api-gateway'
-      docker_buildx_cache_to: 'api-gateway'
+      project_name: ${{ matrix.project_name }}
+      docker_buildx_cache_to: ${{ matrix.project_name }}
       docker_registry: ${{ vars.DOCKER_REGISTRY }}
       dockerfile: 'Dockerfile'
-      docker_build_context: './api-gateway'
-      docker_buildx_cache_from: 'api-gateway'
-      pre_release: 'false'
-      package_bump: ${{ github.event.inputs.package_bump }}
-    secrets:
-      DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-      DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
-
-  build-and-release-api-security:
-    name: Build And Release API Security
-    uses: ./.github/workflows/release-template.yml
-    with:
-      project_name: 'api-security'
-      docker_buildx_cache_to: 'api-security'
-      docker_registry: ${{ vars.DOCKER_REGISTRY }}
-      dockerfile: 'Dockerfile'
-      docker_build_context: './api-security'
-      docker_buildx_cache_from: 'api-security'
-      pre_release: 'false'
-      package_bump: ${{ github.event.inputs.package_bump }}
-    secrets:
-      DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-      DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
-
-  build-and-release-api-registry:
-    name: Build And Release API Registry
-    uses: ./.github/workflows/release-template.yml
-    with:
-      project_name: 'registry'
-      docker_buildx_cache_to: 'registry'
-      docker_registry: ${{ vars.DOCKER_REGISTRY }}
-      dockerfile: 'Dockerfile'
-      docker_build_context: './registry'
-      docker_buildx_cache_from: 'registry'
-      pre_release: 'false'
-      package_bump: ${{ github.event.inputs.package_bump }}
-    secrets:
-      DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-      DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
-
-  build-and-release-superset-proxy:
-    name: Build And Release Superset Proxy
-    uses: ./.github/workflows/release-template.yml
-    with:
-      project_name: 'superset-proxy'
-      docker_buildx_cache_to: 'superset-proxy'
-      docker_registry: ${{ vars.DOCKER_REGISTRY }}
-      dockerfile: 'Dockerfile'
-      docker_build_context: './superset-proxy'
-      docker_buildx_cache_from: 'superset-proxy'
+      docker_build_context: ${{ matrix.docker_build_context }}
+      docker_buildx_cache_from: ${{ matrix.project_name }}
       pre_release: 'false'
       package_bump: ${{ github.event.inputs.package_bump }}
     secrets:
