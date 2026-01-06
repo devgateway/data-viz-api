@@ -7,11 +7,12 @@
     <mirrors>
         <!-- Use repo1.maven.org as primary mirror for all repositories -->
         <!-- Mirror all repository requests to avoid 403 errors from repo.maven.apache.org -->
+        <!-- Using external:* to mirror external repositories, and central for the default central repository -->
         <mirror>
             <id>central-mirror</id>
             <name>Maven Central Mirror</name>
             <url>https://repo1.maven.org/maven2</url>
-            <mirrorOf>*</mirrorOf>
+            <mirrorOf>external:*,central</mirrorOf>
         </mirror>
     </mirrors>
     
