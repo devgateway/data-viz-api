@@ -25,6 +25,9 @@ RUN --mount=type=cache,target=/root/.m2 \
 FROM installer AS builder
 
 COPY ./ ./
+RUN mkdir -p /root/.m2 \
+    && (test -f .mvn-settings.xml && cp .mvn-settings.xml /root/.m2/settings.xml || \
+        printf '<?xml version="1.0" encoding="UTF-8"?>\n<settings xmlns="http://maven.apache.org/SETTINGS/1.2.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.2.0 http://maven.apache.org/xsd/settings-1.2.0.xsd">\n  <mirrors>\n    <mirror>\n      <id>central-mirror</id>\n      <name>Maven Central Mirror</name>\n      <url>https://repo1.maven.org/maven2</url>\n      <mirrorOf>*</mirrorOf>\n    </mirror>\n  </mirrors>\n  <profiles>\n    <profile>\n      <id>default</id>\n      <repositories>\n        <repository>\n          <id>central</id>\n          <name>Maven Central</name>\n          <url>https://repo1.maven.org/maven2</url>\n          <releases><enabled>true</enabled><updatePolicy>daily</updatePolicy></releases>\n          <snapshots><enabled>false</enabled></snapshots>\n        </repository>\n      </repositories>\n      <pluginRepositories>\n        <pluginRepository>\n          <id>central</id>\n          <name>Maven Central</name>\n          <url>https://repo1.maven.org/maven2</url>\n          <releases><enabled>true</enabled><updatePolicy>daily</updatePolicy></releases>\n          <snapshots><enabled>false</enabled></snapshots>\n        </pluginRepository>\n      </pluginRepositories>\n    </profile>\n  </profiles>\n  <activeProfiles>\n    <activeProfile>default</activeProfile>\n  </activeProfiles>\n</settings>\n' > /root/.m2/settings.xml)
 
 RUN --mount=type=cache,target=/root/.m2 mkdir /opt/viz \
   && find /root/.m2/repository -name "*.lastUpdated" -delete 2>/dev/null || true \
