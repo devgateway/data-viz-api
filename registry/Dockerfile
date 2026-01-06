@@ -13,7 +13,6 @@ LABEL github_repo=${GITHUB_REPO}
 FROM base AS installer
 WORKDIR /tmp/build
 COPY pom.xml ./
-RUN --mount=type=cache,target=/root/.m2 mvn -B -f pom.xml dependency:go-offline
 
 FROM installer AS builder
 
