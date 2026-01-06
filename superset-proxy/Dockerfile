@@ -13,18 +13,14 @@ LABEL github_repo=${GITHUB_REPO}
 FROM base AS installer
 WORKDIR /tmp/build
 COPY pom.xml ./
+RUN --mount=type=cache,target=/root/.m2 mvn -B -f pom.xml dependency:go-offline
 
 FROM installer AS compiler
 
 COPY ./ ./
 
 RUN --mount=type=cache,target=/root/.m2 mkdir /opt/viz \
-  && (mvn -B compile package -DskipTests \
-        -Dmaven.wagon.http.retryHandler.count=5 \
-        -Dmaven.wagon.httpconnectionManager.ttlSeconds=120 \
-        -Dmaven.wagon.http.retryHandler.requestSentEnabled=true || \
-      (sleep 10 && mvn -B compile package -DskipTests) || \
-      (sleep 20 && mvn -B compile package -DskipTests)) \
+  && mvn -B compile package -DskipTests \
   && mv ./target/*-0.0.1-SNAPSHOT.jar /opt/viz \
   && rm -rf *
 
