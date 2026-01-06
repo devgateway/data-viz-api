@@ -13,14 +13,20 @@ LABEL github_repo=${GITHUB_REPO}
 FROM base AS installer
 WORKDIR /tmp/build
 COPY pom.xml ./
-RUN --mount=type=cache,target=/root/.m2 mvn -B -f pom.xml dependency:go-offline
+COPY .mvn-settings.xml /root/.m2/settings.xml
+RUN --mount=type=cache,target=/root/.m2 \
+  for i in 1 2 3; do \
+    mvn -B -f pom.xml dependency:go-offline && break || sleep 10; \
+  done
 
 FROM installer AS compiler
 
 COPY ./ ./
 
 RUN --mount=type=cache,target=/root/.m2 mkdir /opt/viz \
-  && mvn -B compile package -DskipTests \
+  && for i in 1 2 3; do \
+    mvn -B compile package -DskipTests && break || sleep 10; \
+  done \
   && mv ./target/*-0.0.1-SNAPSHOT.jar /opt/viz \
   && rm -rf *
 
