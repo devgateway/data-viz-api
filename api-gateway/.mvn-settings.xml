@@ -5,12 +5,13 @@
           http://maven.apache.org/xsd/settings-1.2.0.xsd">
     
     <mirrors>
-        <!-- Use repo1.maven.org as primary mirror for Maven Central -->
+        <!-- Use repo1.maven.org as primary mirror for all repositories -->
+        <!-- Mirror all repository requests to avoid 403 errors from repo.maven.apache.org -->
         <mirror>
             <id>central-mirror</id>
             <name>Maven Central Mirror</name>
             <url>https://repo1.maven.org/maven2</url>
-            <mirrorOf>central</mirrorOf>
+            <mirrorOf>*</mirrorOf>
         </mirror>
     </mirrors>
     
