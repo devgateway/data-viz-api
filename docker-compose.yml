@@ -72,6 +72,7 @@ services:
       dockerfile: Dockerfile
     environment:
       VIZ_SUPERSET_URL: "https://superset.alive.dgstg.org/"
+      VIZ_SUPERSET_WARMUPTOP: "100"
       SPRING_DATASOURCE_URL: "jdbc:postgresql://postgres:5432/viz"
       JAVA_OPTS: "-Xmx512m -Xms512m -XX:+UseG1GC -XX:InitialHeapSize=512m -XX:MaxHeapSize=512m -XX:+ParallelRefProcEnabled "
       SPRING_PROFILES_ACTIVE: "dev"
