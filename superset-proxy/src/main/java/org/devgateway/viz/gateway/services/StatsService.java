@@ -171,5 +171,7 @@ public class StatsService {
         return transformed;
     }
 
-
+    public void warmUp() {
+        superSetClient.warmUp();
+    }
 }
