@@ -2,7 +2,6 @@ package org.devgateway.viz.gateway.controllers;
 
 import jakarta.servlet.http.HttpServletRequest;
 import org.devgateway.viz.gateway.services.SuperSetProxyService;
-import org.devgateway.viz.gateway.services.WarmUpService;
 import org.springframework.cache.CacheManager;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -20,13 +19,11 @@ public class SupersetController {
 
     private final SuperSetProxyService supersetProxyService;
 
-    private final WarmUpService warmUpService;
 
     private final CacheManager cacheManager;
 
-    public SupersetController(SuperSetProxyService supersetProxyService, WarmUpService warmUpService, CacheManager cacheManager) {
+    public SupersetController(SuperSetProxyService supersetProxyService,  CacheManager cacheManager) {
         this.supersetProxyService = supersetProxyService;
-        this.warmUpService = warmUpService;
         this.cacheManager = cacheManager;
     }
 
@@ -43,7 +40,6 @@ public class SupersetController {
 
     @GetMapping("/warmUp")
     public Object warmUp() {
-        warmUpService.warmUp();
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
@@ -84,12 +80,23 @@ public class SupersetController {
     public Object getCategories(@RequestParam(required = false) String dvzProxyDatasetId, @RequestParam Map<String, String> allParams) {
 
 
-        if (dvzProxyDatasetId == null || dvzProxyDatasetId.isEmpty()) {
-            return List.of();
+            if (dvzProxyDatasetId == null || dvzProxyDatasetId.isEmpty()) {
+                return List.of();
         }
 
         return supersetProxyService.getCategories(dvzProxyDatasetId,allParams);
     }
+
+
+    @GetMapping(value = {"/categories/{categoryType}"})
+    public Object getCategory(@RequestParam(required = false) String dvzProxyDatasetId, @RequestParam Map<String, String> allParams, @PathVariable String categoryType) {
+        if (dvzProxyDatasetId == null || dvzProxyDatasetId.isEmpty()) {
+            return List.of();
+        }
+
+        return supersetProxyService.getCategories(categoryType,dvzProxyDatasetId,allParams);
+    }
+
 
     @GetMapping("/stats")
     public Object stats(HttpServletRequest req, @RequestParam Map<String, String> allParams) {
