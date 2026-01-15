@@ -1,16 +1,19 @@
 package org.devgateway.viz.gateway.services.rest;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
+import org.devgateway.viz.gateway.services.CountEntry;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.*;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -18,7 +21,13 @@ import org.springframework.web.util.UriComponentsBuilder;
 import java.net.URI;
 import java.time.Instant;
 import java.util.List;
+import java.util.PriorityQueue;
+import java.util.logging.Level;
 import java.util.logging.Logger;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.data.redis.core.Cursor;
+import org.springframework.data.redis.core.ScanOptions;
+import org.springframework.data.redis.core.StringRedisTemplate;
 
 @Component
 public class SuperSetClient {
@@ -26,15 +35,30 @@ public class SuperSetClient {
     private final Logger logger = Logger.getLogger(SuperSetClient.class.getName());
 
     @Value("${viz.superset.url}")
-    private final String supersetUrlFromProperties;
+    private String supersetUrlFromProperties;
+
+    @Value("${viz.superset.warmUpTop}")
+    private int warmUpTopN;
 
     private final RestTemplate restTemplate;
 
     private final Cache supersetChartDataCache;
+    private final Cache supersetChartDataCacheStats;
+
+    private final StringRedisTemplate redisTemplate;
+    private final ObjectMapper objectMapper;
 
     //TODO: add constructor initiating restTemplate and httpClient
-    public SuperSetClient(@Value("${viz.superset.url}") String supersetUrlFromProperties, CacheManager cacheManager) {
+    public SuperSetClient(
+            CacheManager cacheManager,
+            StringRedisTemplate redisTemplate,
+            ObjectMapper objectMapper) {
+
         supersetChartDataCache = cacheManager.getCache("superset-chart-data");
+        supersetChartDataCacheStats = cacheManager.getCache("superset-chart-data-stats");
+
+        this.redisTemplate = redisTemplate;
+        this.objectMapper = objectMapper;
 
         PoolingHttpClientConnectionManager cm = new PoolingHttpClientConnectionManager();
         cm.setMaxTotal(100);
@@ -46,7 +70,6 @@ public class SuperSetClient {
 
         HttpComponentsClientHttpRequestFactory httpClient = new HttpComponentsClientHttpRequestFactory(client);
         this.restTemplate = new RestTemplate(httpClient);
-        this.supersetUrlFromProperties = supersetUrlFromProperties;
         restTemplate.getInterceptors().add((request, body, execution) -> {
             HttpHeaders headers = request.getHeaders();
 
@@ -118,13 +141,20 @@ public class SuperSetClient {
             supersetChartDataCache.put(requestBody, chartData);
             chartData.put("isCached", false);
         }
+
+        String reqKey = requestBody.toString();
+        Integer cnt = supersetChartDataCacheStats.get(reqKey, Integer.class);
+        supersetChartDataCacheStats.put(reqKey, 1 + (cnt == null ? 0 : cnt));
+
         return chartData;
     }
 
     private ObjectNode postChartDataDirect(JsonNode requestBody) {
         String datasourceId = requestBody.get("datasource").get("id").asText();
-        logger.info("Calling Superset API to fetch data for datasource ID: " + datasourceId
-                + " with request body: " + requestBody.toPrettyString());
+        logger.info("Calling Superset API to fetch data for datasource ID: " + datasourceId);
+        if (logger.isLoggable(Level.FINE)) {
+            logger.fine("Request body: " + requestBody.toPrettyString());
+        }
 
         String submitUrl = supersetUrlFromProperties + "/api/v1/chart/data";
 
@@ -139,6 +169,53 @@ public class SuperSetClient {
             return responseBody;
         } else {
             throw new RuntimeException("Async fetching from Superset not supported.");
+        }
+    }
+
+    @Scheduled(cron = "0 0 3 * * *")
+    public void warmUpAndReset() {
+        warmUp();
+
+        supersetChartDataCacheStats.clear();
+    }
+
+    public void warmUp() {
+        logger.info("Warming up the cache");
+
+        PriorityQueue<CountEntry> topQ = new PriorityQueue<>();
+
+        String prefix = "superset-chart-data-stats::";
+        ScanOptions options = ScanOptions.scanOptions().match(prefix + "*").count(100).build();
+        try (Cursor<String> cursor = redisTemplate.scan(options)) {
+            while (cursor.hasNext()) {
+                String key = cursor.next().substring(prefix.length());
+                Integer cnt = supersetChartDataCacheStats.get(key, Integer.class);
+                if (cnt != null) {
+                    if (topQ.size() < warmUpTopN) {
+                        topQ.offer(new CountEntry(key, cnt));
+                    } else if (cnt > topQ.peek().getCount()) {
+                        topQ.poll();
+                        topQ.offer(new CountEntry(key, cnt));
+                    }
+                }
+            }
+        }
+
+        logger.info("Number of charts to be warmed up: " + topQ.size());
+
+        for (CountEntry e : topQ) {
+            warmUp(e.getKey());
+        }
+
+        logger.info("Finished cache warm up");
+    }
+
+    private void warmUp(String responseBody) {
+        try {
+            JsonNode requestBody = objectMapper.readTree(responseBody);
+            postChartData(requestBody, true);
+        } catch (RuntimeException | JsonProcessingException e) {
+            logger.log(Level.SEVERE, "Failed to warm up chart. Request body: " + responseBody, e);
         }
     }
 }
