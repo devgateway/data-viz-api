@@ -23,6 +23,8 @@ spring:
 viz:
   superset:
     url: https://superset.alive.dgstg.org
+    warmUpTop: 100
+
 server:
   port: 8888
   compression:
