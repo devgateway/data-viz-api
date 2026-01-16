@@ -84,12 +84,23 @@ public class SupersetController {
     public Object getCategories(@RequestParam(required = false) String dvzProxyDatasetId, @RequestParam Map<String, String> allParams) {
 
 
-        if (dvzProxyDatasetId == null || dvzProxyDatasetId.isEmpty()) {
-            return List.of();
+            if (dvzProxyDatasetId == null || dvzProxyDatasetId.isEmpty()) {
+                return List.of();
         }
 
         return supersetProxyService.getCategories(dvzProxyDatasetId,allParams);
     }
+
+
+    @GetMapping(value = {"/categories/{categoryType}"})
+    public Object getCategory(@RequestParam(required = false) String dvzProxyDatasetId, @RequestParam Map<String, String> allParams, @PathVariable String categoryType) {
+        if (dvzProxyDatasetId == null || dvzProxyDatasetId.isEmpty()) {
+            return List.of();
+        }
+
+        return supersetProxyService.getCategories(categoryType,dvzProxyDatasetId,allParams);
+    }
+
 
     @GetMapping("/stats")
     public Object stats(HttpServletRequest req, @RequestParam Map<String, String> allParams) {
