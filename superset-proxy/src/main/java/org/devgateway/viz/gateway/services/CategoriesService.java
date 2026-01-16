@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static org.devgateway.viz.gateway.services.Utils.*;
 
@@ -31,8 +32,11 @@ public class CategoriesService {
 
     }
 
-
     public List<Map<String, Object>> getCategories(String datasetId, Map<String, String> allParams) {
+        return getCategories(null, datasetId, allParams);
+    }
+
+    public List<Map<String, Object>> getCategories(String type, String datasetId, Map<String, String> allParams) {
         if (datasetId == null) {
             return Collections.emptyList();
         }
@@ -47,6 +51,14 @@ public class CategoriesService {
         List<String> measures = extractUniqueMeasures(result);
         List<Map<String, Object>> categories = new ArrayList<>();
         Set<String> filterableColumns = extractFilterableColumns(result);
+
+
+
+        if (type!=null) {
+            dimensions=dimensions.stream().filter(d->d.get("type").toString().equalsIgnoreCase(type)).toList();
+           // filterableColumns= (Set<String>) filterableColumns.stream().filter(d->d.equalsIgnoreCase(type)).collect(Collectors.toSet());
+        }
+
         for (Map<String, Object> dim : dimensions) {
             String field = (String) dim.get("field");
             Map<String, Object> category = new HashMap<>();

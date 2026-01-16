@@ -50,6 +50,10 @@ public class SuperSetProxyService {
         return categoriesService.getCategories(datasetId,allParams);
     }
 
+    public List<Map<String, Object>> getCategories(String type, String datasetId, Map<String, String> allParams ) {
+        return categoriesService.getCategories(type, datasetId,allParams);
+    }
+
 
     //fetchMeasures
     public List<Map<String, Object>> getMeasures(String datasetId) {
