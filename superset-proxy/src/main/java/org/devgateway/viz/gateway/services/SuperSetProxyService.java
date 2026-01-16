@@ -69,5 +69,9 @@ public class SuperSetProxyService {
     public List<Map<String, Object>> getFilters(String datasetId) {
         return filtersService.getFilters(datasetId);
     }
+
+    public void warmUp() {
+        statsService.warmUp();
+    }
 }
 
