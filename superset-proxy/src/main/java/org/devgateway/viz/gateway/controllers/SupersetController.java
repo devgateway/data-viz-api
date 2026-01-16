@@ -19,17 +19,20 @@ public class SupersetController {
 
     private final SuperSetProxyService supersetProxyService;
 
-
     private final CacheManager cacheManager;
 
-    public SupersetController(SuperSetProxyService supersetProxyService,  CacheManager cacheManager) {
+    public SupersetController(SuperSetProxyService supersetProxyService, CacheManager cacheManager) {
         this.supersetProxyService = supersetProxyService;
         this.cacheManager = cacheManager;
     }
 
     @GetMapping("/cacheEvict")
     public ResponseEntity<Object> cacheEvict(HttpServletRequest req, @RequestParam Map<String, String> allParams) {
-        cacheManager.getCacheNames().forEach(s -> Objects.requireNonNull(cacheManager.getCache(s)).clear());
+        cacheManager.getCacheNames().forEach(s -> {
+            if (!s.equals("superset-chart-data-stats")) {
+                Objects.requireNonNull(cacheManager.getCache(s)).clear();
+            }
+        });
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
@@ -40,6 +43,7 @@ public class SupersetController {
 
     @GetMapping("/warmUp")
     public Object warmUp() {
+        supersetProxyService.warmUp();
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
