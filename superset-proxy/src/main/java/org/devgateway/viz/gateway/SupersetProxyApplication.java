@@ -33,6 +33,8 @@ public class SupersetProxyApplication {
                         RedisCacheConfiguration.defaultCacheConfig().entryTtl(Duration.ofMinutes(5)))
                 .withCacheConfiguration("superset-chart-data",
                         RedisCacheConfiguration.defaultCacheConfig().entryTtl(Duration.ofDays(1)))
+                .withCacheConfiguration("superset-chart-data-stats",
+                        RedisCacheConfiguration.defaultCacheConfig().entryTtl(Duration.ofDays(3)))
                 .build();
     }
 
