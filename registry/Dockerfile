@@ -10,7 +10,7 @@ RUN mkdir /opt/tcdi \
   && mv ./target/*-0.0.1-SNAPSHOT.jar /opt/tcdi \
   && rm -rf *
 
-FROM openjdk:11-jdk-slim
+FROM eclipse-temurin:11-jdk AS runtime
 WORKDIR /opt/tcdi
 COPY --from=compiler /opt/tcdi ./
 EXPOSE 8761
