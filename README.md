@@ -18,6 +18,8 @@ A comprehensive Spring Boot microservices architecture for data visualization an
 
 The Data Visualization API is a multi-module Spring Boot application designed to provide a scalable, secure platform for data visualization and analytics. It follows a microservices architecture with service discovery, API gateway, security layer, and business logic components.
 
+More Documentation: [Data VIZ Documentation](https://devgateway.github.io/data-viz-example)
+
 ***REMOVED******REMOVED******REMOVED*** Key Features
 
 - **Microservices Architecture**: Modular design with independent, scalable services
