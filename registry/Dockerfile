@@ -10,10 +10,9 @@ RUN mkdir /opt/tcdi \
   && mv ./target/*-0.0.1-SNAPSHOT.jar /opt/tcdi \
   && rm -rf *
 
-FROM openjdk:21-jdk-slim
+FROM eclipse-temurin:21-jdk-alpine AS runtime
+RUN apk add --no-cache bash curl
 WORKDIR /opt/tcdi
 COPY --from=compiler /opt/tcdi ./
-RUN apt-get update && apt-get install -y \
-curl
 EXPOSE 8761
 CMD ["java","-jar","/opt/tcdi/registry-0.0.1-SNAPSHOT.jar"]

@@ -10,7 +10,8 @@ RUN mkdir /opt/viz \
   && mv ./target/*-0.0.1-SNAPSHOT.jar /opt/viz \
   && rm -rf *
 
-FROM openjdk:21-jdk-slim
+FROM eclipse-temurin:21-jdk-alpine AS runtime
+RUN apk add --no-cache bash curl
 WORKDIR /opt/viz
 COPY --from=compiler /opt/viz ./
 
