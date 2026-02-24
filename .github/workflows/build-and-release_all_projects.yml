@@ -33,7 +33,7 @@ jobs:
             docker_build_context: './api-gateway'
           - project_name: 'api-security'
             docker_build_context: './api-security'
-          - project_name: 'registry'
+          - project_name: 'api-registry'
             docker_build_context: './registry'
           - project_name: 'superset-proxy'
             docker_build_context: './superset-proxy'
