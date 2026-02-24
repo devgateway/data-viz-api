@@ -42,13 +42,7 @@
             <artifactId>netty-resolver-dns-native-macos</artifactId>
               <version>4.1.68.Final</version>
             <classifier>osx-x86_64</classifier>
-        </dependency>
-        <dependency>
-            <groupId>org.liquibase</groupId>
-            <artifactId>liquibase</artifactId>
-            <version>4.29.0</version>
-            <scope>compile</scope>
-        </dependency>
+        </dependency> 
     </dependencies>
     <dependencyManagement>
         <dependencies>
