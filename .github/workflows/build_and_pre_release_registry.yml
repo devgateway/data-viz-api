@@ -17,12 +17,12 @@ jobs:
   build_and_release_api_registry:
     uses: ./.github/workflows/release-template.yml
     with:
-      project_name: 'registry'
-      docker_buildx_cache_to: 'registry'
+      project_name: 'api-registry'
+      docker_buildx_cache_to: 'api-registry'
       docker_registry: ${{ vars.DOCKER_REGISTRY }}
       dockerfile: 'Dockerfile'
       docker_build_context: './registry'
-      docker_buildx_cache_from: 'registry'
+      docker_buildx_cache_from: 'api-registry'
       pre_release: 'true'
     secrets:
       DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
