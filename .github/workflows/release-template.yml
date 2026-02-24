@@ -118,7 +118,7 @@ jobs:
         with:
           platforms: linux/amd64,linux/arm64
           cache-from: type=registry,ref=${{ inputs.docker_registry }}/devgateway/data-viz/${{ inputs.project_name }}:buildcache
-          cache-to: type=registry, ref=${{ inputs.docker_registry }}/devgateway/data-viz/${{ inputs.project_name }}:buildcache,mode=max 
+          cache-to: type=registry,ref=${{ inputs.docker_registry }}/devgateway/data-viz/${{ inputs.project_name }}:buildcache,mode=max 
           context: ${{ inputs.docker_build_context }}
           push: true
           build-args: |
@@ -189,7 +189,7 @@ jobs:
         with:
           platforms: linux/amd64,linux/arm64
           cache-from: type=registry,ref=${{ inputs.docker_registry }}/devgateway/data-viz/${{ inputs.project_name }}:buildcache
-          cache-to: type=registry, ref=${{ inputs.docker_registry }}/devgateway/data-viz/${{ inputs.project_name }}:buildcache,mode=max
+          cache-to: type=registry,ref=${{ inputs.docker_registry }}/devgateway/data-viz/${{ inputs.project_name }}:buildcache,mode=max
           context: ${{ inputs.docker_build_context }}
           push: true
           build-args: |
