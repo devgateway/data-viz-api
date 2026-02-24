@@ -58,7 +58,6 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           release_branches: production,release/*
           default_bump: ${{ inputs.package_bump }}
-          tag_prefix: ${{ inputs.project_name }}-
           dry_run: "true"
 
   prepare-a-pre-release:
@@ -85,7 +84,7 @@ jobs:
           tag_prefix: v
           release_branches: production,release/*
           pre_release_branches: main
-          append_to_pre_release_tag: ${{ inputs.project_name }}-snapshot-${{steps.current_date.outputs.current_date}}
+          append_to_pre_release_tag: rc
           dry_run: "true"
 
   build_and_release_project:
@@ -110,16 +109,16 @@ jobs:
         uses: docker/login-action@v3
         with:
           registry: ${{ inputs.docker_registry }}
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v6
         timeout-minutes: 45
         with:
           platforms: linux/amd64,linux/arm64
-          cache-from: type=gha, scope=${{ inputs.docker_buildx_cache_from }},ref=${{ inputs.docker_registry }}/data-viz/${{ inputs.project_name }}:buildcache
-          cache-to: type=gha, scope=${{ inputs.docker_buildx_cache_to }},type=inline, mode=max
+          cache-from: type=registry,ref=${{ inputs.docker_registry }}/devgateway/data-viz/${{ inputs.project_name }}:buildcache
+          cache-to: type=registry, ref=${{ inputs.docker_registry }}/devgateway/data-viz/${{ inputs.project_name }}:buildcache,mode=max 
           context: ${{ inputs.docker_build_context }}
           push: true
           build-args: |
@@ -128,19 +127,14 @@ jobs:
             TAG=${{ needs.prepare-a-release.outputs.new_tag }}
             GITHUB_REPO=${{ inputs.github_repo }}
           tags: |
-            ${{ inputs.docker_registry }}/data-viz/${{ inputs.project_name }}:latest
-            ${{ inputs.docker_registry }}/data-viz/${{ inputs.project_name }}:${{ needs.prepare-a-release.outputs.new_version }}
+            ${{ inputs.docker_registry }}/devgateway/data-viz/${{ inputs.project_name }}:latest
+            ${{ inputs.docker_registry }}/devgateway/data-viz/${{ inputs.project_name }}:${{ needs.prepare-a-release.outputs.new_version }}
 
       - name: Set up JDK 21
         uses: actions/setup-java@v4
         with:
           distribution: 'corretto'
           java-version: '21'
-
-      - name: Build the Maven project
-        working-directory: ${{ inputs.docker_build_context }}
-        run: |
-          mvn -B compile package -DskipTests
 
       - name: Generate a changelog
         uses: orhun/git-cliff-action@v4
@@ -159,7 +153,6 @@ jobs:
         timeout-minutes: 10
         with:
           tag_name: ${{ needs.prepare-a-release.outputs.new_tag }}
-          files: ${{ inputs. docker_build_context }}/target/*.jar
           body_path: CHANGELOG-${{ inputs.project_name }}.md
           draft: false
           prerelease: "false"
@@ -187,16 +180,16 @@ jobs:
         uses: docker/login-action@v3
         with:
           registry: ${{ inputs.docker_registry }}
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v6
         timeout-minutes: 45
         with:
           platforms: linux/amd64,linux/arm64
-          cache-from: type=gha, scope=${{ inputs.docker_buildx_cache_from }},ref=${{ inputs.docker_registry }}/data-viz/${{ inputs.project_name }}:buildcache
-          cache-to: type=gha, scope=${{ inputs.docker_buildx_cache_to }},type=inline, mode=max
+          cache-from: type=registry,ref=${{ inputs.docker_registry }}/devgateway/data-viz/${{ inputs.project_name }}:buildcache
+          cache-to: type=registry, ref=${{ inputs.docker_registry }}/devgateway/data-viz/${{ inputs.project_name }}:buildcache,mode=max
           context: ${{ inputs.docker_build_context }}
           push: true
           build-args: |
@@ -204,7 +197,7 @@ jobs:
             VERSION=${{ needs.prepare-a-pre-release.outputs.new_version }}
             TAG=${{ needs.prepare-a-pre-release.outputs.new_tag }}
           tags: >
-            ${{ inputs.docker_registry }}/data-viz/${{ inputs.project_name }}:${{ needs.prepare-a-pre-release.outputs.new_version }}
+            ${{ inputs.docker_registry }}/devgateway/data-viz/${{ inputs.project_name }}:${{ needs.prepare-a-pre-release.outputs.new_version }}
 
       - name: Create Release
         id: create_release
