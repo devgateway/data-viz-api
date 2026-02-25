@@ -204,7 +204,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         timeout-minutes: 10
         with:
-          tag_name: ${{ needs.prepare-a-pre-release.outputs.new_tag }}
+          tag_name: ${{ inputs.project_name }}-${{ needs.prepare-a-pre-release.outputs.new_tag }}
           repository: ${{ inputs.github_repo }}
           draft: false
           prerelease: "true"
