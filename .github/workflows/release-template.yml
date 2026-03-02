@@ -196,7 +196,8 @@ jobs:
             BUILDKIT_INLINE_CACHE=1
             VERSION=${{ needs.prepare-a-pre-release.outputs.new_version }}
             TAG=${{ needs.prepare-a-pre-release.outputs.new_tag }}
-          tags: >
+          tags: |
+            ${{ inputs.docker_registry }}/devgateway/data-viz/${{ inputs.project_name }}:dev
             ${{ inputs.docker_registry }}/devgateway/data-viz/${{ inputs.project_name }}:${{ needs.prepare-a-pre-release.outputs.new_version }}
 
       - name: Create Release
