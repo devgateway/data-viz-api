@@ -37,7 +37,7 @@ public class SuperSetClient {
     @Value("${viz.superset.url}")
     private String supersetUrlFromProperties;
 
-    @Value("${viz.superset.warmUpTop}")
+    @Value("${viz.superset.warmup.top}")
     private int warmUpTopN;
 
     private final RestTemplate restTemplate;
