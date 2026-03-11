@@ -56,6 +56,7 @@ jobs:
         uses: mathieudutour/github-tag-action@v6.2
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
+          tag_prefix: ${{ inputs.project_name }}@v
           release_branches: main,production,release/*
           default_bump: ${{ inputs.package_bump }}
           dry_run: "true"
@@ -81,7 +82,7 @@ jobs:
         uses: mathieudutour/github-tag-action@v6.2
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          tag_prefix: v
+          tag_prefix: ${{ inputs.project_name }}@v
           release_branches: production,release/*
           pre_release_branches: main
           append_to_pre_release_tag: rc
@@ -153,7 +154,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         timeout-minutes: 10
         with:
-          tag_name: "${{ inputs.project_name }}@${{ needs.prepare-a-release.outputs.new_tag }}"
+          tag_name: "${{ needs.prepare-a-release.outputs.new_tag }}"
           body_path: CHANGELOG-${{ inputs.project_name }}.md
           draft: false
           prerelease: "false"
@@ -206,7 +207,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         timeout-minutes: 10
         with:
-          tag_name: "${{ inputs.project_name }}@${{ needs.prepare-a-pre-release.outputs.new_tag }}"
+          tag_name: "${{ needs.prepare-a-pre-release.outputs.new_tag }}"
           repository: ${{ inputs.github_repo }}
           draft: false
           prerelease: "true"
