@@ -12,6 +12,7 @@ A comprehensive Spring Boot microservices architecture for data visualization an
 - [API Documentation](#api-documentation)
 - [Configuration](#configuration)
 - [Development](#development)
+- [Release](#release)
 - [Deployment](#deployment)
 
 ## Overview
@@ -505,6 +506,9 @@ mvn liquibase:update
 3. Implement `@SpringBootApplication` class with `@EnableDiscoveryClient`
 4. Configure `application.yml` with service name and Eureka URL
 5. Build and run
+
+## Release
+See [RELEASE.md](/RELEASE.md)
 
 ## Deployment
 
