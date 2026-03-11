@@ -132,11 +132,6 @@ jobs:
             ${{ inputs.docker_registry }}/devgateway/data-viz/${{ inputs.project_name }}:${{ needs.prepare-a-release.outputs.new_version }}
             ${{ inputs.docker_registry }}/devgateway/data-viz/${{ inputs.project_name }}:dev
 
-      - name: Set up JDK 21
-        uses: actions/setup-java@v4
-        with:
-          distribution: 'corretto'
-          java-version: '21'
 
       - name: Generate a changelog
         uses: orhun/git-cliff-action@v4
