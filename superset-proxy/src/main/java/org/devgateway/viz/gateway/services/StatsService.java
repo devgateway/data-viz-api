@@ -35,7 +35,14 @@ public class StatsService {
             return Collections.emptyList();
         }
 
-        JsonNode requestBody = buildSupersetDataRequest(datasetId, queryParams, groupsPath);
+        JsonNode datasetResult = getDatasetResult(datasetId);
+        if (datasetResult == null) {
+            logger.warn("Dataset metadata not found for datasetId: {}", datasetId);
+            return Collections.emptyList();
+        }
+
+        Map<String, String> labelMap = buildLabelMap(datasetResult);
+        JsonNode requestBody = buildSupersetDataRequest(datasetResult, datasetId, queryParams, groupsPath);
 
         boolean force = "true".equals(queryParams.get("force"));
 
@@ -58,6 +65,7 @@ public class StatsService {
                     queriesNode.get(0).get("groupby"),
                     queriesNode.get(0).get("metrics"),
                     getGroupsArray(groupsPath),
+                    labelMap,
                     isCached,
                     cachedAt);
         }
@@ -65,11 +73,50 @@ public class StatsService {
         return Collections.emptyList();
     }
 
-    private JsonNode buildSupersetDataRequest(String datasetId, Map<String, String> queryParams, String groupsPath) {
+    private JsonNode getDatasetResult(String datasetId) {
+        JsonNode dataset = superSetClient.fetchDataset(datasetId);
+        if (dataset == null || !dataset.has("result")) {
+            return null;
+        }
+        return dataset.get("result");
+    }
 
-        JsonNode result = superSetClient.fetchDataset(datasetId).get("result");
-        List<String> measuresArr = extractUniqueMeasures(result);
-        Set<String> filterableColumns = extractFilterableColumns(result);
+    private Map<String, String> buildLabelMap(JsonNode datasetResult) {
+        Map<String, String> labels = new HashMap<>();
+
+        JsonNode columns = datasetResult.get("columns");
+        if (columns != null && columns.isArray()) {
+            for (JsonNode column : columns) {
+                String internalName = column.path("column_name").asText(null);
+                if (internalName != null && !internalName.isEmpty()) {
+                    String label = column.path("verbose_name").isTextual() && !column.path("verbose_name").asText().isEmpty()
+                            ? column.path("verbose_name").asText()
+                            : internalName;
+                    labels.put(internalName, label);
+                }
+            }
+        }
+
+        JsonNode metrics = datasetResult.get("metrics");
+        if (metrics != null && metrics.isArray()) {
+            for (JsonNode metric : metrics) {
+                String internalName = metric.path("metric_name").asText(null);
+                if (internalName != null && !internalName.isEmpty()) {
+                    String label = metric.path("verbose_name").isTextual() && !metric.path("verbose_name").asText().isEmpty()
+                            ? metric.path("verbose_name").asText()
+                            : internalName;
+                    labels.put(internalName, label);
+                }
+            }
+        }
+
+        return labels;
+    }
+
+    private JsonNode buildSupersetDataRequest(JsonNode datasetResult, String datasetId, Map<String, String> queryParams, String groupsPath) {
+
+        List<String> measuresArr = extractUniqueMeasures(datasetResult);
+        Set<String> filterableColumns = extractFilterableColumns(datasetResult);
 
         Map<String, Object> datasource = createDatasource(datasetId);
 
@@ -94,7 +141,8 @@ public class StatsService {
         return objectMapper.valueToTree(createSupersetRequest(datasource, queries));
     }
 
-    private Object transformData(JsonNode data, JsonNode dimensionsNode, JsonNode metricsNode, String[] dimensionsArray, boolean isCached, String cachedAt) {
+    private Object transformData(JsonNode data, JsonNode dimensionsNode, JsonNode metricsNode, String[] dimensionsArray,
+                                 Map<String, String> labelMap, boolean isCached, String cachedAt) {
         Map<String, Object> transformed = createTransformedData();
         List<Map<String, Object>> measuresList = new ArrayList<>();
         List<Map<String, Object>> typesList = new ArrayList<>();
@@ -109,7 +157,8 @@ public class StatsService {
         }
 
         for (JsonNode metric : metricsNode) {
-            measuresList.add(createMeasure(metric.asText(), metric.asText()));
+            String metricName = metric.asText();
+            measuresList.add(createMeasure(metricName, labelMap.getOrDefault(metricName, metricName)));
         }
 
         List<String> dimList = Arrays.asList(dimensionsArray);
