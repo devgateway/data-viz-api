@@ -59,6 +59,7 @@ jobs:
           tag_prefix: ${{ inputs.project_name }}@v
           release_branches: main,production,release/*
           default_bump: ${{ inputs.package_bump }}
+          custom_tag: "0.0.16"
           dry_run: "true"
 
   prepare-a-pre-release:
