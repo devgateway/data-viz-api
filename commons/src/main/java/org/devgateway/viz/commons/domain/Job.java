@@ -3,6 +3,7 @@ package org.devgateway.viz.commons.domain;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
+import jakarta.persistence.Column;
 import jakarta.persistence.Id;
 import java.time.ZonedDateTime;
 
@@ -21,6 +22,7 @@ public class Job {
 
     private String code;
 
+    @Column(columnDefinition = "text")
     private String message;
 
     public Long getId() {
