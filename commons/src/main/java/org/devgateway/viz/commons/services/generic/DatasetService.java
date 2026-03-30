@@ -149,7 +149,7 @@ public class DatasetService {
         } catch (Exception e) {
             logger.error("Error during import operation.", e);
             String errMsg = e.getMessage() != null ? e.getMessage() : "Unknown error";
-            updateJob(jobId, JobStatus.ERROR, errMsg.length() > 2000 ? errMsg.substring(0, 2000) + "..." : errMsg);
+            updateJob(jobId, JobStatus.ERROR, errMsg.length() > 250 ? errMsg.substring(0, 250) + "..." : errMsg);
         }
     }
 
@@ -165,7 +165,7 @@ public class DatasetService {
         } catch (Exception e) {
             logger.error("Error during import operation.", e);
             String errMsg = e.getMessage() != null ? e.getMessage() : "Unknown error";
-            updateJob(jobId, JobStatus.ERROR, errMsg.length() > 2000 ? errMsg.substring(0, 2000) + "..." : errMsg);
+            updateJob(jobId, JobStatus.ERROR, errMsg.length() > 250 ? errMsg.substring(0, 250) + "..." : errMsg);
         }
     }
 
