@@ -418,6 +418,17 @@ viz.date.format=yyyy-MM-dd       # Date format for imports
 
 ## Development
 
+### Security: Pre-commit Hooks
+
+This project uses [Gitleaks](https://github.com/gitleaks/gitleaks) to prevent secrets from being accidentally committed. Install the pre-commit hook after cloning:
+
+```bash
+pip install pre-commit
+pre-commit install
+```
+
+After installation, every `git commit` will automatically scan staged files for secrets.
+
 ### Project Structure
 
 ```
