@@ -1,0 +1,27 @@
+***REMOVED*** Gitleaks configuration
+***REMOVED*** See: https://github.com/gitleaks/gitleaks/tree/master***REMOVED***configuration
+
+title = "data-viz-api gitleaks config"
+
+[extend]
+***REMOVED*** Extend the default ruleset
+useDefault = true
+
+[[allowlists]]
+description = "Allow Spring env-var fallback placeholders (not real secrets)"
+regexes = [
+    ***REMOVED*** Matches patterns like ${VAR_NAME:some-default-value}
+    '''\$\{[A-Z_]+:[^}]+\}''',
+    ***REMOVED*** Matches Docker Compose variable syntax ${VAR:-default}
+    '''\$\{[A-Z_]+:-[^}]+\}''',
+]
+
+[[allowlists]]
+description = "Allow placeholder values explicitly set to NONE or example values"
+regexes = [
+    '''google\.cloud\.key=NONE''',
+    '''google\.translation\.app=NONE''',
+    '''your-superset-instance\.example\.com''',
+    '''change-me-in-production''',
+    '''dev-only-jwt-secret''',
+]
