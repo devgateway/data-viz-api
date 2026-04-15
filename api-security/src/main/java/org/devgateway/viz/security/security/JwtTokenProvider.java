@@ -18,6 +18,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import java.util.Base64;
 import java.util.Date;
 import java.util.List;
+import org.springframework.beans.factory.annotation.Value;
 
 @Component
 public class JwtTokenProvider {
@@ -26,7 +27,8 @@ public class JwtTokenProvider {
 
     private static final String AUTHORIZATION = "Authorization";
 
-    @Value("${jwt.secret}")\n    private String secretKey;
+    @Value("${jwt.secret}")
+    private String secretKey;
 
     private long validityInMilliseconds = 3600000; // 1h
 
