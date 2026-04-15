@@ -1,0 +1,12 @@
+# Pre-commit hook configuration
+# Install: pip install pre-commit && pre-commit install
+# See: https://pre-commit.com
+
+repos:
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.21.2
+    hooks:
+      - id: gitleaks
+        name: Detect secrets with Gitleaks
+        description: Prevent committing secrets and credentials
+        args: ["--config=.gitleaks.toml"]

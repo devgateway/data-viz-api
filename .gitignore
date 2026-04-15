@@ -1,7 +1,20 @@
 .env
+.env.*
 data
 /.idea/
 *.iml
 /target/
 target
 /commons/target/
+
+# Secrets and certificates
+*.jks
+*.p12
+*.pem
+*.key
+*.cer
+*.pfx
+
+# Secret purge script and artifacts
+purge-secrets.sh
+replacements.txt
