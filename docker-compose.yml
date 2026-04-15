@@ -3,7 +3,8 @@ services:
     image: postgres:16.8
     environment:
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: admin
+      # SECURITY: Override with a strong password in production via POSTGRES_PASSWORD env var
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-admin}
       POSTGRES_DB: viz
     ports:
       - "5432:5432"
@@ -43,7 +44,8 @@ services:
     environment:
       SPRING_DATASOURCE_URL: "jdbc:postgresql://postgres:5432/viz"
       SPRING_DATASOURCE_USERNAME: "postgres"
-      SPRING_DATASOURCE_PASSWORD: "admin"
+      # SECURITY: Override with a strong password via SPRING_DATASOURCE_PASSWORD env var in production
+      SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD:-admin}
       JAVA_OPTS: "-Xmx512m -Xms512m -XX:+UseG1GC -XX:InitialHeapSize=512m -XX:MaxHeapSize=512m -XX:+ParallelRefProcEnabled"
     ports:
       - "8762:8762"
@@ -75,7 +77,7 @@ services:
       context: ./superset-proxy
       dockerfile: Dockerfile
     environment:
-      VIZ_SUPERSET_URL: "https://superset.alive.dgstg.org/"
+      VIZ_SUPERSET_URL: "https://your-superset-instance.example.com/"
       VIZ_SUPERSET_WARMUP_TOP: "100"
       SPRING_DATASOURCE_URL: "jdbc:postgresql://postgres:5432/viz"
       JAVA_OPTS: "-Xmx512m -Xms512m -XX:+UseG1GC -XX:InitialHeapSize=512m -XX:MaxHeapSize=512m -XX:+ParallelRefProcEnabled "
@@ -86,7 +88,8 @@ services:
       SPRING_APPLICATION_NAME: "superset-proxy"
       SPRING_DATA_REDIS_HOST: "cache"
       SPRING_DATA_REDIS_PORT: "6379"
-      SPRING_DATA_REDIS_PASSWORD: "admin"
+      # SECURITY: Override with a strong password via SPRING_DATA_REDIS_PASSWORD env var in production
+      SPRING_DATA_REDIS_PASSWORD: ${SPRING_DATA_REDIS_PASSWORD:-admin}
       SPRING_DATA_CACHE_TYPE: "redis"
     ports:
       - "8090:8090"
