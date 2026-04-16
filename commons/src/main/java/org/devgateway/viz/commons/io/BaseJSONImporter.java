@@ -14,15 +14,16 @@ import org.devgateway.viz.commons.domain.LocaleText;
 import org.devgateway.viz.commons.services.CategoryService;
 import org.devgateway.viz.commons.services.generic.DatasetService;
 import org.devgateway.viz.commons.services.generic.FileContentService;
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
-public abstract class BaseJSONImporter<T extends DatasetRecord> extends BaseImport<T, JSONObject> {
+public abstract class BaseJSONImporter<T extends DatasetRecord> extends BaseImport<T, JsonNode> {
 
+    private static final ObjectMapper MAPPER = new ObjectMapper();
 
     @Autowired
     private DatasetService datasetService;
@@ -41,46 +42,47 @@ public abstract class BaseJSONImporter<T extends DatasetRecord> extends BaseImpo
         while ((line = in.readLine()) != null) {
             sb.append(line);
         }
-        JSONObject main = new JSONObject(sb.toString());
+        JsonNode main = MAPPER.readTree(sb.toString());
 
-        JSONArray languages = main.getJSONArray("languages");
-        if (languages != null) {
-            languages.forEach(l -> categoryService.createIfNotExist(l.toString(), Language.class));
+        JsonNode languages = main.get("languages");
+        if (languages != null && languages.isArray()) {
+            languages.forEach(l -> categoryService.createIfNotExist(l.asText(), Language.class));
         }
 
-        JSONArray array = main.getJSONArray("data");
-        for (int i = 0; i < array.length(); i++) {
-            JSONObject obj = array.getJSONObject(i);
+        ArrayNode array = (ArrayNode) main.get("data");
+        for (int i = 0; i < array.size(); i++) {
+            JsonNode obj = array.get(i);
             T record = read(obj);
             record.setDataset(dataset);
             if (record != null) {
                 save(record);
-                logger.info("Record counts " + (count[0]++) + " of " + array.length());
+                logger.info("Record counts " + (count[0]++) + " of " + array.size());
             }
         }
     }
 
-    private List<LocaleText> extractJSONField(JSONObject row, String field) {
+    private List<LocaleText> extractJSONField(JsonNode row, String field) {
         try {
-            if (row.get(field) != null) {
+            JsonNode fieldNode = row.get(field);
+            if (fieldNode != null && !fieldNode.isNull()) {
                 List<LocaleText> trns = new ArrayList<>();
-                ((JSONObject) row.get(field)).keySet().forEach(k -> {
-                    Language l = (Language) categoryService.createIfNotExist(k.toString(), Language.class);
-                    trns.add(new LocaleText(((JSONObject) row.get(field)).get(k).toString(), l));
+                fieldNode.fields().forEachRemaining(entry -> {
+                    Language l = (Language) categoryService.createIfNotExist(entry.getKey(), Language.class);
+                    trns.add(new LocaleText(entry.getValue().asText(), l));
                 });
                 return trns;
             }
-        } catch (JSONException e) {
+        } catch (Exception e) {
             logger.error("Error while reading row: " + row + " - " + e.getMessage());
             return null;
         }
         return null;
     }
 
-    public void populateCategory(DatasetRecord entity, Class<?> clazz, Method method, JSONObject row, String field) {
+    public void populateCategory(DatasetRecord entity, Class<?> clazz, Method method, JsonNode row, String field) {
         try {
             List<LocaleText> translations = extractJSONField(row, field);
-            String value = StringEscapeUtils.unescapeCsv(((JSONObject) row.get(field)).get("en").toString());
+            String value = StringEscapeUtils.unescapeCsv(row.get(field).get("en").asText());
             Category category = categoryService.createIfNotExist(value, clazz, translations, true);
             method.invoke(entity, category);
         } catch (Exception e) {

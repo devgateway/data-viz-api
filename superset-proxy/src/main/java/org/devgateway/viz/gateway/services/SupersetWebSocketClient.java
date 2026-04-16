@@ -1,11 +1,14 @@
 package org.devgateway.viz.gateway.services;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.socket.client.IO;
 import io.socket.client.Socket;
 import io.socket.emitter.Emitter;
-import org.json.JSONException;
-import org.json.JSONObject;
+import java.util.Map;
+
 public class SupersetWebSocketClient {
 
+    private static final ObjectMapper MAPPER = new ObjectMapper();
 
     private Socket socket;
 
@@ -15,20 +18,16 @@ public class SupersetWebSocketClient {
             options.forceNew = true;
             options.reconnection = true;
 
-            // Superset WebSocket endpoint, typically /ws
-            socket = IO.socket("ws://superset.alive.dgstg.org/socket.io/?transport=websocket" , options);
+            socket = IO.socket(supersetUrl + "/socket.io/?transport=websocket", options);
 
             socket.on(Socket.EVENT_CONNECT, args -> {
                 System.out.println("Connected to Superset WS");
-
-                // Subscribe to your channel (this is how Superset does it)
-                JSONObject subscribePayload = new JSONObject();
                 try {
-                    subscribePayload.put("channel", channelId);
-                } catch (JSONException e) {
+                    String subscribePayload = MAPPER.writeValueAsString(Map.of("channel", channelId));
+                    socket.emit("subscribe", subscribePayload);
+                } catch (Exception e) {
                     throw new RuntimeException(e);
                 }
-                socket.emit("subscribe", subscribePayload);
             });
 
             socket.on(channelId, new Emitter.Listener() {
@@ -48,7 +47,6 @@ public class SupersetWebSocketClient {
         }
     }
 
-
     public Boolean gotResults() {
         return false;
     }
@@ -59,12 +57,4 @@ public class SupersetWebSocketClient {
             socket.close();
         }
     }
-
-  /*  public static void main(String[] args) {
-        SupersetWebSocketClient client = new SupersetWebSocketClient();
-        String supersetHost = "http://localhost:8088";  // adjust your Superset URL
-        String channelId = "06d1fc25-6ed3-49e5-9e28-4a0dd3023e31";  // from your API response
-        client.connect(supersetHost, channelId);
-    }
-   */
 }

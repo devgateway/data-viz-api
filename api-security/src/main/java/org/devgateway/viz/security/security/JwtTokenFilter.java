@@ -1,8 +1,8 @@
 package org.devgateway.viz.security.security;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.jsonwebtoken.JwtException;
 import org.devgateway.viz.security.security.exception.AuthException;
-import org.json.JSONObject;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.Authentication;
@@ -17,8 +17,13 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 public class JwtTokenFilter extends GenericFilterBean {
+
+    private static final ObjectMapper MAPPER = new ObjectMapper();
+
     private JwtTokenProvider jwtTokenProvider;
 
     public JwtTokenFilter(JwtTokenProvider jwtTokenProvider) {
@@ -52,12 +57,12 @@ public class JwtTokenFilter extends GenericFilterBean {
     private void sendError(final HttpServletResponse response, final AuthException e) throws IOException {
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-        response.getWriter().write(new JSONObject()
-                .put("error", HttpStatus.UNAUTHORIZED.getReasonPhrase())
-                .put("timestamp", LocalDateTime.now())
-                .put("status", HttpServletResponse.SC_UNAUTHORIZED)
-                .put("message", e.getMessage()).toString());
-
+        Map<String, Object> body = new LinkedHashMap<>();
+        body.put("error", HttpStatus.UNAUTHORIZED.getReasonPhrase());
+        body.put("timestamp", LocalDateTime.now().toString());
+        body.put("status", HttpServletResponse.SC_UNAUTHORIZED);
+        body.put("message", e.getMessage());
+        response.getWriter().write(MAPPER.writeValueAsString(body));
         throw e;
     }
 }
