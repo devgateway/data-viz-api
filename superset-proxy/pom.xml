@@ -9,7 +9,7 @@
         <relativePath></relativePath>
     </parent>
 
-    <groupId>com.example</groupId>
+    <groupId>org.devgateway.viz</groupId>
     <artifactId>superset-proxy</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <name>Super Set Proxy</name>
@@ -36,11 +36,6 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-json</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-cache</artifactId>
         </dependency>
 
         <dependency>

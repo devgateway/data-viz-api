@@ -3,10 +3,11 @@ package org.devgateway.viz.security.security;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.security.Keys;
 import org.devgateway.viz.security.repository.JwtTokenRepository;
 import org.devgateway.viz.security.security.domain.JwtToken;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -15,10 +16,11 @@ import org.springframework.stereotype.Component;
 
 import jakarta.annotation.PostConstruct;
 import jakarta.servlet.http.HttpServletRequest;
-import java.util.Base64;
+import javax.crypto.SecretKey;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import org.springframework.beans.factory.annotation.Value;
 
 @Component
 public class JwtTokenProvider {
@@ -28,7 +30,9 @@ public class JwtTokenProvider {
     private static final String AUTHORIZATION = "Authorization";
 
     @Value("${jwt.secret}")
-    private String secretKey;
+    private String secretKeyString;
+
+    private SecretKey secretKey;
 
     private long validityInMilliseconds = 3600000; // 1h
 
@@ -40,21 +44,26 @@ public class JwtTokenProvider {
 
     @PostConstruct
     protected void init() {
-        secretKey = Base64.getEncoder().encodeToString(secretKey.getBytes());
+        byte[] keyBytes = secretKeyString.getBytes(StandardCharsets.UTF_8);
+        // HS256 requires at least 256 bits (32 bytes)
+        if (keyBytes.length < 32) {
+            byte[] padded = new byte[32];
+            System.arraycopy(keyBytes, 0, padded, 0, keyBytes.length);
+            keyBytes = padded;
+        }
+        this.secretKey = Keys.hmacShaKeyFor(keyBytes);
     }
 
     public String createToken(String username, List<String> roles) {
-        Claims claims = Jwts.claims().setSubject(username);
-        claims.put(AUTH, roles);
-
         Date now = new Date();
         Date validity = new Date(now.getTime() + validityInMilliseconds);
 
-        String token = Jwts.builder()//
-                .setClaims(claims)//
-                .setIssuedAt(now)//
-                .setExpiration(validity)//
-                .signWith(SignatureAlgorithm.HS256, secretKey)//
+        String token = Jwts.builder()
+                .subject(username)
+                .claim(AUTH, roles)
+                .issuedAt(now)
+                .expiration(validity)
+                .signWith(secretKey)
                 .compact();
         jwtTokenRepository.save(new JwtToken(token));
 
@@ -76,7 +85,7 @@ public class JwtTokenProvider {
     }
 
     public boolean validateToken(String token) throws JwtException, IllegalArgumentException {
-        Jwts.parser().setSigningKey(secretKey).parseClaimsJws(token);
+        Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token);
         return true;
     }
 
@@ -85,7 +94,8 @@ public class JwtTokenProvider {
     }
 
     public String getUsername(String token) {
-        return Jwts.parser().setSigningKey(secretKey).parseClaimsJws(token).getBody().getSubject();
+        return Jwts.parser().verifyWith(secretKey).build()
+                .parseSignedClaims(token).getPayload().getSubject();
     }
 
     public Authentication getAuthentication(String token) {

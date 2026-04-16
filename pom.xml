@@ -257,6 +257,39 @@
                     <version>3.4.5</version>
                 </plugin>
 
+                <plugin>
+                    <groupId>org.codehaus.mojo</groupId>
+                    <artifactId>license-maven-plugin</artifactId>
+                    <version>2.4.0</version>
+                    <executions>
+                        <execution>
+                            <id>check-licenses</id>
+                            <phase>verify</phase>
+                            <goals>
+                                <goal>add-third-party</goal>
+                            </goals>
+                            <configuration>
+                                <!-- Fail build if any dependency uses a disallowed license -->
+                                <failOnBlacklist>true</failOnBlacklist>
+                                <licenseMerges>
+                                    <licenseMerge>Apache-2.0|Apache License, Version 2.0|The Apache Software License, Version 2.0|Apache 2.0|Apache 2</licenseMerge>
+                                    <licenseMerge>MIT|MIT License|The MIT License</licenseMerge>
+                                    <licenseMerge>BSD-2-Clause|BSD 2-Clause License|The BSD 2-Clause License</licenseMerge>
+                                    <licenseMerge>EPL-2.0|Eclipse Public License 2.0|Eclipse Public License - v 2.0</licenseMerge>
+                                </licenseMerges>
+                                <excludedLicenses>
+                                    <!-- JSON "Good not Evil" license is not OSI-approved -->
+                                    <excludedLicense>JSON License</excludedLicense>
+                                    <!-- Pure GPL (without classpath exception) is incompatible with Apache-2.0 -->
+                                    <excludedLicense>GPL-2.0-only</excludedLicense>
+                                    <excludedLicense>GPL-3.0-only</excludedLicense>
+                                    <!-- AGPL is copyleft and incompatible -->
+                                    <excludedLicense>AGPL-3.0</excludedLicense>
+                                </excludedLicenses>
+                            </configuration>
+                        </execution>
+                    </executions>
+                </plugin>
 
             </plugins>
         </pluginManagement>
