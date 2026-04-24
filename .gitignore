@@ -7,7 +7,6 @@ data
 target
 /commons/target/
 
-# Secrets and certificates
 *.jks
 *.p12
 *.pem
@@ -15,7 +14,6 @@ target
 *.cer
 *.pfx
 
-# Secret purge script and artifacts
 purge-secrets.sh
 replacements.txt
 .vscode

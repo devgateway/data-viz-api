@@ -12,5 +12,5 @@ public class Constants {
     public static final String DEFAULT_COLOR = "#555";
 
     public static final List<String> COLORS = List.of(
-            "#484848", "#BA4747",  "#FACE58", "#EA901C", "#6EBB6D", "#4D8A24", "#2765A5", "#6E60B3", "#A64C8C", "#D8D8D8");
+            "#484848", "#BA4747", "#FACE58", "#EA901C", "#6EBB6D", "#4D8A24", "#2765A5", "#6E60B3", "#A64C8C", "#D8D8D8");
 }
