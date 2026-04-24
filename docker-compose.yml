@@ -3,7 +3,7 @@ services:
     image: postgres:16.8
     environment:
       POSTGRES_USER: postgres
-      # REMOVED*** SECURITY: Override with a strong password in production via POSTGRES_PASSWORD env var
+      #SECURITY: Override with a strong password in production via POSTGRES_PASSWORD env var
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-admin}
       POSTGRES_DB: viz
     ports:
