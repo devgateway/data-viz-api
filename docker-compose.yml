@@ -3,7 +3,7 @@ services:
     image: postgres:16.8
     environment:
       POSTGRES_USER: postgres
-      # SECURITY: Override with a strong password in production via POSTGRES_PASSWORD env var
+      # REMOVED*** SECURITY: Override with a strong password in production via POSTGRES_PASSWORD env var
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-admin}
       POSTGRES_DB: viz
     ports:
@@ -15,7 +15,6 @@ services:
       retries: 5
     networks:
       backend-api:
-
 
   eureka:
     build:
@@ -36,15 +35,13 @@ services:
     networks:
       backend-api:
 
-
   api-gateway:
     build:
       context: ./api-gateway
       dockerfile: Dockerfile
     environment:
       SPRING_DATASOURCE_URL: "jdbc:postgresql://postgres:5432/viz"
-      SPRING_DATASOURCE_USERNAME: "postgres"
-      # SECURITY: Override with a strong password via SPRING_DATASOURCE_PASSWORD env var in production
+      SPRING_DATASOURCE_USERNAME: "postgres" # SECURITY: Override with a strong password via SPRING_DATASOURCE_PASSWORD env var in production
       SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD:-admin}
       JAVA_OPTS: "-Xmx512m -Xms512m -XX:+UseG1GC -XX:InitialHeapSize=512m -XX:MaxHeapSize=512m -XX:+ParallelRefProcEnabled"
     ports:
@@ -54,7 +51,6 @@ services:
       - eureka
     networks:
       backend-api:
-
 
   api-security:
     build:
@@ -70,7 +66,6 @@ services:
       - eureka
     networks:
       backend-api:
-
 
   superset-proxy:
     build:
@@ -88,7 +83,7 @@ services:
       SPRING_APPLICATION_NAME: "superset-proxy"
       SPRING_DATA_REDIS_HOST: "cache"
       SPRING_DATA_REDIS_PORT: "6379"
-      # SECURITY: Override with a strong password via SPRING_DATA_REDIS_PASSWORD env var in production
+      #SECURITY: Override with a strong password via SPRING_DATA_REDIS_PASSWORD env var in production
       SPRING_DATA_REDIS_PASSWORD: ${SPRING_DATA_REDIS_PASSWORD:-admin}
       SPRING_DATA_CACHE_TYPE: "redis"
     ports:
@@ -99,7 +94,6 @@ services:
       - eureka
     networks:
       backend-api:
-
 
   cache:
     image: redis:6.2-alpine
@@ -114,7 +108,6 @@ services:
 
 volumes:
   cache:
-
 
 networks:
   backend-api:
