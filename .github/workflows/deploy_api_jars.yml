@@ -5,7 +5,7 @@ on:
     paths:
       - commons/**
     branches:
-      - main  # or master or release branches
+      - main
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
