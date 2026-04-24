@@ -3,7 +3,7 @@ target/
 !**/src/main/**/target/
 !**/src/test/**/target/
 
-***REMOVED******REMOVED******REMOVED*** IntelliJ IDEA ***REMOVED******REMOVED******REMOVED***
+### IntelliJ IDEA ###
 .idea/modules.xml
 .idea/jarRepositories.xml
 .idea/compiler.xml
@@ -12,7 +12,7 @@ target/
 *.iml
 *.ipr
 
-***REMOVED******REMOVED******REMOVED*** Eclipse ***REMOVED******REMOVED******REMOVED***
+### Eclipse ###
 .apt_generated
 .classpath
 .factorypath
@@ -21,7 +21,7 @@ target/
 .springBeans
 .sts4-cache
 
-***REMOVED******REMOVED******REMOVED*** NetBeans ***REMOVED******REMOVED******REMOVED***
+### NetBeans ###
 /nbproject/private/
 /nbbuild/
 /dist/
@@ -31,8 +31,8 @@ build/
 !**/src/main/**/build/
 !**/src/test/**/build/
 
-***REMOVED******REMOVED******REMOVED*** VS Code ***REMOVED******REMOVED******REMOVED***
+### VS Code ###
 .vscode/
 
-***REMOVED******REMOVED******REMOVED*** Mac OS ***REMOVED******REMOVED******REMOVED***
+### Mac OS ###
 .DS_Store

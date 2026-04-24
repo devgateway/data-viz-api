@@ -1,4 +1,4 @@
-***REMOVED*** Release Guide
+# Release Guide
 
 This repository contains four deployable services, each versioned and tagged independently:
 
@@ -9,7 +9,7 @@ This repository contains four deployable services, each versioned and tagged ind
 | API Registry | `api-registry` | `{DOCKER_REGISTRY}/devgateway/data-viz/api-registry` |
 | Superset Proxy | `superset-proxy` | `{DOCKER_REGISTRY}/devgateway/data-viz/superset-proxy` |
 
-***REMOVED******REMOVED*** Versioning
+## Versioning
 
 Tags follow the format `{project-name}@v{semver}`, e.g. `superset-proxy@v0.0.1`.
 
@@ -25,11 +25,11 @@ If no commit carries a conventional prefix, the configured `default_bump` (`patc
 
 ---
 
-***REMOVED******REMOVED*** Pre-releases
+## Pre-releases
 
 Pre-releases are built and pushed automatically and can also be triggered manually.
 
-***REMOVED******REMOVED******REMOVED*** Automatic (on push to `main`)
+### Automatic (on push to `main`)
 
 Each service has its own workflow that watches for changes in its subdirectory:
 
@@ -42,12 +42,12 @@ Each service has its own workflow that watches for changes in its subdirectory:
 
 When a PR is merged to `main` and it touches files under a service's directory, that service's pre-release workflow triggers automatically.
 
-***REMOVED******REMOVED******REMOVED*** Manual
+### Manual
 
 1. Go to **Actions** → select the workflow for the service (e.g. *Build And Pre Release Superset Proxy*).
 2. Click **Run workflow** → select branch `main` → **Run workflow**.
 
-***REMOVED******REMOVED******REMOVED*** What it produces
+### What it produces
 
 - **Git tag**: `{project-name}@v{next-version}-rc.0` (e.g. `superset-proxy@v0.0.1-rc.0`)
 - **GitHub release**: marked as pre-release, no changelog body
@@ -59,11 +59,11 @@ When a PR is merged to `main` and it touches files under a service's directory, 
 
 ---
 
-***REMOVED******REMOVED*** Releases
+## Releases
 
 Full releases are always triggered manually. All four services are released together in a single run.
 
-***REMOVED******REMOVED******REMOVED*** Steps
+### Steps
 
 1. Go to **Actions** → *Build and release All Projects*.
 2. Click **Run workflow**.
@@ -73,7 +73,7 @@ Full releases are always triggered manually. All four services are released toge
    - `major` — breaking changes
 4. Click **Run workflow**.
 
-***REMOVED******REMOVED******REMOVED*** What it produces (per service)
+### What it produces (per service)
 
 - **Git tag**: `{project-name}@v{next-version}` (e.g. `superset-proxy@v0.0.1`)
 - **GitHub release**: marked as latest, with a generated changelog scoped to that service's directory
@@ -86,7 +86,7 @@ The `commons` library is also built and deployed to Artifactory as part of the s
 
 ---
 
-***REMOVED******REMOVED*** Tag reference
+## Tag reference
 
 | Example tag | Meaning |
 |---|---|

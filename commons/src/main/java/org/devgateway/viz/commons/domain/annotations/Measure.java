@@ -24,7 +24,7 @@ public @interface Measure {
 
     int position() default 0;
 
-    String color() default "***REMOVED***555";
+    String color() default "#555";
 
     Translation[] translations() default {};
 }
