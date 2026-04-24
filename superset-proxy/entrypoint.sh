@@ -1,4 +1,4 @@
-***REMOVED***!/bin/bash
+#!/bin/bash
 
  		PROP_FILE="/etc/$1.properties"
 	  truncate -s 0 $PROP_FILE
@@ -13,15 +13,15 @@ to_camel_case() {
   local output=""
   IFS='/' read -ra parts <<< "$input"
   output="${parts[0]}"
-  for ((i=1; i<${***REMOVED***parts[@]}; i++)); do
+  for ((i=1; i<${#parts[@]}; i++)); do
     part="${parts[i]}"
     output+="${part^}"
   done
   echo "$output"
 }
 
-    ***REMOVED***EUREKA_CLIENT_SERVICE/URL_DEFAULT/ZONE
-    ***REMOVED***eureka.client.serviceUrl.defaultZone
+    #EUREKA_CLIENT_SERVICE/URL_DEFAULT/ZONE
+    #eureka.client.serviceUrl.defaultZone
 
     while IFS='=' read -r -d '' n v; do
       if [[ $n == SPRING_* || $n == EUREKA_* ]]; then
@@ -60,9 +60,9 @@ to_camel_case() {
 
 
     echo  'server.compression.enabled=true' >> $PROP_FILE
-    echo  '***REMOVED*** ========================================
-           ***REMOVED*** GZIP Compression Settings for Spring Boot
-           ***REMOVED*** ========================================
+    echo  '# ========================================
+           # GZIP Compression Settings for Spring Boot
+           # ========================================
            server.compression.enabled=true
            server.compression.mime-types=application/json,application/xml,text/html,text/xml,text/plain
            server.compression.min-response-size=1024
