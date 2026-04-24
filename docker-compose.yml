@@ -3,7 +3,7 @@ services:
     image: postgres:16.8
     environment:
       POSTGRES_USER: postgres
-      #SECURITY: Override with a strong password in production via POSTGRES_PASSWORD env var
+      # SECURITY: Override with a strong password in production via POSTGRES_PASSWORD env var
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-admin}
       POSTGRES_DB: viz
     ports:
@@ -83,7 +83,7 @@ services:
       SPRING_APPLICATION_NAME: "superset-proxy"
       SPRING_DATA_REDIS_HOST: "cache"
       SPRING_DATA_REDIS_PORT: "6379"
-      #SECURITY: Override with a strong password via SPRING_DATA_REDIS_PASSWORD env var in production
+      # SECURITY: Override with a strong password via SPRING_DATA_REDIS_PASSWORD env var in production
       SPRING_DATA_REDIS_PASSWORD: ${SPRING_DATA_REDIS_PASSWORD:-admin}
       SPRING_DATA_CACHE_TYPE: "redis"
     ports:
