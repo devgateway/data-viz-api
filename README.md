@@ -1,27 +1,27 @@
-***REMOVED*** Data Visualization API
+# Data Visualization API
 
 A comprehensive Spring Boot microservices architecture for data visualization and analytics, providing REST APIs for dataset management, security, and integration with Apache Superset.
 
-***REMOVED******REMOVED*** Table of Contents
+## Table of Contents
 
-- [Overview](***REMOVED***overview)
-- [Architecture](***REMOVED***architecture)
-- [Modules](***REMOVED***modules)
-- [Technology Stack](***REMOVED***technology-stack)
-- [Getting Started](***REMOVED***getting-started)
-- [API Documentation](***REMOVED***api-documentation)
-- [Configuration](***REMOVED***configuration)
-- [Development](***REMOVED***development)
-- [Release](***REMOVED***release)
-- [Deployment](***REMOVED***deployment)
+- [Overview](#overview)
+- [Architecture](#architecture)
+- [Modules](#modules)
+- [Technology Stack](#technology-stack)
+- [Getting Started](#getting-started)
+- [API Documentation](#api-documentation)
+- [Configuration](#configuration)
+- [Development](#development)
+- [Release](#release)
+- [Deployment](#deployment)
 
-***REMOVED******REMOVED*** Overview
+## Overview
 
 The Data Visualization API is a multi-module Spring Boot application designed to provide a scalable, secure platform for data visualization and analytics. It follows a microservices architecture with service discovery, API gateway, security layer, and business logic components.
 
 More Documentation: [Data VIZ Documentation](https://devgateway.github.io/data-viz-example)
 
-***REMOVED******REMOVED******REMOVED*** Key Features
+### Key Features
 
 - **Microservices Architecture**: Modular design with independent, scalable services
 - **Service Discovery**: Netflix Eureka for dynamic service registration and discovery
@@ -33,7 +33,7 @@ More Documentation: [Data VIZ Documentation](https://devgateway.github.io/data-v
 - **Multi-dimensional Analysis**: Support for dimensions, measures, and filters
 - **RESTful APIs**: Comprehensive REST endpoints for all operations
 
-***REMOVED******REMOVED*** Architecture
+## Architecture
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
@@ -66,9 +66,9 @@ More Documentation: [Data VIZ Documentation](https://devgateway.github.io/data-v
                     └──────────────────┘
 ```
 
-***REMOVED******REMOVED*** Modules
+## Modules
 
-***REMOVED******REMOVED******REMOVED*** 1. Commons (`commons/`)
+### 1. Commons (`commons/`)
 
 The core module containing shared business logic, domain models, services, and utilities.
 
@@ -100,7 +100,7 @@ The core module containing shared business logic, domain models, services, and u
 - OpenCSV for CSV processing
 - PostgreSQL
 
-***REMOVED******REMOVED******REMOVED*** 2. API Gateway (`api-gateway/`)
+### 2. API Gateway (`api-gateway/`)
 
 Spring Cloud Gateway providing routing, load balancing, and caching.
 
@@ -120,7 +120,7 @@ Spring Cloud Gateway providing routing, load balancing, and caching.
 - Spring Cloud Netflix Eureka Client
 - Caffeine Cache
 
-***REMOVED******REMOVED******REMOVED*** 3. API Security (`api-security/`)
+### 3. API Security (`api-security/`)
 
 Authentication and authorization service providing JWT-based security.
 
@@ -140,7 +140,7 @@ Authentication and authorization service providing JWT-based security.
 - Spring Data JPA
 - PostgreSQL
 
-***REMOVED******REMOVED******REMOVED*** 4. Registry (`registry/`)
+### 4. Registry (`registry/`)
 
 Netflix Eureka service registry for microservices discovery.
 
@@ -155,7 +155,7 @@ Netflix Eureka service registry for microservices discovery.
 - Spring Boot 3.4.0
 - Netflix Eureka Server 4.1.3
 
-***REMOVED******REMOVED******REMOVED*** 5. Superset Proxy (`superset-proxy/`)
+### 5. Superset Proxy (`superset-proxy/`)
 
 Proxy service for Apache Superset integration with caching and data transformation.
 
@@ -184,52 +184,52 @@ Proxy service for Apache Superset integration with caching and data transformati
 - Spring Cloud Netflix Eureka Client
 - Spring Cache
 
-***REMOVED******REMOVED*** Technology Stack
+## Technology Stack
 
-***REMOVED******REMOVED******REMOVED*** Core Frameworks
+### Core Frameworks
 - **Java**: 21 (LTS)
 - **Spring Boot**: 3.2.x - 3.4.0
 - **Spring Cloud**: 2023.0.3 - 2024.0.0
 - **Maven**: 3.8.9+ for build automation
 
-***REMOVED******REMOVED******REMOVED*** Data & Persistence
+### Data & Persistence
 - **PostgreSQL**: Primary database
 - **Liquibase**: Database version control (4.29.0)
 - **Spring Data JPA**: Data access layer
 - **QueryDSL**: Type-safe query construction (5.1.0)
 
-***REMOVED******REMOVED******REMOVED*** Microservices Infrastructure
+### Microservices Infrastructure
 - **Netflix Eureka**: Service registry and discovery (4.1.3)
 - **Spring Cloud Gateway**: API gateway and routing
 - **Spring Cloud Netflix**: Microservices patterns
 
-***REMOVED******REMOVED******REMOVED*** Caching
+### Caching
 - **Caffeine**: In-memory caching
 - **Redis**: Distributed caching (production)
 - **Spring Cache**: Cache abstraction
 
-***REMOVED******REMOVED******REMOVED*** Security
+### Security
 - **Spring Security**: Authentication and authorization
 - **JWT**: Token-based authentication
 
-***REMOVED******REMOVED******REMOVED*** Documentation & API
+### Documentation & API
 - **SpringDoc OpenAPI**: API documentation (2.6.0)
 - **Swagger UI**: Interactive API explorer (1.8.0)
 
-***REMOVED******REMOVED******REMOVED*** Additional Libraries
+### Additional Libraries
 - **OpenCSV**: CSV file processing (5.9)
 - **Apache Commons Text**: String utilities (1.12.0)
 - **Google Cloud Translate**: Translation services (26.43.0)
 - **Jackson**: JSON processing
 
-***REMOVED******REMOVED******REMOVED*** Development Tools
+### Development Tools
 - **Maven Compiler Plugin**: Java 21 compilation (3.11.0)
 - **Spring Boot Maven Plugin**: Application packaging
 - **Maven Checkstyle Plugin**: Code quality (3.5.0)
 
-***REMOVED******REMOVED*** Getting Started
+## Getting Started
 
-***REMOVED******REMOVED******REMOVED*** Prerequisites
+### Prerequisites
 
 - **Java Development Kit (JDK)**: 21 or higher
 - **Maven**: 3.8.9 or higher
@@ -237,7 +237,7 @@ Proxy service for Apache Superset integration with caching and data transformati
 - **Redis**: 6 or higher (for production)
 - **Docker** (optional): For containerized deployment
 
-***REMOVED******REMOVED******REMOVED*** Installation
+### Installation
 
 1. **Clone the repository:**
    ```bash
@@ -256,9 +256,9 @@ Proxy service for Apache Superset integration with caching and data transformati
    mvn clean install
    ```
 
-***REMOVED******REMOVED******REMOVED*** Running the Application
+### Running the Application
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Start Services in Order:
+#### Start Services in Order:
 
 1. **Start Eureka Registry:**
    ```bash
@@ -286,42 +286,42 @@ Proxy service for Apache Superset integration with caching and data transformati
    ```
    Access at: http://localhost:8080
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Using Docker:
+#### Using Docker:
 
 ```bash
 docker compose up -d
 ```
 
-***REMOVED******REMOVED******REMOVED*** Verifying Installation
+### Verifying Installation
 
 1. Check Eureka Dashboard: http://localhost:8761
 2. Verify all services are registered
 3. Test gateway endpoint: http://localhost:8080/actuator/health
 
-***REMOVED******REMOVED*** API Documentation
+## API Documentation
 
-***REMOVED******REMOVED******REMOVED*** Base URLs
+### Base URLs
 
 - **API Gateway**: `http://localhost:8080`
 - **Eureka Dashboard**: `http://localhost:8761`
 
-***REMOVED******REMOVED******REMOVED*** Authentication
+### Authentication
 
 All API requests (except `/gateway/signin`) require JWT authentication:
 
 ```bash
-***REMOVED*** Login
+# Login
 curl -X POST http://localhost:8080/gateway/signin \
   -d "username=admin&password=admin123"
 
-***REMOVED*** Use returned token in subsequent requests
+# Use returned token in subsequent requests
 curl -H "Authorization: Bearer <token>" \
   http://localhost:8080/admin/datasets
 ```
 
-***REMOVED******REMOVED******REMOVED*** Common Endpoints
+### Common Endpoints
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Admin - Dataset Management
+#### Admin - Dataset Management
 - `GET /admin/datasets` - List all datasets
 - `GET /admin/datasets/{code}` - Get dataset by code
 - `POST /admin/datasets` - Create new dataset
@@ -329,27 +329,27 @@ curl -H "Authorization: Bearer <token>" \
 - `DELETE /admin/datasets/{code}` - Delete dataset
 - `GET /admin/datasets/{code}/download` - Download dataset file
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Admin - Category Management
+#### Admin - Category Management
 - `GET /admin/categories` - List categories
 - `GET /admin/categories/{id}` - Get category by ID
 - `PUT /admin/categories/{id}` - Update category
 - `DELETE /admin/categories/{id}` - Delete category
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Admin - Dimension Management
+#### Admin - Dimension Management
 - `GET /admin/dimensions` - List dimensions
 - `GET /admin/dimensions/{id}` - Get dimension by ID
 - `PUT /admin/dimensions/{id}` - Update dimension
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Admin - Measure Management
+#### Admin - Measure Management
 - `GET /admin/measures` - List measures
 - `GET /admin/measures/{id}` - Get measure by ID
 - `PUT /admin/measures/{id}` - Update measure
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Admin - Jobs
+#### Admin - Jobs
 - `GET /admin/jobs/{id}` - Get job status by ID
 - `GET /admin/jobs/code/{code}` - Get job by code
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Public Endpoints
+#### Public Endpoints
 - `GET /categories` - Get all categories
 - `GET /stats` - Get statistics
 - `GET /stats/**` - Get statistics with dimensions
@@ -357,7 +357,7 @@ curl -H "Authorization: Bearer <token>" \
 - `GET /filters` - Get filter definitions
 - `GET /measures` - Get measure definitions
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Superset Proxy Endpoints
+#### Superset Proxy Endpoints
 - `GET /charts` - Get Superset charts
 - `GET /datasets` - Get Superset datasets
 - `GET /dimensions?dvzProxyDatasetId={id}` - Get dimensions for dataset
@@ -365,21 +365,21 @@ curl -H "Authorization: Bearer <token>" \
 - `GET /filters?dvzProxyDatasetId={id}` - Get filters for dataset
 - `GET /categories?dvzProxyDatasetId={id}` - Get categories for dataset
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Cache Management
+#### Cache Management
 - `GET /cacheEvict` - Evict all caches
 - `GET /warmUp` - Warm up caches
 
-***REMOVED******REMOVED******REMOVED*** OpenAPI/Swagger Documentation
+### OpenAPI/Swagger Documentation
 
 Once the application is running, access interactive API documentation at:
 - Swagger UI: `http://localhost:8080/swagger-ui.html`
 - OpenAPI JSON: `http://localhost:8080/v3/api-docs`
 
-***REMOVED******REMOVED*** Configuration
+## Configuration
 
-***REMOVED******REMOVED******REMOVED*** Environment Variables
+### Environment Variables
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** API Gateway (`api-gateway/src/main/resources/application.yml`)
+#### API Gateway (`api-gateway/src/main/resources/application.yml`)
 ```yaml
 spring:
   application:
@@ -392,7 +392,7 @@ eureka:
       defaultZone: http://eureka:8761/eureka
 ```
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** API Security (`api-security/src/main/resources/application.properties`)
+#### API Security (`api-security/src/main/resources/application.properties`)
 ```properties
 spring.application.name=api-security
 spring.datasource.url=jdbc:postgresql://localhost:5432/dataviz_security
@@ -401,24 +401,24 @@ spring.datasource.password=your_password
 spring.jpa.hibernate.ddl-auto=update
 ```
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Commons Configuration
+#### Commons Configuration
 ```properties
-viz.initial.config=true          ***REMOVED*** Enable initial configuration setup
-viz.startup.import=false         ***REMOVED*** Enable automatic import on startup
-viz.import.directory=/data/import ***REMOVED*** Import directory path
-viz.date.format=yyyy-MM-dd       ***REMOVED*** Date format for imports
+viz.initial.config=true          # Enable initial configuration setup
+viz.startup.import=false         # Enable automatic import on startup
+viz.import.directory=/data/import # Import directory path
+viz.date.format=yyyy-MM-dd       # Date format for imports
 ```
 
-***REMOVED******REMOVED******REMOVED*** Profile Configuration
+### Profile Configuration
 
 - **Development Profile**: Uses in-memory cache, verbose logging
   - Activate: `--spring.profiles.active=dev`
 - **Production Profile**: Uses Redis cache, optimized logging
   - Activate: `--spring.profiles.active=prod`
 
-***REMOVED******REMOVED*** Development
+## Development
 
-***REMOVED******REMOVED******REMOVED*** Security: Pre-commit Hooks
+### Security: Pre-commit Hooks
 
 This project uses [Gitleaks](https://github.com/gitleaks/gitleaks) to prevent secrets from being accidentally committed. Install the pre-commit hook after cloning:
 
@@ -429,78 +429,78 @@ pre-commit install
 
 After installation, every `git commit` will automatically scan staged files for secrets.
 
-***REMOVED******REMOVED******REMOVED*** Project Structure
+### Project Structure
 
 ```
 data-viz-api/
-├── api-gateway/           ***REMOVED*** API Gateway module
+├── api-gateway/           # API Gateway module
 │   ├── src/main/
 │   │   ├── java/
 │   │   └── resources/
 │   └── pom.xml
-├── api-security/          ***REMOVED*** Security module
+├── api-security/          # Security module
 │   ├── src/main/
 │   └── pom.xml
-├── commons/               ***REMOVED*** Shared business logic
+├── commons/               # Shared business logic
 │   ├── src/main/
 │   │   ├── java/
 │   │   │   └── org/devgateway/viz/commons/
-│   │   │       ├── boot/          ***REMOVED*** Application bootstrap
-│   │   │       ├── controllers/   ***REMOVED*** REST controllers
-│   │   │       ├── domain/        ***REMOVED*** Domain models
-│   │   │       ├── io/            ***REMOVED*** Import/Export
-│   │   │       ├── observers/     ***REMOVED*** Event observers
-│   │   │       ├── pojo/          ***REMOVED*** DTOs
-│   │   │       ├── repositories/  ***REMOVED*** Data repositories
-│   │   │       └── services/      ***REMOVED*** Business services
+│   │   │       ├── boot/          # Application bootstrap
+│   │   │       ├── controllers/   # REST controllers
+│   │   │       ├── domain/        # Domain models
+│   │   │       ├── io/            # Import/Export
+│   │   │       ├── observers/     # Event observers
+│   │   │       ├── pojo/          # DTOs
+│   │   │       ├── repositories/  # Data repositories
+│   │   │       └── services/      # Business services
 │   │   └── resources/
 │   └── pom.xml
-├── registry/              ***REMOVED*** Eureka service registry
+├── registry/              # Eureka service registry
 │   ├── src/main/
 │   └── pom.xml
-├── superset-proxy/        ***REMOVED*** Superset integration
+├── superset-proxy/        # Superset integration
 │   ├── src/main/
 │   └── pom.xml
-└── pom.xml               ***REMOVED*** Parent POM
+└── pom.xml               # Parent POM
 ```
 
-***REMOVED******REMOVED******REMOVED*** Building from Source
+### Building from Source
 
 ```bash
-***REMOVED*** Build entire project
+# Build entire project
 mvn clean install
 
-***REMOVED*** Build specific module
+# Build specific module
 cd commons
 mvn clean install
 
-***REMOVED*** Skip tests
+# Skip tests
 mvn clean install -DskipTests
 
-***REMOVED*** Run specific service
+# Run specific service
 cd api-gateway
 mvn spring-boot:run
 ```
 
-***REMOVED******REMOVED******REMOVED*** Code Quality
+### Code Quality
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Checkstyle
+#### Checkstyle
 Code quality is enforced using Maven Checkstyle Plugin (currently disabled in config):
 ```bash
 mvn checkstyle:check
 ```
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Testing
+#### Testing
 ```bash
-***REMOVED*** Run all tests
+# Run all tests
 mvn test
 
-***REMOVED*** Run tests for specific module
+# Run tests for specific module
 cd commons
 mvn test
 ```
 
-***REMOVED******REMOVED******REMOVED*** Database Migrations
+### Database Migrations
 
 Liquibase is used for database version control. Changelog files are located in:
 - `src/main/resources/db/changelog/`
@@ -510,7 +510,7 @@ To run migrations manually:
 mvn liquibase:update
 ```
 
-***REMOVED******REMOVED******REMOVED*** Adding a New Microservice
+### Adding a New Microservice
 
 1. Create new Maven module in parent POM
 2. Add dependencies to Eureka Client
@@ -518,25 +518,25 @@ mvn liquibase:update
 4. Configure `application.yml` with service name and Eureka URL
 5. Build and run
 
-***REMOVED******REMOVED*** Release
+## Release
 See [RELEASE.md](/RELEASE.md)
 
-***REMOVED******REMOVED*** Deployment
+## Deployment
 
-***REMOVED******REMOVED******REMOVED*** Docker Deployment
+### Docker Deployment
 
 Each module includes a `Dockerfile` for containerization.
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Build Docker Images:
+#### Build Docker Images:
 ```bash
-***REMOVED*** Build all images
+# Build all images
 docker compose build
 
-***REMOVED*** Build specific service
+# Build specific service
 docker build -t dataviz-api-gateway ./api-gateway
 ```
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Docker Compose:
+#### Docker Compose:
 ```yaml
 version: '3.8'
 services:
@@ -566,12 +566,12 @@ services:
       - postgres
 ```
 
-***REMOVED******REMOVED******REMOVED******REMOVED*** Run with Docker Compose:
+#### Run with Docker Compose:
 ```bash
 docker compose up -d
 ```
 
-***REMOVED******REMOVED******REMOVED*** Production Deployment
+### Production Deployment
 
 1. **Environment Configuration:**
    - Set production database credentials
@@ -591,11 +591,11 @@ docker compose up -d
    - Set up Grafana dashboards
 
 
-***REMOVED******REMOVED*** License
+## License
 
 This project is developed by Development Gateway licensed under [Apache-2.0 license](/LICENSE)
 
-***REMOVED******REMOVED*** Contributing
+## Contributing
 
 For questions or contributions, please contact the [Development Gateway](mailto:info@developmentgateway.org) team.
 

@@ -5,7 +5,7 @@ on:
     paths:
       - commons/**
     branches:
-      - main  ***REMOVED*** or master or release branches
+      - main
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
@@ -75,16 +75,16 @@ jobs:
       - name: Perform Maven Release
         if: steps.check_snapshot.outputs.has_snapshot == 'true'
         run: |
-          ***REMOVED*** Get current version from pom.xml
+          # Get current version from pom.xml
           CURRENT_VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
           echo "Current version: $CURRENT_VERSION"
           
-          ***REMOVED*** Remove -SNAPSHOT and calculate next version
+          # Remove -SNAPSHOT and calculate next version
           VERSION=${CURRENT_VERSION%-SNAPSHOT}
           IFS='.' read -r major minor patch <<< "$VERSION"
           NEXT_VERSION="$major.$minor.$((patch + 1))-SNAPSHOT"
           
-          ***REMOVED*** Perform release
+          # Perform release
           mvn -B release:prepare release:perform \
             -DreleaseVersion=$VERSION \
             -DdevelopmentVersion=$NEXT_VERSION \
