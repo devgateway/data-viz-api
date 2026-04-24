@@ -7,14 +7,12 @@ data
 target
 /commons/target/
 
-
 *.jks
 *.p12
 *.pem
 *.key
 *.cer
 *.pfx
-
 
 purge-secrets.sh
 replacements.txt
