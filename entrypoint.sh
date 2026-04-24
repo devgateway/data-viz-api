@@ -1,4 +1,4 @@
-***REMOVED***!/bin/bash
+#!/bin/bash
 
  		PROP_FILE="/etc/$1.properties"
 	  truncate -s 0 $PROP_FILE
