@@ -24,7 +24,7 @@ RUN --mount=type=cache,target=/root/.m2 mkdir /opt/viz \
   && mv ./target/*-0.0.1-SNAPSHOT.jar /opt/viz \
   && rm -rf *
 
-FROM openjdk:21-jdk-slim AS api-security
+FROM eclipse-temurin:21-jdk-slim AS api-security
 WORKDIR /opt/viz
 COPY --from=builder /opt/viz ./
 EXPOSE 8763

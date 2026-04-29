@@ -25,7 +25,7 @@ RUN --mount=type=cache,target=/root/.m2 mkdir /opt/viz \
   && rm -rf *
 
 
-FROM openjdk:21-jdk-slim AS runtime
+FROM eclipse-temurin:21-jdk-slim AS runtime
 WORKDIR /opt/viz
 COPY --from=compiler /opt/viz ./
 
