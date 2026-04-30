@@ -98,3 +98,17 @@ use in non-GPL projects without triggering GPL obligations, provided the library
 - **License chosen:** Apache-2.0 (triple-licensed: Apache-2.0 / LGPL-2.1 / MPL-1.1;
   see https://www.javassist.org/)
 - **Used in:** registry (transitive via spring-cloud-starter-netflix-eureka-server)
+
+---
+
+## JSON License
+
+### org.json:json
+
+- **License:** JSON License (https://www.json.org/license.html)
+- **Used in:** superset-proxy (transitive via io.socket:socket.io-client)
+- **Notes:** The JSON License adds the clause "The Software shall be used for Good, not Evil,"
+  which is not OSI-approved and is technically incompatible with Apache-2.0. This library is not
+  used directly by this project's source code; it is pulled in transitively by socket.io-client
+  and cannot be excluded without forking that dependency. It is documented here as a known
+  third-party exception.
