@@ -32,6 +32,8 @@ LABEL org.opencontainers.image.licenses="Apache-2.0"
 RUN apk add --no-cache bash
 WORKDIR /opt/viz
 COPY --from=compiler /opt/viz ./
+COPY LICENSE /opt/viz/
+COPY NOTICE.md /opt/viz/
 COPY entrypoint.sh /opt/viz/
 RUN chmod +x /opt/viz/entrypoint.sh
 EXPOSE 8090
