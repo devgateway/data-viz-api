@@ -9,11 +9,11 @@ the license chosen for use in this project is noted explicitly.
 
 ---
 
-## LGPL-2.1-only
+## LGPL-2.1
 
 ### ch.qos.logback:logback-classic, ch.qos.logback:logback-core
 
-- **License:** LGPL-2.1-only
+- **License:** LGPL-2.1
 - **Used in:** api-gateway (transitive via spring-boot-starter-logging)
 - **Notes:** This module dynamically links against Logback. Dynamic linking satisfies the LGPL
   requirements without imposing LGPL obligations on this module's own source code.

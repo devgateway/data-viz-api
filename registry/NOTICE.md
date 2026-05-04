@@ -9,14 +9,15 @@ the license chosen for use in this project is noted explicitly.
 
 ---
 
-## LGPL-2.1-only
+## Eclipse Public License 1.0 (EPL-1.0)
 
 ### ch.qos.logback:logback-classic, ch.qos.logback:logback-core
 
-- **License:** LGPL-2.1-only
+- **License chosen:** EPL-1.0 (dual-licensed EPL-1.0 / LGPL 2.1)
 - **Used in:** registry (transitive via spring-boot-starter-logging)
-- **Notes:** This module dynamically links against Logback. Dynamic linking satisfies the LGPL
-  requirements without imposing LGPL obligations on this module's own source code.
+- **Notes:** Logback is dual-licensed under EPL-1.0 and LGPL 2.1. EPL-1.0 is chosen because
+  it imposes no copyleft obligations on this module's own source code. This module uses Logback
+  as a runtime dependency only and does not distribute or modify its source.
 
 ---
 
@@ -25,6 +26,7 @@ the license chosen for use in this project is noted explicitly.
 The libraries below are licensed under GPL-2.0-with-Classpath-Exception
 (https://spdx.org/licenses/GPL-2.0-with-classpath-exception.html). The classpath exception permits
 use in non-GPL projects without triggering GPL obligations, provided the library is not modified.
+GPL-2.0-with-Classpath-Exception is formally compatible with Apache-2.0 (ASF Category A).
 
 ### jakarta.annotation:jakarta.annotation-api
 
@@ -34,20 +36,6 @@ use in non-GPL projects without triggering GPL obligations, provided the library
 
 - **Used in:** registry (transitive via com.netflix.eureka:eureka-client)
 
-### javax.annotation:javax.annotation-api
-
-- **License chosen:** GPL-2.0-with-Classpath-Exception (dual-licensed CDDL-1.0 /
-  GPL-2.0-with-Classpath-Exception)
-- **Used in:** registry (transitive via com.netflix.eureka:eureka-client, runtime scope)
-
----
-
-## Eclipse Public License 2.0 (EPL-2.0)
-
-The libraries below are dual-licensed EPL-2.0 / GPL-2.0-with-Classpath-Exception. EPL-2.0 is
-chosen in preference to GPL-2.0-CPE for clearer compatibility with this project's Apache-2.0
-license.
-
 ### org.glassfish.jersey.connectors:jersey-apache-connector
 ### org.glassfish.jersey.containers:jersey-container-servlet
 ### org.glassfish.jersey.containers:jersey-container-servlet-core
@@ -56,7 +44,7 @@ license.
 ### org.glassfish.jersey.core:jersey-server
 ### org.glassfish.jersey.inject:jersey-hk2
 
-- **License chosen:** EPL-2.0
+- **License chosen:** GPL-2.0-with-Classpath-Exception (dual-licensed EPL-2.0 / GPL-2.0-with-Classpath-Exception)
 - **Used in:** registry (transitive via spring-cloud-starter-netflix-eureka-server)
 
 ### org.glassfish.hk2.external:aopalliance-repackaged
@@ -66,8 +54,23 @@ license.
 ### org.glassfish.hk2:osgi-resource-locator
 ### org.glassfish.hk2:spring-bridge
 
-- **License chosen:** EPL-2.0
+- **License chosen:** GPL-2.0-with-Classpath-Exception (dual-licensed EPL-2.0 / GPL-2.0-with-Classpath-Exception)
 - **Used in:** registry (transitive via spring-cloud-starter-netflix-eureka-server)
+
+### javax.annotation:javax.annotation-api
+
+- **License chosen:** GPL-2.0-with-Classpath-Exception (dual-licensed CDDL-1.0 / GPL-2.0-with-Classpath-Exception)
+- **Used in:** registry (transitive via com.netflix.eureka:eureka-client, runtime scope)
+
+---
+
+## Apache License, Version 2.0
+
+### org.javassist:javassist
+
+- **License chosen:** Apache-2.0 (triple-licensed: Apache-2.0 / LGPL-2.1 / MPL-1.1;
+  see https://www.javassist.org/)
+- **Used in:** registry (transitive via org.glassfish.jersey.inject:jersey-hk2)
 
 ---
 
@@ -106,16 +109,6 @@ license.
 
 - **License:** Bouncy Castle Licence (MIT-style; https://www.bouncycastle.org/licence.html)
 - **Used in:** registry (transitive via org.springframework.cloud:spring-cloud-starter)
-
----
-
-## Apache License, Version 2.0
-
-### org.javassist:javassist
-
-- **License chosen:** Apache-2.0 (triple-licensed: Apache-2.0 / LGPL-2.1 / MPL-1.1;
-  see https://www.javassist.org/)
-- **Used in:** registry (transitive via org.glassfish.jersey.inject:jersey-hk2)
 
 ---
 
