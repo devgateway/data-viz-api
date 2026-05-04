@@ -9,14 +9,15 @@ the license chosen for use in this project is noted explicitly.
 
 ---
 
-## LGPL-2.1
+## Eclipse Public License 1.0 (EPL-1.0)
 
 ### ch.qos.logback:logback-classic, ch.qos.logback:logback-core
 
-- **License:** LGPL-2.1
+- **License chosen:** EPL-1.0 (dual-licensed EPL-1.0 / LGPL 2.1)
 - **Used in:** api-gateway (transitive via spring-boot-starter-logging)
-- **Notes:** This module dynamically links against Logback. Dynamic linking satisfies the LGPL
-  requirements without imposing LGPL obligations on this module's own source code.
+- **Notes:** Logback is dual-licensed under EPL-1.0 and LGPL 2.1. EPL-1.0 is chosen because
+  it imposes no copyleft obligations on this module's own source code. This module uses Logback
+  as a runtime dependency only and does not distribute or modify its source.
 
 ---
 
@@ -25,6 +26,7 @@ the license chosen for use in this project is noted explicitly.
 The libraries below are licensed under GPL-2.0-with-Classpath-Exception
 (https://spdx.org/licenses/GPL-2.0-with-classpath-exception.html). The classpath exception permits
 use in non-GPL projects without triggering GPL obligations, provided the library is not modified.
+GPL-2.0-with-Classpath-Exception is formally compatible with Apache-2.0 (ASF Category A).
 
 ### jakarta.annotation:jakarta.annotation-api
 
@@ -36,8 +38,7 @@ use in non-GPL projects without triggering GPL obligations, provided the library
 
 ### javax.annotation:javax.annotation-api
 
-- **License chosen:** GPL-2.0-with-Classpath-Exception (dual-licensed CDDL-1.0 /
-  GPL-2.0-with-Classpath-Exception)
+- **License chosen:** GPL-2.0-with-Classpath-Exception (dual-licensed CDDL-1.0 / GPL-2.0-with-Classpath-Exception)
 - **Used in:** api-gateway (transitive via com.netflix.eureka:eureka-client, runtime scope)
 
 ---
