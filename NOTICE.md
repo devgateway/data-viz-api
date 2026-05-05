@@ -5,6 +5,9 @@ This project (Data Viz API) is licensed under the Apache License, Version 2.0.
 The following third-party libraries are included or linked as dependencies. Where a library is
 available under multiple licenses, the license chosen for use in this project is noted explicitly.
 
+License selection criteria for this project are documented in
+[LICENSE-POLICY.md](./LICENSE-POLICY.md).
+
 ---
 
 ## Eclipse Public License 1.0 (EPL-1.0)
