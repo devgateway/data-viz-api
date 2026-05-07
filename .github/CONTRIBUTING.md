@@ -58,15 +58,6 @@ cd api-gateway && mvn spring-boot:run
 
 Access the Eureka dashboard at http://localhost:8761 and the API at http://localhost:8080.
 
-### Secrets scanning (pre-commit hook)
-
-This project uses [Gitleaks](https://github.com/gitleaks/gitleaks) to prevent secrets from being accidentally committed. Install the hook after cloning:
-
-```bash
-pip install pre-commit
-pre-commit install
-```
-
 ---
 
 ## Branching Model
