@@ -23,6 +23,27 @@
             <comments>DevGateway</comments>
         </license>
     </licenses>
+    <developers>
+        <developer>
+            <name>Sebastian Dimunzio</name>
+            <email>sdimunzio@gmail.com</email>
+            <organization>Development Gateway</organization>
+            <organizationUrl>https://www.developmentgateway.org</organizationUrl>
+            <roles>
+                <role>author</role>
+            </roles>
+        </developer>
+        <developer>
+            <name>Timothy Gachengo</name>
+            <url>https://github.com/timothygachengo</url>
+            <organization>Development Gateway</organization>
+            <organizationUrl>https://www.developmentgateway.org</organizationUrl>
+            <roles>
+                <role>contributor</role>
+            </roles>
+        </developer>
+    </developers>
+
     <modules>
         <module>commons</module>
     </modules>
