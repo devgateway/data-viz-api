@@ -139,3 +139,30 @@ with an explicit exception note if they cannot be removed:
 | GPL-2.0-only | No classpath exception; incompatible with Apache-2.0 | Must be excluded or removed |
 | GPL-3.0-only | Same | Must be excluded or removed |
 | AGPL-3.0 | Network copyleft; incompatible with Apache-2.0 | Must be excluded or removed |
+
+---
+
+## Approved Exceptions Register
+
+This section records formally approved exceptions for dependencies that cannot be removed or
+replaced, and where the standard policy cannot be satisfied. Each entry must state the dependency,
+the reason it cannot be excluded, and the decision made.
+
+### EXC-001 — org.json:json (JSON License)
+
+- **Dependency:** `org.json:json`
+- **License:** JSON License — includes the clause "The Software shall be used for Good, not Evil"
+- **Brought in by:** `io.socket:socket.io-client:2.1.2` (transitive, superset-proxy module)
+- **Why it cannot be excluded:** `socket.io-client` calls `org.json` classes directly in its own
+  source code. A Maven `<exclusion>` would remove the JAR from the classpath and cause
+  `ClassNotFoundException` at runtime. There is no newer version of `socket.io-client` that
+  replaces `org.json` with an alternative parser.
+- **Why it cannot be replaced:** No drop-in Java Socket.IO client library is available that
+  does not transitively require `org.json`. Replacing it would require rewriting the
+  superset-proxy integration layer.
+- **Decision:** Accepted as a known transitive exception. This project's own source code does
+  not import or call any `org.json` class. The "Good, not Evil" clause applies only to use of
+  `org.json` itself, and is widely considered legally unenforceable. This exception must be
+  re-evaluated if `socket.io-client` is upgraded or replaced, or if a clean alternative
+  becomes available.
+- **Documented in:** `NOTICE.md`, `superset-proxy/NOTICE.md`
