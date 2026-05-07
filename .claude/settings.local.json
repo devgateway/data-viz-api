@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx license-checker *)",
+      "Bash(xargs cat *)",
+      "Bash(xargs python3 -c ' *)",
+      "Bash(python3 -c ' *)",
+      "Bash(pnpm install *)"
+    ]
+  }
+}

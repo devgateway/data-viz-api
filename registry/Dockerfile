@@ -35,5 +35,7 @@ LABEL org.opencontainers.image.licenses="Apache-2.0"
 RUN apk add --no-cache curl bash
 WORKDIR /opt/viz
 COPY --from=builder /opt/viz ./
+COPY LICENSE /opt/viz/
+COPY NOTICE.md /opt/viz/
 EXPOSE 8761
 CMD ["java","-jar","/opt/viz/registry-0.0.1-SNAPSHOT.jar"]

@@ -75,11 +75,7 @@
             <version>${querydsl-version}</version>
             <classifier>jakarta</classifier>
         </dependency>
-        <dependency>
-            <groupId>org.liquibase</groupId>
-            <artifactId>liquibase-maven-plugin</artifactId>
-            <version>${liquibase.version}</version>
-        </dependency>
+    
         <dependency>
             <groupId>org.springdoc</groupId>
             <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
@@ -244,12 +240,7 @@
                     </executions>
                 </plugin>
 
-                <plugin>
-                    <groupId>org.liquibase</groupId>
-                    <artifactId>liquibase-maven-plugin</artifactId>
-                    <version>${liquibase.version}</version>
-
-                </plugin>
+           
 
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
