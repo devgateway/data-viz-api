@@ -48,11 +48,22 @@ public class Utils {
 
     public static Map<String, Object> createQuery(String[] groupArray, List<String> measuresArr,
             Set<String> filterableColumns, Map<String, String> queryParams) {
+        return createQuery(groupArray, measuresArr, filterableColumns, queryParams, Collections.emptyList());
+    }
+
+    // extraColumns are dimensions requested via includeColumns: returned per-row
+    // without being added to "columns"/groupby, so they don't affect the query breakdown.
+    public static Map<String, Object> createQuery(String[] groupArray, List<String> measuresArr,
+            Set<String> filterableColumns, Map<String, String> queryParams, List<String> extraColumns) {
         SortedMap<String, Object> query = new TreeMap<>(); // must be sorted to ensure consistent order for caching purposes
         if (groupArray.length > 0) {
             query.put("columns", Arrays.asList(groupArray));
         }
-        query.put("metrics", measuresArr);
+        List<Object> metrics = new ArrayList<>(measuresArr);
+        for (String column : extraColumns != null ? extraColumns : Collections.<String>emptyList()) {
+            metrics.add(createExtraColumnMetric(column));
+        }
+        query.put("metrics", metrics);
         query.put("row_limit", Constants.ROW_LIMIT);
 
         List<Map<String, Object>> filters = new ArrayList<>();
@@ -74,6 +85,14 @@ public class Utils {
         }
         query.put("filters", filters);
         return query;
+    }
+
+    public static Map<String, Object> createExtraColumnMetric(String column) {
+        Map<String, Object> metric = new HashMap<>();
+        metric.put("expressionType", "SQL");
+        metric.put("sqlExpression", "MAX(" + column + ")");
+        metric.put("label", column);
+        return metric;
     }
 
     public static Map<String, Object> createSupersetRequest(Map<String, Object> datasource, List<Map<String, Object>> queries) {
@@ -138,13 +157,25 @@ public class Utils {
     }
 
     public static Map<String, Object> createDataItem(String dim, String value, JsonNode metricsNode, JsonNode row) {
+        return createDataItem(dim, value, metricsNode, row, Collections.emptyList());
+    }
+
+    public static Map<String, Object> createDataItem(String dim, String value, JsonNode metricsNode, JsonNode row, List<String> extraColumns) {
         Map<String, Object> dataItem = new HashMap<>();
         dataItem.put("type", dim);
         dataItem.put("value", value);
 
         for (JsonNode metric : metricsNode) {
+            // Extra-column adhoc metrics are objects, not plain metric name strings; skip them here.
+            if (!metric.isTextual()) {
+                continue;
+            }
             String metricName = metric.asText();
             dataItem.put(metricName, row.hasNonNull(metricName) ? row.get(metricName).asDouble() : null);
+        }
+
+        for (String column : extraColumns != null ? extraColumns : Collections.<String>emptyList()) {
+            dataItem.put(column, row.hasNonNull(column) ? row.get(column).asText() : null);
         }
 
         return dataItem;
@@ -179,6 +210,17 @@ public class Utils {
             }
         }
         return measures;
+    }
+
+    public static Set<String> extractAllColumns(JsonNode result) {
+        Set<String> columnNames = new LinkedHashSet<>();
+        for (JsonNode column : result.get("columns")) {
+            String name = column.path("column_name").asText(null);
+            if (name != null && !name.isEmpty()) {
+                columnNames.add(name);
+            }
+        }
+        return columnNames;
     }
 
     public static Set<String> extractFilterableColumns(JsonNode result) {

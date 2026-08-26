@@ -22,7 +22,7 @@ spring:
 
 viz:
   superset:
-    url: https://superset.alive.dgstg.org
+    url: ${SUPERSET_URL:http://localhost:8088}
     warmup:
       top: 100
 
