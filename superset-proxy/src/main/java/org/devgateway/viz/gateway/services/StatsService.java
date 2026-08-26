@@ -85,19 +85,19 @@ public class StatsService {
         }
 
         Set<String> knownColumns = extractAllColumns(datasetResult);
-        List<String> resolved = new ArrayList<>();
+        Set<String> resolvedSet = new LinkedHashSet<>();
         for (String name : includeColumnsParam.split(",")) {
             String trimmed = name.trim();
             if (trimmed.isEmpty()) {
                 continue;
             }
             if (knownColumns.contains(trimmed)) {
-                resolved.add(trimmed);
+                resolvedSet.add(trimmed);
             } else {
-                logger.warn("includeColumns requested unknown column: " + trimmed);
+                logger.warn("includeColumns requested unknown column: {}", trimmed);
             }
         }
-        return resolved;
+        return new ArrayList<>(resolvedSet);
     }
 
     private JsonNode getDatasetResult(String datasetId) {
