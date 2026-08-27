@@ -42,7 +42,8 @@ public class StatsService {
         }
 
         Map<String, String> labelMap = buildLabelMap(datasetResult);
-        JsonNode requestBody = buildSupersetDataRequest(datasetResult, datasetId, queryParams, groupsPath);
+        List<String> extraColumns = resolveIncludeColumns(queryParams, datasetResult);
+        JsonNode requestBody = buildSupersetDataRequest(datasetResult, datasetId, queryParams, groupsPath, extraColumns);
 
         boolean force = "true".equals(queryParams.get("force"));
 
@@ -67,10 +68,36 @@ public class StatsService {
                     getGroupsArray(groupsPath),
                     labelMap,
                     isCached,
-                    cachedAt);
+                    cachedAt,
+                    extraColumns);
         }
         logger.warn("Returning an Empty list");
         return Collections.emptyList();
+    }
+
+    // Dimensions requested via includeColumns are returned as an extra per-row value without being
+    // part of the query breakdown. Validated against the dataset's real columns so a client-supplied
+    // name can never be interpolated into the SQL expression sent to Superset.
+    private List<String> resolveIncludeColumns(Map<String, String> queryParams, JsonNode datasetResult) {
+        String includeColumnsParam = queryParams.get("includeColumns");
+        if (includeColumnsParam == null || includeColumnsParam.isBlank()) {
+            return Collections.emptyList();
+        }
+
+        Set<String> knownColumns = extractAllColumns(datasetResult);
+        Set<String> resolvedSet = new LinkedHashSet<>();
+        for (String name : includeColumnsParam.split(",")) {
+            String trimmed = name.trim();
+            if (trimmed.isEmpty()) {
+                continue;
+            }
+            if (knownColumns.contains(trimmed)) {
+                resolvedSet.add(trimmed);
+            } else {
+                logger.warn("includeColumns requested unknown column: {}", trimmed);
+            }
+        }
+        return new ArrayList<>(resolvedSet);
     }
 
     private JsonNode getDatasetResult(String datasetId) {
@@ -113,7 +140,7 @@ public class StatsService {
         return labels;
     }
 
-    private JsonNode buildSupersetDataRequest(JsonNode datasetResult, String datasetId, Map<String, String> queryParams, String groupsPath) {
+    private JsonNode buildSupersetDataRequest(JsonNode datasetResult, String datasetId, Map<String, String> queryParams, String groupsPath, List<String> extraColumns) {
 
         List<String> measuresArr = extractUniqueMeasures(datasetResult);
         Set<String> filterableColumns = extractFilterableColumns(datasetResult);
@@ -125,12 +152,12 @@ public class StatsService {
         String[] groupsArray = getGroupsArray(groupsPath);
 
         if (groupsArray.length > 0) {
-            Map<String, Object> queryForDimension1 = createQuery(new String[]{groupsArray[0]}, measuresArr, filterableColumns, queryParams);
+            Map<String, Object> queryForDimension1 = createQuery(new String[]{groupsArray[0]}, measuresArr, filterableColumns, queryParams, extraColumns);
             queries.add(queryForDimension1);
         }
 
         if (groupsArray.length > 1) {
-            Map<String, Object> queryForDimension2 = createQuery(groupsArray, measuresArr, filterableColumns, queryParams);
+            Map<String, Object> queryForDimension2 = createQuery(groupsArray, measuresArr, filterableColumns, queryParams, extraColumns);
             queries.add(queryForDimension2);
         }
 
@@ -142,7 +169,7 @@ public class StatsService {
     }
 
     private Object transformData(JsonNode data, JsonNode dimensionsNode, JsonNode metricsNode, String[] dimensionsArray,
-                                 Map<String, String> labelMap, boolean isCached, String cachedAt) {
+                                 Map<String, String> labelMap, boolean isCached, String cachedAt, List<String> extraColumns) {
         Map<String, Object> transformed = createTransformedData();
         List<Map<String, Object>> measuresList = new ArrayList<>();
         List<Map<String, Object>> typesList = new ArrayList<>();
@@ -157,6 +184,10 @@ public class StatsService {
         }
 
         for (JsonNode metric : metricsNode) {
+            // Extra-column adhoc metrics are objects, not plain metric name strings; skip them here.
+            if (!metric.isTextual()) {
+                continue;
+            }
             String metricName = metric.asText();
             measuresList.add(createMeasure(metricName, labelMap.getOrDefault(metricName, metricName)));
         }
@@ -169,6 +200,9 @@ public class StatsService {
         JsonNode overallData = data.get(data.size() - 1);
         if (overallData != null && overallData.has("data")) {
             for (JsonNode metric : metricsNode) {
+                if (!metric.isTextual()) {
+                    continue;
+                }
                 transformed.put(metric.asText(), overallData.get("data").get(0).get(metric.asText()).asDouble());
             }
 
@@ -189,7 +223,7 @@ public class StatsService {
                         .ifPresent(type -> ((Set<Map<String, Object>>) type.computeIfAbsent("items", k -> new HashSet<>()))
                                 .add(createItem(firstDim, row.get(firstDim).asText(), Constants.COLORS.get(0))));
 
-                Map<String, Object> dataItem = createDataItem(firstDim, row.get(firstDim).asText(), metricsNode, row);
+                Map<String, Object> dataItem = createDataItem(firstDim, row.get(firstDim).asText(), metricsNode, row, extraColumns);
                 ((List<Map<String, Object>>) transformed.get("children")).add(dataItem);
             }
         }
@@ -206,7 +240,7 @@ public class StatsService {
                                 .ifPresent(type -> ((Set<Map<String, Object>>) type.computeIfAbsent("items", k -> new HashSet<>()))
                                         .add(createItem(secondDim, row.get(secondDim).asText(), Constants.COLORS.get(0))));
 
-                        Map<String, Object> dataItem = createDataItem(secondDim, row.get(secondDim).asText(), metricsNode, row);
+                        Map<String, Object> dataItem = createDataItem(secondDim, row.get(secondDim).asText(), metricsNode, row, extraColumns);
                         for (Map<String, Object> child : (List<Map<String, Object>>) transformed.get("children")) {
                             if (child.get("value").equals(row.get(firstDim).asText())) {
                                 ((List<Map<String, Object>>) child.computeIfAbsent("children", k -> new ArrayList<>())).add(dataItem);
