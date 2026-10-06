@@ -1,5 +1,7 @@
 #!/bin/bash
 
+case "$1" in
+	superset-proxy)
  		PROP_FILE="/etc/$1.properties"
 	  truncate -s 0 $PROP_FILE
   	echo "..................... Writing to $PROP_FILE: ............... "
@@ -49,6 +51,6 @@
 		exec su -s /bin/sh -c "java -jar '$JAR' $JAVA_OPTS $@" nobody
 		;;
 	*)
-		exec $@
+		exec "$@"
 		;;
 esac

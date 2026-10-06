@@ -24,10 +24,9 @@ RUN --mount=type=cache,target=/root/.m2 mkdir /opt/viz \
   && mv ./target/*-0.0.1-SNAPSHOT.jar /opt/viz \
   && rm -rf *
 
-FROM eclipse-temurin:21-jdk-jammy
+FROM amazoncorretto:21-alpine3.22-jdk
+RUN apk add --no-cache curl && java -version
 WORKDIR /opt/viz
-ENV JAVA_HOME=/opt/java/openjdk
-ENV PATH="${JAVA_HOME}/bin:${PATH}"
 COPY --from=builder /opt/viz ./
 EXPOSE 8762
 CMD ["java","-jar","/opt/viz/api-gateway-0.0.1-SNAPSHOT.jar"]

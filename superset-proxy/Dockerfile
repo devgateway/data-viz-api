@@ -25,13 +25,14 @@ RUN --mount=type=cache,target=/root/.m2 mkdir /opt/viz \
   && rm -rf *
 
 
-FROM eclipse-temurin:21-jdk-jammy AS runtime
+FROM amazoncorretto:21-alpine3.22-jdk AS runtime
+RUN apk add --no-cache bash curl coreutils && java -version
 WORKDIR /opt/viz
-ENV JAVA_HOME=/opt/java/openjdk
-ENV PATH="${JAVA_HOME}/bin:${PATH}"
 COPY --from=compiler /opt/viz ./
 
 COPY entrypoint.sh /opt/viz/
+RUN /bin/bash -n /opt/viz/entrypoint.sh \
+  && su -s /bin/sh -c '"${JAVA_HOME}/bin/java" -version' nobody
 
 EXPOSE 8090
 

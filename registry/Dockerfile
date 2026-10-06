@@ -24,11 +24,9 @@ RUN --mount=type=cache,target=/root/.m2 mkdir /opt/viz \
   && mv ./target/*-0.0.1-SNAPSHOT.jar /opt/viz \
   && rm -rf *
 
-FROM eclipse-temurin:21-jdk-jammy AS registry
+FROM amazoncorretto:21-alpine3.22-jdk AS registry
 WORKDIR /opt/viz
-ENV JAVA_HOME=/opt/java/openjdk
-ENV PATH="${JAVA_HOME}/bin:${PATH}"
 COPY --from=builder /opt/viz ./
-RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
+RUN apk add --no-cache curl && java -version
 EXPOSE 8761
 CMD ["java","-jar","/opt/viz/registry-0.0.1-SNAPSHOT.jar"]

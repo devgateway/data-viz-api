@@ -24,10 +24,9 @@ RUN --mount=type=cache,target=/root/.m2 mkdir /opt/viz \
   && mv ./target/*-0.0.1-SNAPSHOT.jar /opt/viz \
   && rm -rf *
 
-FROM eclipse-temurin:21-jdk-jammy AS api-security
+FROM amazoncorretto:21-alpine3.22-jdk AS api-security
+RUN apk add --no-cache curl && java -version
 WORKDIR /opt/viz
-ENV JAVA_HOME=/opt/java/openjdk
-ENV PATH="${JAVA_HOME}/bin:${PATH}"
 COPY --from=builder /opt/viz ./
 EXPOSE 8763
 CMD ["java","-jar","/opt/viz/api-security-0.0.1-SNAPSHOT.jar"]
