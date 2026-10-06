@@ -1,5 +1,6 @@
 #!/bin/bash
 
+if [ -f "$1-0.0.1-SNAPSHOT.jar" ]; then
  		PROP_FILE="/etc/$1.properties"
 	  truncate -s 0 $PROP_FILE
   	echo "..................... Writing to $PROP_FILE: ............... "
@@ -32,28 +33,19 @@
 		echo "$JAVA_OPTS"
 		echo "--- JAVA_OPTS ---"
 
-		# Find Java executable - eclipse-temurin typically installs at /opt/java/openjdk
-		if [ -z "$JAVA_HOME" ]; then
-			if [ -d "/opt/java/openjdk" ]; then
-				export JAVA_HOME="/opt/java/openjdk"
-			elif [ -f "/usr/lib/jvm/java-21-openjdk-amd64/bin/java" ]; then
-				export JAVA_HOME="/usr/lib/jvm/java-21-openjdk-amd64"
-			else
-				export JAVA_HOME=$(dirname $(dirname $(readlink -f $(which java))))
-			fi
+		JAVA_CMD="${JAVA_HOME:+$JAVA_HOME/bin/java}"
+		if [ -z "$JAVA_CMD" ] || [ ! -x "$JAVA_CMD" ]; then
+			JAVA_CMD=$(command -v java || true)
 		fi
-		export PATH="${JAVA_HOME}/bin:${PATH}"
-		JAVA_CMD="${JAVA_HOME}/bin/java"
-
-		# Ensure java is executable
-		if [ ! -x "$JAVA_CMD" ]; then
-			echo "Error: Java not found at $JAVA_CMD"
+		if [ -z "$JAVA_CMD" ] || [ ! -x "$JAVA_CMD" ]; then
+			echo "Error: No executable Java found. JAVA_HOME='${JAVA_HOME:-unset}', PATH='$PATH'" >&2
 			exit 1
 		fi
+		JAVA_CMD=$(readlink -f "$JAVA_CMD")
+		export JAVA_HOME="$(dirname "$(dirname "$JAVA_CMD")")"
+		export PATH="${JAVA_HOME}/bin:${PATH}"
 
 		exec su -s /bin/sh -c "export JAVA_HOME='$JAVA_HOME' && export PATH='${JAVA_HOME}/bin:${PATH}' && '$JAVA_CMD' -jar '$JAR' $JAVA_OPTS $@" nobody
-		;;
-	*)
-		exec $@
-		;;
-esac
+else
+	exec "$@"
+fi
