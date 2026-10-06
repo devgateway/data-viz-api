@@ -34,11 +34,22 @@ if [ -f "$1-0.0.1-SNAPSHOT.jar" ]; then
 		echo "--- JAVA_OPTS ---"
 
 		JAVA_CMD="${JAVA_HOME:+$JAVA_HOME/bin/java}"
-		if [ -z "$JAVA_CMD" ] || [ ! -x "$JAVA_CMD" ]; then
-			JAVA_CMD=$(command -v java || true)
+		if [ -z "$JAVA_CMD" ] || ! "$JAVA_CMD" -version > /dev/null 2>&1; then
+			JAVA_CMD=""
+			IFS=: read -r -a JAVA_DIRECTORIES <<< "$PATH"
+			for JAVA_DIRECTORY in "${JAVA_DIRECTORIES[@]}"; do
+				JAVA_CANDIDATE="${JAVA_DIRECTORY:-.}/java"
+				if "$JAVA_CANDIDATE" -version > /dev/null 2>&1; then
+					JAVA_CMD="$JAVA_CANDIDATE"
+					break
+				fi
+			done
 		fi
-		if [ -z "$JAVA_CMD" ] || [ ! -x "$JAVA_CMD" ]; then
-			echo "Error: No executable Java found. JAVA_HOME='${JAVA_HOME:-unset}', PATH='$PATH'" >&2
+		if [ -z "$JAVA_CMD" ]; then
+			echo "Error: No runnable Java found. JAVA_HOME='${JAVA_HOME:-unset}', PATH='$PATH'" >&2
+			if [ -n "${JAVA_HOME:-}" ]; then
+				"$JAVA_HOME/bin/java" -version >&2 || true
+			fi
 			exit 1
 		fi
 		JAVA_CMD=$(readlink -f "$JAVA_CMD")
