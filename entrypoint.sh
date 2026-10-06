@@ -56,7 +56,7 @@ if [ -f "$1-0.0.1-SNAPSHOT.jar" ]; then
 		export JAVA_HOME="$(dirname "$(dirname "$JAVA_CMD")")"
 		export PATH="${JAVA_HOME}/bin:${PATH}"
 
-		exec su -s /bin/sh -c "export JAVA_HOME='$JAVA_HOME' && export PATH='${JAVA_HOME}/bin:${PATH}' && '$JAVA_CMD' -jar '$JAR' $JAVA_OPTS $@" nobody
+		exec su -s /bin/sh -c "export JAVA_HOME='$JAVA_HOME' && export PATH='${JAVA_HOME}/bin:${PATH}' && exec '$JAVA_CMD' -jar '$JAR' $JAVA_OPTS $@" nobody
 else
 	exec "$@"
 fi
