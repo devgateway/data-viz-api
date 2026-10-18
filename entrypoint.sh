@@ -1,5 +1,6 @@
 #!/bin/bash
 
+if [[ -f "$1-0.0.1-SNAPSHOT.jar" ]]; then
  		PROP_FILE="/etc/$1.properties"
 	  truncate -s 0 $PROP_FILE
   	echo "..................... Writing to $PROP_FILE: ............... "
@@ -26,34 +27,37 @@
     MODULE="$1"
 		shift
 		JAR="$MODULE-0.0.1-SNAPSHOT.jar"
-		JAVA_OPTS="$JAVA_OPTS --spring.config.location=file://$PROP_FILE"
+		read -r -a java_options <<< "${JAVA_OPTS:-}"
 
 		echo "--- JAVA_OPTS ---"
 		echo "$JAVA_OPTS"
 		echo "--- JAVA_OPTS ---"
 
-		# Find Java executable - eclipse-temurin typically installs at /opt/java/openjdk
-		if [ -z "$JAVA_HOME" ]; then
-			if [ -d "/opt/java/openjdk" ]; then
-				export JAVA_HOME="/opt/java/openjdk"
-			elif [ -f "/usr/lib/jvm/java-21-openjdk-amd64/bin/java" ]; then
-				export JAVA_HOME="/usr/lib/jvm/java-21-openjdk-amd64"
-			else
-				export JAVA_HOME=$(dirname $(dirname $(readlink -f $(which java))))
+		JAVA_CMD=""
+		if [[ -n "${JAVA_HOME:-}" ]] && "$JAVA_HOME/bin/java" -version >/dev/null 2>&1; then
+			JAVA_CMD="$JAVA_HOME/bin/java"
+		else
+			while IFS= read -r java_directory; do
+				java_candidate="${java_directory:-.}/java"
+				if "$java_candidate" -version >/dev/null 2>&1; then
+					JAVA_CMD="$java_candidate"
+					break
+				fi
+			done < <(printf '%s\n' "$PATH" | tr ':' '\n')
+		fi
+
+		if [[ -z "$JAVA_CMD" ]]; then
+			echo "Error: No runnable Java found in JAVA_HOME or PATH" >&2
+			if [[ -n "${JAVA_HOME:-}" ]]; then
+				"$JAVA_HOME/bin/java" -version >&2
 			fi
+			exit 127
 		fi
+
+		JAVA_CMD=$(readlink -f "$JAVA_CMD")
+		export JAVA_HOME=$(dirname "$(dirname "$JAVA_CMD")")
 		export PATH="${JAVA_HOME}/bin:${PATH}"
-		JAVA_CMD="${JAVA_HOME}/bin/java"
-
-		# Ensure java is executable
-		if [ ! -x "$JAVA_CMD" ]; then
-			echo "Error: Java not found at $JAVA_CMD"
-			exit 1
-		fi
-
-		exec su -s /bin/sh -c "export JAVA_HOME='$JAVA_HOME' && export PATH='${JAVA_HOME}/bin:${PATH}' && '$JAVA_CMD' -jar '$JAR' $JAVA_OPTS $@" nobody
-		;;
-	*)
-		exec $@
-		;;
-esac
+		exec su -s /bin/sh -c 'exec "$@"' -- nobody launcher "$JAVA_CMD" "${java_options[@]}" -jar "$JAR" "--spring.config.location=file://$PROP_FILE" "$@"
+else
+		exec "$@"
+fi
