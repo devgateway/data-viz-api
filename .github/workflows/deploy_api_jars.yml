@@ -6,9 +6,14 @@ on:
       - commons/**
     branches:
       - main
+permissions:
+  contents: write
+  pull-requests: write
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
+    # Skip the run caused by merging the release PR, otherwise it would open another one
+    if: ${{ !contains(github.event.head_commit.message, 'release-pom') && !contains(github.event.head_commit.message, '[maven-release-plugin]') }}
 
     steps:
       - name: Checkout code
@@ -68,32 +73,46 @@ jobs:
           fi
 
 
-      - name: Prepare Maven Release
+      - name: Prepare Maven Release on release-pom branch
         if: steps.check_snapshot.outputs.has_snapshot == 'true'
-        run: mvn release:prepare --batch-mode
+        id: release
+        run: |
+          CURRENT_VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
+          VERSION=${CURRENT_VERSION%-SNAPSHOT}
+          IFS='.' read -r major minor patch <<< "$VERSION"
+          NEXT_VERSION="$major.$minor.$((patch + 1))-SNAPSHOT"
+
+          # main is protected, so the release commits go to a branch and are merged through a PR
+          git checkout -B release-pom
+
+          # Nothing is pushed by the plugin: it commits and tags locally only
+          mvn -B release:prepare \
+            -DreleaseVersion=$VERSION \
+            -DdevelopmentVersion=$NEXT_VERSION \
+            -DtagNameFormat=parent-@{project.version} \
+            -DpushChanges=false \
+            -DpreparationGoals="clean verify -Dcheckstyle.skip" \
+            -DskipTests
+
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
 
       - name: Perform Maven Release
         if: steps.check_snapshot.outputs.has_snapshot == 'true'
         run: |
-          # Get current version from pom.xml
-          CURRENT_VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
-          echo "Current version: $CURRENT_VERSION"
-          
-          # Remove -SNAPSHOT and calculate next version
-          VERSION=${CURRENT_VERSION%-SNAPSHOT}
-          IFS='.' read -r major minor patch <<< "$VERSION"
-          NEXT_VERSION="$major.$minor.$((patch + 1))-SNAPSHOT"
-          
-          # Perform release
-          mvn -B release:prepare release:perform \
-            -DreleaseVersion=$VERSION \
-            -DdevelopmentVersion=$NEXT_VERSION \
-            -DtagNameFormat=v@{project.version} \
-            -DpushChanges=true \
+          mvn -B release:perform \
             -DlocalCheckout=true \
-            -DpreparationGoals="clean verify -Dcheckstyle.skip" \
             -Dgoals=deploy \
             -DskipTests
-          
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
-          echo "Released version $VERSION"
+
+      - name: Push release-pom branch and open PR
+        if: steps.check_snapshot.outputs.has_snapshot == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          VERSION=${{ steps.release.outputs.version }}
+          git push --force origin release-pom
+          git push origin "parent-$VERSION"
+          gh pr create --base main --head release-pom \
+            --title "chore: release $VERSION" \
+            --body "Created by the Maven release process: sets the release versions and the next development iteration. Tag \`parent-$VERSION\` has been pushed." \
+            || echo "PR already exists"
