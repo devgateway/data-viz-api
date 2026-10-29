@@ -18,7 +18,7 @@ jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
     # Skip the run caused by merging the release PR, otherwise it would open another one
-    if: ${{ !contains(github.event.head_commit.message, 'release-pom') && !contains(github.event.head_commit.message, '[maven-release-plugin]') && !contains(github.event.head_commit.message, 'chore: release ') }}
+    if: "${{ !contains(github.event.head_commit.message, 'release-pom') && !contains(github.event.head_commit.message, '[maven-release-plugin]') && !contains(github.event.head_commit.message, 'chore: release ') }}"
 
     steps:
       - name: Checkout code
@@ -78,7 +78,7 @@ jobs:
           fi
 
 
-      - name: Check no release is already pending
+      - name: Check for a pending release
         id: check_pending
         if: steps.check_snapshot.outputs.has_snapshot == 'true'
         env:
@@ -86,22 +86,24 @@ jobs:
         run: |
           CURRENT_VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
           VERSION=${CURRENT_VERSION%-SNAPSHOT}
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+          # main keeps the -SNAPSHOT version until the release PR is merged, so a release in flight
+          # shows up as an open release-pom PR or as the parent-<version> tag, never as a new version
           OPEN_PRS=$(gh pr list --base main --head release-pom --state open --json number --jq 'length')
           TAG_EXISTS=$(git ls-remote --tags origin "refs/tags/parent-$VERSION" | wc -l)
 
           if [ "$OPEN_PRS" -gt 0 ] || [ "$TAG_EXISTS" -gt 0 ]; then
             echo "pending=true" >> $GITHUB_OUTPUT
-            echo "A release PR is open or tag parent-$VERSION already exists, skipping release"
+            echo "Release $VERSION is already pending (open PR: $OPEN_PRS, tag exists: $TAG_EXISTS), not preparing another one"
           else
             echo "pending=false" >> $GITHUB_OUTPUT
           fi
 
       - name: Prepare Maven Release on release-pom branch
-        if: steps.check_snapshot.outputs.has_snapshot == 'true' && steps.check_pending.outputs.pending != 'true'
-        id: release
+        if: steps.check_pending.outputs.pending == 'false'
         run: |
-          CURRENT_VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
-          VERSION=${CURRENT_VERSION%-SNAPSHOT}
+          VERSION=${{ steps.check_pending.outputs.version }}
           IFS='.' read -r major minor patch <<< "$VERSION"
           NEXT_VERSION="$major.$minor.$((patch + 1))-SNAPSHOT"
 
@@ -117,25 +119,55 @@ jobs:
             -DpreparationGoals="clean verify -Dcheckstyle.skip" \
             -DskipTests
 
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
-
-      - name: Perform Maven Release
-        if: steps.check_snapshot.outputs.has_snapshot == 'true' && steps.check_pending.outputs.pending != 'true'
-        run: |
-          mvn -B release:perform \
-            -DlocalCheckout=true \
-            -Dgoals=deploy \
-            -DskipTests
-
-      - name: Push release-pom branch and open PR
-        if: steps.check_snapshot.outputs.has_snapshot == 'true' && steps.check_pending.outputs.pending != 'true'
+      # The branch, tag and PR are pushed BEFORE anything is published. From here on a later run
+      # sees the release as pending, so it can never prepare or deploy the same version twice.
+      - name: Push release-pom branch, tag and open PR
+        if: steps.check_pending.outputs.pending == 'false'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          VERSION=${{ steps.release.outputs.version }}
-          git push --force origin release-pom
+          VERSION=${{ steps.check_pending.outputs.version }}
+          git push origin release-pom
           git push origin "parent-$VERSION"
           gh pr create --base main --head release-pom \
             --title "chore: release $VERSION" \
-            --body "Created by the Maven release process: sets the release versions and the next development iteration. Tag \`parent-$VERSION\` has been pushed." \
-            || echo "PR already exists"
+            --body "Created by the Maven release process: sets the release versions and the next development iteration. Tag \`parent-$VERSION\` has been pushed."
+
+      # Deploys the tagged release. It is safe to repeat: each module is only deployed when its
+      # release version is missing from Artifactory, so it also finishes a half-published release.
+      - name: Publish release from tag
+        if: steps.check_pending.outputs.version != ''
+        env:
+          REPO: https://artifactory.dgdev.org/artifactory/data-viz-release-local/org/devgateway/viz/api
+          ARTIFACTORY_USERNAME: ${{ secrets.ARTIFACTORY_USERNAME }}
+          ARTIFACTORY_PASSWORD: ${{ secrets.ARTIFACTORY_PASSWORD }}
+        run: |
+          TAG="parent-${{ steps.check_pending.outputs.version }}"
+
+          if ! git ls-remote --exit-code --tags origin "refs/tags/$TAG" > /dev/null; then
+            echo "Tag $TAG does not exist yet, nothing to publish"
+            exit 0
+          fi
+
+          git fetch origin "refs/tags/$TAG:refs/tags/$TAG"
+          git checkout --detach "$TAG"
+
+          published() {
+            CODE=$(curl -s -o /dev/null -w '%{http_code}' -u "$ARTIFACTORY_USERNAME:$ARTIFACTORY_PASSWORD" "$REPO/$1/$2/$1-$2.pom")
+            [ "$CODE" = "200" ]
+          }
+
+          PARENT_VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout -N)
+          COMMONS_VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout -f commons/pom.xml)
+
+          if published parent "$PARENT_VERSION"; then
+            echo "parent $PARENT_VERSION already published"
+          else
+            mvn -B -N clean deploy -DskipTests
+          fi
+
+          if published commons "$COMMONS_VERSION"; then
+            echo "commons $COMMONS_VERSION already published"
+          else
+            mvn -B -f commons/pom.xml clean deploy -DskipTests
+          fi
