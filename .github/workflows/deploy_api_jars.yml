@@ -9,6 +9,11 @@ on:
 permissions:
   contents: write
   pull-requests: write
+# One release at a time: runs share the release-pom branch and the parent-<version> tag.
+# Never cancel an in-flight run, a half-finished release would leave artifacts published without a tag/PR.
+concurrency:
+  group: deploy-api-jars
+  cancel-in-progress: false
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
@@ -73,8 +78,26 @@ jobs:
           fi
 
 
-      - name: Prepare Maven Release on release-pom branch
+      - name: Check no release is already pending
+        id: check_pending
         if: steps.check_snapshot.outputs.has_snapshot == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          CURRENT_VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
+          VERSION=${CURRENT_VERSION%-SNAPSHOT}
+          OPEN_PRS=$(gh pr list --base main --head release-pom --state open --json number --jq 'length')
+          TAG_EXISTS=$(git ls-remote --tags origin "refs/tags/parent-$VERSION" | wc -l)
+
+          if [ "$OPEN_PRS" -gt 0 ] || [ "$TAG_EXISTS" -gt 0 ]; then
+            echo "pending=true" >> $GITHUB_OUTPUT
+            echo "A release PR is open or tag parent-$VERSION already exists, skipping release"
+          else
+            echo "pending=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Prepare Maven Release on release-pom branch
+        if: steps.check_snapshot.outputs.has_snapshot == 'true' && steps.check_pending.outputs.pending != 'true'
         id: release
         run: |
           CURRENT_VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
@@ -97,7 +120,7 @@ jobs:
           echo "version=$VERSION" >> $GITHUB_OUTPUT
 
       - name: Perform Maven Release
-        if: steps.check_snapshot.outputs.has_snapshot == 'true'
+        if: steps.check_snapshot.outputs.has_snapshot == 'true' && steps.check_pending.outputs.pending != 'true'
         run: |
           mvn -B release:perform \
             -DlocalCheckout=true \
@@ -105,7 +128,7 @@ jobs:
             -DskipTests
 
       - name: Push release-pom branch and open PR
-        if: steps.check_snapshot.outputs.has_snapshot == 'true'
+        if: steps.check_snapshot.outputs.has_snapshot == 'true' && steps.check_pending.outputs.pending != 'true'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
