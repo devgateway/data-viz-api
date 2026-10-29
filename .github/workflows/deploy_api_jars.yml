@@ -81,27 +81,18 @@ jobs:
       - name: Check for a pending release
         id: check_pending
         if: steps.check_snapshot.outputs.has_snapshot == 'true'
-        env:
-          GH_TOKEN: ${{ github.token }}
         run: |
           CURRENT_VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
           VERSION=${CURRENT_VERSION%-SNAPSHOT}
           echo "version=$VERSION" >> $GITHUB_OUTPUT
 
-          # main keeps the -SNAPSHOT version until the release PR is merged, so a release in flight
-          # shows up as an open release-pom PR or as the parent-<version> tag, never as a new version
-          OPEN_PRS=$(gh pr list --base main --head release-pom --state open --json number --jq 'length')
+          # main keeps the -SNAPSHOT version until the release PR is merged, so the
+          # parent-<version> tag is the one marker of "already prepared" for this version
           TAG_EXISTS=$(git ls-remote --tags origin "refs/tags/parent-$VERSION" | wc -l)
-
-          if [ "$OPEN_PRS" -gt 0 ] || [ "$TAG_EXISTS" -gt 0 ]; then
-            echo "pending=true" >> $GITHUB_OUTPUT
-            echo "Release $VERSION is already pending (open PR: $OPEN_PRS, tag exists: $TAG_EXISTS), not preparing another one"
-          else
-            echo "pending=false" >> $GITHUB_OUTPUT
-          fi
+          echo "tag_exists=$TAG_EXISTS" >> $GITHUB_OUTPUT
 
       - name: Prepare Maven Release on release-pom branch
-        if: steps.check_pending.outputs.pending == 'false'
+        if: steps.check_pending.outputs.tag_exists == '0'
         run: |
           VERSION=${{ steps.check_pending.outputs.version }}
           IFS='.' read -r major minor patch <<< "$VERSION"
@@ -119,26 +110,35 @@ jobs:
             -DpreparationGoals="clean verify -Dcheckstyle.skip" \
             -DskipTests
 
-      # The branch, tag and PR are pushed BEFORE anything is published. From here on a later run
-      # sees the release as pending, so it can never prepare or deploy the same version twice.
-      - name: Push release-pom branch, tag and open PR
-        if: steps.check_pending.outputs.pending == 'false'
+      # Pushed as one atomic update: if either ref is rejected, neither lands, so a
+      # failure here never leaves a branch or tag behind with nothing to show for it.
+      - name: Push release-pom branch and tag
+        if: steps.check_pending.outputs.tag_exists == '0'
+        run: |
+          VERSION=${{ steps.check_pending.outputs.version }}
+          git push --atomic origin release-pom "refs/tags/parent-$VERSION"
+
+      # Runs whenever a release is in flight, whether the tag was just pushed above or
+      # already existed from an earlier run, so a PR that previously failed to open is
+      # retried here instead of leaving the release stranded with no path back to main.
+      - name: Ensure release PR exists
+        if: steps.check_pending.outputs.version != ''
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           VERSION=${{ steps.check_pending.outputs.version }}
-          git push origin release-pom
-          git push origin "parent-$VERSION"
-          gh pr create --base main --head release-pom \
-            --title "chore: release $VERSION" \
-            --body "Created by the Maven release process: sets the release versions and the next development iteration. Tag \`parent-$VERSION\` has been pushed."
+          OPEN_PRS=$(gh pr list --base main --head release-pom --state open --json number --jq 'length')
+          if [ "$OPEN_PRS" -eq 0 ]; then
+            gh pr create --base main --head release-pom \
+              --title "chore: release $VERSION" \
+              --body "Created by the Maven release process: sets the release versions and the next development iteration. Tag \`parent-$VERSION\` has been pushed."
+          fi
 
       # Deploys the tagged release. It is safe to repeat: each module is only deployed when its
       # release version is missing from Artifactory, so it also finishes a half-published release.
       - name: Publish release from tag
         if: steps.check_pending.outputs.version != ''
         env:
-          REPO: https://artifactory.dgdev.org/artifactory/data-viz-release-local/org/devgateway/viz/api
           ARTIFACTORY_USERNAME: ${{ secrets.ARTIFACTORY_USERNAME }}
           ARTIFACTORY_PASSWORD: ${{ secrets.ARTIFACTORY_PASSWORD }}
         run: |
@@ -151,6 +151,12 @@ jobs:
 
           git fetch origin "refs/tags/$TAG:refs/tags/$TAG"
           git checkout --detach "$TAG"
+
+          # Derived from the POM's own distributionManagement instead of hardcoded in the
+          # workflow, so the release host/path has exactly one source of truth.
+          REPO_BASE=$(mvn help:evaluate -Dexpression=project.distributionManagement.repository.url -q -DforceStdout -N)
+          GROUP_PATH=$(mvn help:evaluate -Dexpression=project.groupId -q -DforceStdout -N | tr '.' '/')
+          REPO="$REPO_BASE/$GROUP_PATH"
 
           published() {
             CODE=$(curl -s -o /dev/null -w '%{http_code}' -u "$ARTIFACTORY_USERNAME:$ARTIFACTORY_PASSWORD" "$REPO/$1/$2/$1-$2.pom")
