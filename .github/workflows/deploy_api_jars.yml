@@ -98,13 +98,24 @@ jobs:
           IFS='.' read -r major minor patch <<< "$VERSION"
           NEXT_VERSION="$major.$minor.$((patch + 1))-SNAPSHOT"
 
+          # commons is versioned independently of the parent, so it gets its own release/next versions
+          COMMONS_CURRENT=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout -f commons/pom.xml)
+          COMMONS_VERSION=${COMMONS_CURRENT%-SNAPSHOT}
+          IFS='.' read -r cmajor cminor cpatch <<< "$COMMONS_VERSION"
+          COMMONS_NEXT_VERSION="$cmajor.$cminor.$((cpatch + 1))-SNAPSHOT"
+          echo "parent: $VERSION -> $NEXT_VERSION, commons: $COMMONS_VERSION -> $COMMONS_NEXT_VERSION"
+
           # main is protected, so the release commits go to a branch and are merged through a PR
           git checkout -B release-pom
 
-          # Nothing is pushed by the plugin: it commits and tags locally only
+          # Nothing is pushed by the plugin: it commits and tags locally only.
+          # The reactor includes commons, so both modules are released in the same commit and tag.
           mvn -B release:prepare \
-            -DreleaseVersion=$VERSION \
-            -DdevelopmentVersion=$NEXT_VERSION \
+            -DautoVersionSubmodules=false \
+            -Dproject.rel.org.devgateway.viz.api:parent=$VERSION \
+            -Dproject.dev.org.devgateway.viz.api:parent=$NEXT_VERSION \
+            -Dproject.rel.org.devgateway.viz.api:commons=$COMMONS_VERSION \
+            -Dproject.dev.org.devgateway.viz.api:commons=$COMMONS_NEXT_VERSION \
             -DtagNameFormat=parent-@{project.version} \
             -DpushChanges=false \
             -DpreparationGoals="clean verify -Dcheckstyle.skip" \
@@ -116,7 +127,9 @@ jobs:
         if: steps.check_pending.outputs.tag_exists == '0'
         run: |
           VERSION=${{ steps.check_pending.outputs.version }}
-          git push --atomic origin release-pom "refs/tags/parent-$VERSION"
+          # release-pom is force-pushed (+) so a stale branch from an earlier release is overwritten;
+          # the tag is not forced, so an existing tag still rejects the push
+          git push --atomic origin +release-pom "refs/tags/parent-$VERSION"
 
       # Runs whenever a release is in flight, whether the tag was just pushed above or
       # already existed from an earlier run, so a PR that previously failed to open is
